@@ -10,6 +10,7 @@ import {
   CalendarCheck,
   CalendarRange,
   Clock,
+  ListChecks,
   Banknote,
   FolderOpen,
   LogOut,
@@ -30,7 +31,8 @@ export default function Sidebar({ role }: { role: string }) {
     { href: '/employees', icon: Users, label: 'employees', show: isManager || role === 'HR_ADMIN' },
     { href: '/leave', icon: CalendarCheck, label: 'myLeaves', show: isEmployee || isManager },
     { href: '/manager/leaves', icon: CalendarRange, label: 'leaveRequests', show: isManager },
-    { href: '/attendance', icon: Clock, label: 'attendance', show: false },
+    { href: '/attendance', icon: Clock, label: 'attendance', show: isEmployee || isManager },
+    { href: '/manager/attendance', icon: ListChecks, label: 'managerAttendance', show: isManager },
     { href: '/payroll', icon: Banknote, label: 'payroll', show: false },
     { href: '/documents', icon: FolderOpen, label: 'documents', show: false },
   ].filter((item) => item.show)

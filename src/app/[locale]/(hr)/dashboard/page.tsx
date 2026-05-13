@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import { db } from '@/lib/db'
+import { getTodayUaeDate } from '@/lib/schedule'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 import { Users, CalendarCheck, Clock, Plus } from 'lucide-react'
@@ -11,9 +12,15 @@ export default async function DashboardPage() {
   const t = await getTranslations('dashboard')
   const te = await getTranslations('empty')
 
-  const [totalEmployees] = await Promise.all([
+  const today = getTodayUaeDate()
+  const [totalEmployees, todayRecords] = await Promise.all([
     db.employee.count({ where: { isActive: true } }),
+    db.attendanceRecord.findMany({
+      where: { date: today, checkIn: { not: null } },
+    }),
   ])
+
+  const presentCount = todayRecords.length
 
   return (
     <div className="space-y-6">
@@ -58,7 +65,7 @@ export default async function DashboardPage() {
             <Clock className="h-4 w-4 text-zinc-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{presentCount}</div>
             <p className="text-xs text-zinc-500">{t('present')}</p>
           </CardContent>
         </Card>
