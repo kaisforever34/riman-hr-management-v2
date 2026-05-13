@@ -1,8 +1,16 @@
 # Phase 2 — Leave Management Design
 
 **Date:** 2026-05-14
-**Project:** Riman HR Management
+**Project:** Riman HR Management — Riman Fashion
 **Phase:** 2 of 6 (Leave Management)
+
+---
+
+**Riman Fashion**  
+Sheikh Mohammed Bin Sultan Al Qasimi Street, Al Jazzat, Al Riqah, Sharjah, UAE  
+Phone: +971 508084592 | +971 553730792
+
+---
 
 ## Overview
 
@@ -144,3 +152,8 @@ New translation keys under `leave`, `managerLeaves`, `leaveTypes` namespaces —
 - Leave policy engine (blackout dates, minimum notice, max consecutive)
 - Excel/PDF export
 - Approval delegation
+
+---
+
+**Riman Fashion** — Sheikh Mohammed Bin Sultan Al Qasimi Street, Al Jazzat, Al Riqah, Sharjah, UAE  
+Phone: +971 508084592 | +971 553730792
