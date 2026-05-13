@@ -15,6 +15,7 @@
     "attendance": "الحضور",
     "managerAttendance": "نظرة عامة على الحضور",
     "payroll": "الرواتب",
+    "performance": "الأداء",
     "documents": "المستندات",
     "signOut": "تسجيل الخروج"
   },
@@ -301,6 +302,109 @@
     "totalDeductions": "إجمالي الخصومات",
     "total": "الإجمالي",
     "noPayslips": "لا توجد قسائم رواتب لهذه الفترة"
+  },
+  "documents": {
+    "title": "المستندات",
+    "employeeDocuments": "مستندات الموظفين",
+    "companyDocuments": "مستندات الشركة",
+    "selectEmployee": "اختر الموظف",
+    "allEmployees": "جميع الموظفين",
+    "upload": "رفع",
+    "uploadEmployee": "رفع مستند موظف",
+    "uploadCompany": "رفع مستند شركة",
+    "category": "التصنيف",
+    "fileName": "اسم الملف",
+    "fileSize": "الحجم",
+    "uploadedAt": "تاريخ الرفع",
+    "notes": "ملاحظات",
+    "title_label": "العنوان",
+    "noDocuments": "لا توجد مستندات بعد",
+    "noDocumentsDesc": "قم برفع أول مستند للبدء.",
+    "categories": {
+      "CONTRACT": "عقد",
+      "PASSPORT": "جواز سفر",
+      "VISA": "فيزا",
+      "ID_CARD": "بطاقة هوية",
+      "CERTIFICATE": "شهادة",
+      "EDUCATION": "مؤهل دراسي",
+      "MEDICAL": "طبي",
+      "OTHER": "أخرى",
+      "POLICY": "سياسة",
+      "FORM": "نموذج",
+      "TEMPLATE": "قالب",
+      "REPORT": "تقرير"
+    },
+    "deleteConfirm": "هل أنت متأكد من حذف هذا المستند؟",
+    "delete": "حذف",
+    "cancel": "إلغاء",
+    "success": {
+      "uploaded": "تم رفع المستند بنجاح",
+      "deleted": "تم حذف المستند"
+    },
+    "errors": {
+      "uploadFailed": "فشل رفع المستند",
+      "deleteFailed": "فشل حذف المستند",
+      "fileRequired": "الملف مطلوب",
+      "invalidFile": "ملف غير صالح (الحد الأقصى 10 ميجابايت، PDF/JPG/PNG/DOC/DOCX فقط)"
+    }
+  },
+  "performance": {
+    "title": "تقييم الأداء",
+    "newReview": "تقييم جديد",
+    "reviewDetail": "تفاصيل التقييم",
+    "employee": "الموظف",
+    "department": "القسم",
+    "year": "السنة",
+    "quarter": "الربع",
+    "overallRating": "التقييم العام",
+    "status": "الحالة",
+    "comments": "ملاحظات",
+    "bonusRecommendation": "مكافأة مقترحة (درهم)",
+    "ratings": "التقييمات",
+    "goals": "الأهداف",
+    "goalDescription": "وصف الهدف",
+    "targetDate": "تاريخ الاستهداف",
+    "addGoal": "إضافة هدف",
+    "removeGoal": "إزالة",
+    "addCriteria": "إضافة معيار",
+    "removeCriteria": "إزالة",
+    "criteria": "المعيار",
+    "customCriteria": "معيار مخصص",
+    "rating": "التقييم",
+    "comment": "تعليق",
+    "noReviews": "لا توجد تقييمات بعد",
+    "noReviewsDesc": "قم بإنشاء أول تقييم أداء للبدء.",
+    "deleteConfirm": "هل أنت متأكد من حذف هذا التقييم؟",
+    "filterEmployee": "تصفية حسب الموظف",
+    "filterQuarter": "تصفية حسب الربع",
+    "filterYear": "تصفية حسب السنة",
+    "filterStatus": "تصفية حسب الحالة",
+    "allEmployees": "جميع الموظفين",
+    "allQuarters": "جميع الأرباع",
+    "allYears": "جميع السنوات",
+    "allStatuses": "جميع الحالات",
+    "q1": "الربع الأول",
+    "q2": "الربع الثاني",
+    "q3": "الربع الثالث",
+    "q4": "الربع الرابع",
+    "ratingValues": {
+      "EXCEEDS": "يفوق التوقعات",
+      "MEETS": "يلبي التوقعات",
+      "BELOW": "دون التوقعات"
+    },
+    "statusValues": {
+      "DRAFT": "مسودة",
+      "COMPLETED": "مكتمل"
+    },
+    "success": {
+      "created": "تم إنشاء التقييم بنجاح",
+      "deleted": "تم حذف التقييم"
+    },
+    "errors": {
+      "createFailed": "فشل إنشاء التقييم",
+      "deleteFailed": "فشل حذف التقييم",
+      "alreadyExists": "يوجد تقييم لهذا الموظف في هذه الفترة بالفعل"
+    }
   },
   "common": {
     "loading": "جاري التحميل...",
