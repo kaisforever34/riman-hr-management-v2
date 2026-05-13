@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Users,
   CalendarCheck,
+  CalendarRange,
   Clock,
   Banknote,
   FolderOpen,
@@ -16,19 +17,23 @@ import {
 import { Button } from '@/components/ui/button'
 import { signOut } from 'next-auth/react'
 
-const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'dashboard' },
-  { href: '/employees', icon: Users, label: 'employees' },
-  { href: '/leave-requests', icon: CalendarCheck, label: 'leaveRequests' },
-  { href: '/attendance', icon: Clock, label: 'attendance' },
-  { href: '/payroll', icon: Banknote, label: 'payroll' },
-  { href: '/documents', icon: FolderOpen, label: 'documents' },
-] as const
-
-export default function Sidebar() {
+export default function Sidebar({ role }: { role: string }) {
   const pathname = usePathname()
   const { locale } = useParams<{ locale: string }>()
   const t = useTranslations('nav')
+
+  const isManager = role === 'MANAGER'
+  const isEmployee = role === 'EMPLOYEE'
+
+  const navItems = [
+    { href: '/dashboard', icon: LayoutDashboard, label: 'dashboard', show: true },
+    { href: '/employees', icon: Users, label: 'employees', show: isManager || role === 'HR_ADMIN' },
+    { href: '/leave', icon: CalendarCheck, label: 'myLeaves', show: isEmployee || isManager },
+    { href: '/manager/leaves', icon: CalendarRange, label: 'leaveRequests', show: isManager },
+    { href: '/attendance', icon: Clock, label: 'attendance', show: false },
+    { href: '/payroll', icon: Banknote, label: 'payroll', show: false },
+    { href: '/documents', icon: FolderOpen, label: 'documents', show: false },
+  ].filter((item) => item.show)
 
   return (
     <aside className="fixed inset-y-0 start-0 z-20 hidden w-64 flex-col border-e bg-white lg:flex">
