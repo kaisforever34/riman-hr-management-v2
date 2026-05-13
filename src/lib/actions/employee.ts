@@ -60,7 +60,7 @@ export async function createEmployee(formData: FormData) {
         },
       },
     })
-  } catch (e) {
+  } catch {
     return { error: 'Something went wrong. Please try again.', fieldErrors: {} }
   }
 

@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,18 +19,10 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { employeeFormSchema, type EmployeeFormData, departments, maritalStatuses, countries } from '@/lib/validations/employee'
 import { createEmployee } from '@/lib/actions/employee'
-import { toast } from 'sonner'
 import { ArrowLeft, ChevronDown, ChevronUp, Save } from 'lucide-react'
 import Link from 'next/link'
 
-const sections = [
-  { key: 'personal', label: 'personalInfo' },
-  { key: 'job', label: 'jobDetails' },
-  { key: 'bank', label: 'bankDetails' },
-  { key: 'emergency', label: 'emergencyContact' },
-] as const
-
-type SectionKey = (typeof sections)[number]['key']
+type SectionKey = 'personal' | 'job' | 'bank' | 'emergency'
 
 function generateEmployeeCode() {
   const num = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
@@ -41,7 +33,6 @@ export default function AddEmployeePage() {
   const t = useTranslations('employeesAdd')
   const tc = useTranslations('common')
   const { locale } = useParams<{ locale: string }>()
-  const router = useRouter()
   const [expandedSections, setExpandedSections] = useState<Set<SectionKey>>(
     new Set(['personal', 'job'])
   )
@@ -96,11 +87,12 @@ export default function AddEmployeePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/${locale}/employees`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
+        <Link
+          href={`/${locale}/employees`}
+          className={buttonVariants({ variant: 'ghost', size: 'icon' })}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
         <div>
           <h1 className="text-2xl font-bold">{t('title')}</h1>
         </div>
@@ -157,7 +149,7 @@ export default function AddEmployeePage() {
                 </div>
                 <div className="space-y-2">
                   <Label>{t('nationality')} *</Label>
-                  <Select onValueChange={(v) => setValue('nationality', v)} value={watch('nationality')} disabled={loading}>
+                  <Select onValueChange={(v) => setValue('nationality', v ?? '')} value={watch('nationality')} disabled={loading}>
                     <SelectTrigger><SelectValue placeholder={t('nationality')} /></SelectTrigger>
                     <SelectContent>
                       {countries.map((c) => <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>)}
@@ -167,7 +159,7 @@ export default function AddEmployeePage() {
                 </div>
                 <div className="space-y-2">
                   <Label>{t('maritalStatus')}</Label>
-                  <Select onValueChange={(v) => setValue('maritalStatus', v)} value={watch('maritalStatus')} disabled={loading}>
+                  <Select onValueChange={(v) => setValue('maritalStatus', v ?? undefined)} value={watch('maritalStatus')} disabled={loading}>
                     <SelectTrigger><SelectValue placeholder={t('maritalStatus')} /></SelectTrigger>
                     <SelectContent>
                       {maritalStatuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -204,7 +196,7 @@ export default function AddEmployeePage() {
                 </div>
                 <div className="space-y-2">
                   <Label>{t('department')} *</Label>
-                  <Select onValueChange={(v) => setValue('department', v)} value={watch('department')} disabled={loading}>
+                  <Select onValueChange={(v) => setValue('department', v ?? '')} value={watch('department')} disabled={loading}>
                     <SelectTrigger><SelectValue placeholder={t('department')} /></SelectTrigger>
                     <SelectContent>
                       {departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
@@ -224,7 +216,7 @@ export default function AddEmployeePage() {
                 </div>
                 <div className="space-y-2">
                   <Label>{t('role')} *</Label>
-                  <Select onValueChange={(v) => setValue('role', v as 'HR_ADMIN' | 'MANAGER' | 'EMPLOYEE')} value={watch('role')} disabled={loading}>
+                  <Select onValueChange={(v) => setValue('role', (v ?? 'EMPLOYEE') as 'HR_ADMIN' | 'MANAGER' | 'EMPLOYEE')} value={watch('role')} disabled={loading}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="EMPLOYEE">Employee</SelectItem>
@@ -301,9 +293,12 @@ export default function AddEmployeePage() {
         </Card>
 
         <div className="flex justify-end gap-2">
-          <Button variant="outline" type="button" asChild>
-            <Link href={`/${locale}/employees`}>{tc('cancel')}</Link>
-          </Button>
+          <Link
+            href={`/${locale}/employees`}
+            className={buttonVariants({ variant: 'outline' })}
+          >
+            {tc('cancel')}
+          </Link>
           <Button type="submit" disabled={loading}>
             {loading ? t('saving') : <><Save className="me-2 h-4 w-4" />{t('save')}</>}
           </Button>

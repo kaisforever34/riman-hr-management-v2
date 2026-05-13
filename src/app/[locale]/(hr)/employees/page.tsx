@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import { db } from '@/lib/db'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -56,12 +56,13 @@ export default async function EmployeesPage(props: {
         <div>
           <h1 className="text-2xl font-bold">{t('title')}</h1>
         </div>
-        <Button asChild>
-          <Link href="employees/new">
-            <Plus className="me-2 h-4 w-4" />
-            {t('addEmployee')}
-          </Link>
-        </Button>
+        <Link
+          href="employees/new"
+          className={buttonVariants()}
+        >
+          <Plus className="me-2 h-4 w-4" />
+          {t('addEmployee')}
+        </Link>
       </div>
 
       {totalCount > 0 && (
@@ -77,12 +78,13 @@ export default async function EmployeesPage(props: {
             <Users className="mb-4 h-12 w-12 text-zinc-400" />
             <h3 className="text-lg font-medium">{te('noEmployees.title')}</h3>
             <p className="text-sm text-zinc-500">{te('noEmployees.description')}</p>
-            <Button asChild className="mt-4">
-              <Link href="employees/new">
-                <Plus className="me-2 h-4 w-4" />
-                {te('noEmployees.cta')}
-              </Link>
-            </Button>
+            <Link
+              href="employees/new"
+              className={buttonVariants({ className: "mt-4" })}
+            >
+              <Plus className="me-2 h-4 w-4" />
+              {te('noEmployees.cta')}
+            </Link>
           </CardContent>
         </Card>
       ) : employees.length === 0 && q ? (
@@ -127,17 +129,19 @@ export default async function EmployeesPage(props: {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           {page > 1 && (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`?page=${page - 1}${q ? `&q=${q}` : ''}`}>Previous</Link>
-            </Button>
+            <Link
+              href={`?page=${page - 1}${q ? `&q=${q}` : ''}`}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >Previous</Link>
           )}
           <span className="text-sm text-zinc-500">
             {t('page')} {page} {t('of')} {totalPages}
           </span>
           {page < totalPages && (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`?page=${page + 1}${q ? `&q=${q}` : ''}`}>Next</Link>
-            </Button>
+            <Link
+              href={`?page=${page + 1}${q ? `&q=${q}` : ''}`}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >Next</Link>
           )}
         </div>
       )}

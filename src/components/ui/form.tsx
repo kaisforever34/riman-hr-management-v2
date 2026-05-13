@@ -32,7 +32,6 @@ const FormField = ({
     <FormFieldContext.Provider value={{ name }}>
       <Controller
         name={name}
-        render={() => <></>}
         {...props}
       />
     </FormFieldContext.Provider>

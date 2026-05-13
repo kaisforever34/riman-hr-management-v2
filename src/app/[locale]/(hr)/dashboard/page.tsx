@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import { db } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { Users, CalendarCheck, Clock, Plus } from 'lucide-react'
 import Link from 'next/link'
 
@@ -70,22 +70,24 @@ export default async function DashboardPage() {
             <Users className="mb-4 h-12 w-12 text-zinc-400" />
             <h3 className="text-lg font-medium">{te('noEmployees.title')}</h3>
             <p className="text-sm text-zinc-500">{te('noEmployees.description')}</p>
-            <Button asChild className="mt-4">
-              <Link href="employees/new">
-                <Plus className="me-2 h-4 w-4" />
-                {te('noEmployees.cta')}
-              </Link>
-            </Button>
+            <Link
+              href="employees/new"
+              className={buttonVariants({ className: "mt-4" })}
+            >
+              <Plus className="me-2 h-4 w-4" />
+              {te('noEmployees.cta')}
+            </Link>
           </CardContent>
         </Card>
       ) : (
         <div className="flex justify-end">
-          <Button asChild>
-            <Link href="employees/new">
-              <Plus className="me-2 h-4 w-4" />
-              {t('addEmployee')}
-            </Link>
-          </Button>
+          <Link
+            href="employees/new"
+            className={buttonVariants()}
+          >
+            <Plus className="me-2 h-4 w-4" />
+            {t('addEmployee')}
+          </Link>
         </div>
       )}
     </div>
