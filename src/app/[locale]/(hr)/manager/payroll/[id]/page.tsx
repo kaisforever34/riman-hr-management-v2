@@ -1,4 +1,3 @@
-import { getTranslations } from 'next-intl/server'
 import { auth } from '@/lib/auth'
 import { getPayrollPeriod } from '@/lib/queries/payroll'
 import { PeriodClient } from './period-client'

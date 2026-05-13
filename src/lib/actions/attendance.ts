@@ -1,11 +1,10 @@
 'use server'
 
 import { db } from '@/lib/db'
-import { checkInSchema, manualCheckInSchema, checkOutSchema, managerOverrideSchema } from '@/lib/validations/attendance'
+import { manualCheckInSchema, managerOverrideSchema } from '@/lib/validations/attendance'
 import { auth } from '@/lib/auth'
 import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes } from '@/lib/schedule'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 
 export async function checkIn() {
   const session = await auth()
