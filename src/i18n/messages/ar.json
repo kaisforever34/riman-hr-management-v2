@@ -251,6 +251,57 @@
       "overrideFailed": "فشل تحديث سجل الحضور"
     }
   },
+  "payroll": {
+    "title": "الرواتب",
+    "periods": "فترات الرواتب",
+    "newPeriod": "فترة رواتب جديدة",
+    "selectMonth": "اختر الشهر",
+    "selectYear": "اختر السنة",
+    "process": "معالجة الشهر",
+    "processing": "جاري المعالجة...",
+    "status": "الحالة",
+    "draft": "مسودة",
+    "finalized": "مؤكدة",
+    "employees": "الموظفين",
+    "totalNetPay": "إجمالي صافي الراتب",
+    "noPeriods": "لا توجد فترات رواتب بعد",
+    "noPeriodsDesc": "قم بمعالجة أول شهر رواتب للبدء.",
+    "periodExists": "فترة الرواتب لهذا الشهر موجودة بالفعل",
+    "noEmployees": "لا يوجد موظفين نشطين براتب",
+    "success": {
+      "created": "تم إنشاء فترة الرواتب",
+      "finalized": "تم تأكيد الرواتب"
+    },
+    "errors": {
+      "createFailed": "فشل إنشاء فترة الرواتب",
+      "finalizeFailed": "فشل تأكيد الرواتب",
+      "recalculateFailed": "فشل إعادة الحساب"
+    }
+  },
+  "managerPayroll": {
+    "title": "فترة الرواتب",
+    "recalculate": "إعادة الحساب من الحضور",
+    "finalize": "تأكيد",
+    "finalizeConfirm": "هل أنت متأكد؟ سيؤدي هذا إلى قفل جميع قسائم الرواتب.",
+    "confirm": "تأكيد",
+    "cancel": "إلغاء",
+    "employee": "الموظف",
+    "department": "القسم",
+    "basicSalary": "الراتب الأساسي",
+    "transportDeduction": "خصم المواصلات",
+    "absenceDeduction": "خصم الغياب",
+    "lateDeduction": "خصم التأخير",
+    "netPay": "صافي الراتب",
+    "editLateDeduction": "تعديل خصم التأخير",
+    "saveLateDeduction": "حفظ",
+    "payslipDetail": "تفاصيل قسيمة الراتب",
+    "period": "الفترة",
+    "jobTitle": "المسمى الوظيفي",
+    "summary": "الملخص",
+    "totalDeductions": "إجمالي الخصومات",
+    "total": "الإجمالي",
+    "noPayslips": "لا توجد قسائم رواتب لهذه الفترة"
+  },
   "common": {
     "loading": "جاري التحميل...",
     "error": "حدث خطأ ما",

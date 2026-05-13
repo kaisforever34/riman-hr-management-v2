@@ -251,6 +251,57 @@
       "overrideFailed": "Failed to update attendance record"
     }
   },
+  "payroll": {
+    "title": "Payroll",
+    "periods": "Payroll Periods",
+    "newPeriod": "New Payroll Period",
+    "selectMonth": "Select Month",
+    "selectYear": "Select Year",
+    "process": "Process Month",
+    "processing": "Processing...",
+    "status": "Status",
+    "draft": "Draft",
+    "finalized": "Finalized",
+    "employees": "Employees",
+    "totalNetPay": "Total Net Pay",
+    "noPeriods": "No payroll periods yet",
+    "noPeriodsDesc": "Process your first payroll month to get started.",
+    "periodExists": "Payroll period already exists for this month",
+    "noEmployees": "No active employees with salary",
+    "success": {
+      "created": "Payroll period created",
+      "finalized": "Payroll finalized"
+    },
+    "errors": {
+      "createFailed": "Failed to create payroll period",
+      "finalizeFailed": "Failed to finalize payroll",
+      "recalculateFailed": "Failed to recalculate"
+    }
+  },
+  "managerPayroll": {
+    "title": "Payroll Period",
+    "recalculate": "Recalculate from Attendance",
+    "finalize": "Finalize",
+    "finalizeConfirm": "Are you sure? This will lock all payslips.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "employee": "Employee",
+    "department": "Department",
+    "basicSalary": "Basic Salary",
+    "transportDeduction": "Transport Deduction",
+    "absenceDeduction": "Absence Deduction",
+    "lateDeduction": "Late Deduction",
+    "netPay": "Net Pay",
+    "editLateDeduction": "Edit Late Deduction",
+    "saveLateDeduction": "Save",
+    "payslipDetail": "Payslip Detail",
+    "period": "Period",
+    "jobTitle": "Job Title",
+    "summary": "Summary",
+    "totalDeductions": "Total Deductions",
+    "total": "Total",
+    "noPayslips": "No payslips for this period"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
