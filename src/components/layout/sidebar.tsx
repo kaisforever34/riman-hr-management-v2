@@ -13,6 +13,7 @@ import {
   ListChecks,
   Banknote,
   FolderOpen,
+  BarChart3,
   LogOut,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -34,7 +35,8 @@ export default function Sidebar({ role }: { role: string }) {
     { href: '/attendance', icon: Clock, label: 'attendance', show: isEmployee || isManager },
     { href: '/manager/attendance', icon: ListChecks, label: 'managerAttendance', show: isManager },
     { href: '/manager/payroll', icon: Banknote, label: 'payroll', show: role === 'MANAGER' },
-    { href: '/documents', icon: FolderOpen, label: 'documents', show: false },
+    { href: '/manager/performance', icon: BarChart3, label: 'performance', show: role === 'MANAGER' },
+    { href: '/manager/documents', icon: FolderOpen, label: 'documents', show: role === 'MANAGER' },
   ].filter((item) => item.show)
 
   return (
