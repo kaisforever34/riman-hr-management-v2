@@ -33,7 +33,7 @@ export default function Sidebar({ role }: { role: string }) {
     { href: '/manager/leaves', icon: CalendarRange, label: 'leaveRequests', show: isManager },
     { href: '/attendance', icon: Clock, label: 'attendance', show: isEmployee || isManager },
     { href: '/manager/attendance', icon: ListChecks, label: 'managerAttendance', show: isManager },
-    { href: '/payroll', icon: Banknote, label: 'payroll', show: false },
+    { href: '/manager/payroll', icon: Banknote, label: 'payroll', show: role === 'MANAGER' },
     { href: '/documents', icon: FolderOpen, label: 'documents', show: false },
   ].filter((item) => item.show)
 
