@@ -48,6 +48,22 @@ async function main() {
     })
   }
 
+  const criteria = [
+    { name: 'Punctuality', nameAr: 'الالتزام بالمواعيد' },
+    { name: 'Quality of Work', nameAr: 'جودة العمل' },
+    { name: 'Teamwork', nameAr: 'العمل الجماعي' },
+    { name: 'Attendance', nameAr: 'الحضور' },
+    { name: 'Compliance', nameAr: 'الامتثال للسياسات' },
+  ]
+
+  for (const c of criteria) {
+    await prisma.reviewCriteria.upsert({
+      where: { name: c.name },
+      update: {},
+      create: c,
+    })
+  }
+
   console.log('Seed complete: admin@riman.com / admin123')
 }
 

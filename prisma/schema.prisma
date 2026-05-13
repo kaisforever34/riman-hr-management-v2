@@ -28,6 +28,8 @@ model User {
   approvedLeaveRequests LeaveRequest[] @relation("ApprovedLeaveRequests")
   attendanceAdjustments AttendanceRecord[]
   payrollProcessed      PayrollPeriod[]
+  uploadedEmployeeDocs  EmployeeDocument[]
+  uploadedCompanyDocs   CompanyDocument[]
 }
 
 model Employee {
@@ -57,6 +59,8 @@ model Employee {
   leaveBalances         LeaveBalance[]
   attendanceRecords     AttendanceRecord[]
   payslips              Payslip[]
+  performanceReviews    PerformanceReview[]
+  employeeDocuments     EmployeeDocument[]
 }
 
 model LeaveType {
@@ -133,6 +137,39 @@ model AttendanceRecord {
   @@unique([employeeId, date])
 }
 
+model EmployeeDocument {
+  id           String   @id @default(cuid())
+  employeeId   String
+  category     String
+  fileName     String
+  filePath     String
+  fileSize     Int
+  fileType     String
+  notes        String?
+  uploadedById String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  uploadedBy User     @relation(fields: [uploadedById], references: [id])
+}
+
+model CompanyDocument {
+  id           String   @id @default(cuid())
+  category     String
+  title        String
+  fileName     String
+  filePath     String
+  fileSize     Int
+  fileType     String
+  notes        String?
+  uploadedById String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+}
+
 model AppSetting {
   id    String @id @default(cuid())
   key   String @unique
@@ -171,6 +208,59 @@ model Payslip {
   employee      Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([payrollPeriodId, employeeId])
+}
+
+model ReviewCriteria {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  nameAr   String?
+  isBase   Boolean @default(true)
+  isActive Boolean @default(true)
+
+  ratings ReviewRating[]
+}
+
+model PerformanceReview {
+  id                  String   @id @default(cuid())
+  employeeId          String
+  year                Int
+  quarter             Int
+  overallRating       String?
+  comments            String?
+  bonusRecommendation Decimal? @db.Decimal(10, 2)
+  status              String   @default("DRAFT")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  employee Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  ratings  ReviewRating[]
+  goals    ReviewGoal[]
+}
+
+model ReviewRating {
+  id         String   @id @default(cuid())
+  reviewId   String
+  criteriaId String?
+  customName String?
+  rating     String
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  review   PerformanceReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  criteria ReviewCriteria?  @relation(fields: [criteriaId], references: [id])
+}
+
+model ReviewGoal {
+  id          String    @id @default(cuid())
+  reviewId    String
+  description String
+  targetDate  DateTime?
+  isCompleted Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  review PerformanceReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 }
 
 model Account {
