@@ -14,26 +14,27 @@ enum Role {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   passwordHash String
-  role         Role      @default(EMPLOYEE)
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  role         Role     @default(EMPLOYEE)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  employee Employee?
-  accounts Account[]
-  sessions Session[]
+  employee              Employee?
+  accounts              Account[]
+  sessions              Session[]
+  approvedLeaveRequests LeaveRequest[] @relation("ApprovedLeaveRequests")
 }
 
 model Employee {
-  id                    String   @id @default(cuid())
-  userId                String   @unique
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String         @id @default(cuid())
+  userId                String         @unique
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   firstName             String
   lastName              String
-  employeeCode          String   @unique
+  employeeCode          String         @unique
   dateOfBirth           DateTime
   nationality           String
   maritalStatus         String?
@@ -41,15 +42,68 @@ model Employee {
   jobTitle              String
   department            String
   hireDate              DateTime
-  salary                Decimal  @db.Decimal(10, 2)
+  salary                Decimal        @db.Decimal(10, 2)
   bankName              String?
   iban                  String?
   swift                 String?
   emergencyContactName  String?
   emergencyContactPhone String?
-  isActive              Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  isActive              Boolean        @default(true)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  leaveRequests         LeaveRequest[]
+  leaveBalances         LeaveBalance[]
+}
+
+model LeaveType {
+  id                 String         @id @default(cuid())
+  name               String         @unique
+  nameAr             String?
+  defaultDays        Int            @default(0)
+  requiresAttachment Boolean        @default(false)
+  isPaid             Boolean        @default(true)
+  isActive           Boolean        @default(true)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  leaveRequests      LeaveRequest[]
+  leaveBalances      LeaveBalance[]
+}
+
+model LeaveBalance {
+  id          String    @id @default(cuid())
+  employeeId  String
+  leaveTypeId String
+  yearStart   DateTime
+  yearEnd     DateTime
+  allocated   Int       @default(0)
+  carriedOver Int       @default(0)
+  used        Int       @default(0)
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id])
+
+  @@unique([employeeId, leaveTypeId, yearStart])
+}
+
+model LeaveRequest {
+  id             String    @id @default(cuid())
+  employeeId     String
+  leaveTypeId    String
+  startDate      DateTime
+  endDate        DateTime
+  durationDays   Float
+  isHalfDay      Boolean   @default(false)
+  halfDayPeriod  String?
+  status         String    @default("PENDING")
+  reason         String
+  rejectReason   String?
+  attachmentFile String?
+  approvedById   String?
+  approvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType      LeaveType @relation(fields: [leaveTypeId], references: [id])
+  approvedBy     User?     @relation("ApprovedLeaveRequests", fields: [approvedById], references: [id])
 }
 
 model Account {
