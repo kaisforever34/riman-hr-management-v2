@@ -26,6 +26,7 @@ model User {
   accounts              Account[]
   sessions              Session[]
   approvedLeaveRequests LeaveRequest[] @relation("ApprovedLeaveRequests")
+  attendanceAdjustments AttendanceRecord[]
 }
 
 model Employee {
@@ -53,6 +54,7 @@ model Employee {
   updatedAt             DateTime       @updatedAt
   leaveRequests         LeaveRequest[]
   leaveBalances         LeaveBalance[]
+  attendanceRecords     AttendanceRecord[]
 }
 
 model LeaveType {
@@ -104,6 +106,29 @@ model LeaveRequest {
   employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   leaveType      LeaveType @relation(fields: [leaveTypeId], references: [id])
   approvedBy     User?     @relation("ApprovedLeaveRequests", fields: [approvedById], references: [id])
+}
+
+model AttendanceRecord {
+  id                String    @id @default(cuid())
+  employeeId        String
+  date              DateTime
+  checkIn           DateTime?
+  checkOut          DateTime?
+  status            String    @default("PRESENT")
+  lateMinutes       Int       @default(0)
+  earlyLeaveMinutes Int       @default(0)
+  checkInMethod     String    @default("CLICK")
+  checkOutMethod    String?
+  checkInNote       String?
+  checkOutNote      String?
+  adjustedById      String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  adjustedBy User?    @relation(fields: [adjustedById], references: [id])
+
+  @@unique([employeeId, date])
 }
 
 model Account {
