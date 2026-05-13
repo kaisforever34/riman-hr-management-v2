@@ -1,7 +1,9 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useTranslations } from 'next-intl'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { buttonVariants } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {

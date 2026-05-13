@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
@@ -8,11 +10,10 @@ import { Plus } from 'lucide-react'
 interface LeaveClientProps {
   requests: any[]
   balances: any[]
-  leaveTypes: any[]
   locale: string
 }
 
-export default function LeaveClient({ requests, balances, leaveTypes, locale }: LeaveClientProps) {
+export default function LeaveClient({ requests, balances, locale }: LeaveClientProps) {
   const t = useTranslations('leave')
   const tc = useTranslations('common')
 

@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
-import { getEmployeeLeaveRequests, getEmployeeLeaveBalances, getLeaveTypes } from '@/lib/queries/leave'
+import { getEmployeeLeaveRequests, getEmployeeLeaveBalances } from '@/lib/queries/leave'
 import LeaveClient from './leave-client'
 
 export default async function LeavePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -12,17 +12,15 @@ export default async function LeavePage({ params }: { params: Promise<{ locale: 
   const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
   if (!employee) redirect(`/${locale}/dashboard`)
 
-  const [requests, balances, leaveTypes] = await Promise.all([
+  const [requests, balances] = await Promise.all([
     getEmployeeLeaveRequests(employee.id),
     getEmployeeLeaveBalances(employee.id),
-    getLeaveTypes(),
   ])
 
   return (
     <LeaveClient
       requests={JSON.parse(JSON.stringify(requests))}
       balances={JSON.parse(JSON.stringify(balances))}
-      leaveTypes={JSON.parse(JSON.stringify(leaveTypes))}
       locale={locale}
     />
   )
