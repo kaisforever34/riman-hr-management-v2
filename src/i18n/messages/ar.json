@@ -1,0 +1,99 @@
+{
+  "app": { "name": "ريمان للموارد البشرية" },
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "signingIn": "جاري تسجيل الدخول...",
+    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "employees": "الموظفين",
+    "leaveRequests": "طلبات الإجازات",
+    "attendance": "الحضور",
+    "payroll": "الرواتب",
+    "documents": "المستندات",
+    "signOut": "تسجيل الخروج"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "totalEmployees": "إجمالي الموظفين",
+    "pendingLeaves": "طلبات الإجازات المعلقة",
+    "todayAttendance": "حضور اليوم",
+    "present": "حاضر",
+    "addEmployee": "إضافة موظف",
+    "viewAll": "عرض الكل"
+  },
+  "employees": {
+    "title": "الموظفين",
+    "addEmployee": "إضافة موظف",
+    "search": "البحث عن موظفين...",
+    "name": "الاسم",
+    "employeeCode": "الرمز",
+    "department": "القسم",
+    "jobTitle": "المسمى الوظيفي",
+    "status": "الحالة",
+    "actions": "الإجراءات",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "noEmployees": "لا يوجد موظفين بعد",
+    "noEmployeesDesc": "أضف أول موظف للبدء.",
+    "perPage": "لكل صفحة",
+    "page": "صفحة",
+    "of": "من"
+  },
+  "employeesAdd": {
+    "title": "إضافة موظف",
+    "personalInfo": "المعلومات الشخصية",
+    "jobDetails": "تفاصيل الوظيفة",
+    "bankDetails": "التفاصيل المصرفية",
+    "emergencyContact": "جهة اتصال الطوارئ",
+    "firstName": "الاسم الأول",
+    "lastName": "الاسم الأخير",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "phoneNumber": "رقم الهاتف",
+    "dateOfBirth": "تاريخ الميلاد",
+    "nationality": "الجنسية",
+    "maritalStatus": "الحالة الاجتماعية",
+    "employeeCode": "رمز الموظف",
+    "jobTitle": "المسمى الوظيفي",
+    "department": "القسم",
+    "hireDate": "تاريخ التوظيف",
+    "salary": "الراتب (درهم)",
+    "role": "الدور",
+    "bankName": "اسم البنك",
+    "iban": "IBAN",
+    "swift": "SWIFT/BIC",
+    "emergencyContactName": "اسم جهة الاتصال",
+    "emergencyContactPhone": "هاتف جهة الاتصال",
+    "save": "حفظ الموظف",
+    "saving": "جاري الحفظ...",
+    "success": "تم إنشاء الموظف بنجاح",
+    "skip": "تخطي",
+    "optional": "اختياري"
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ ما",
+    "retry": "إعادة المحاولة",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "search": "بحث...",
+    "back": "رجوع"
+  },
+  "errors": {
+    "network": "انقطع الاتصال. تحقق من الإنترنت وحاول مرة أخرى.",
+    "unauthorized": "غير مصرح لك بالوصول إلى هذه الصفحة.",
+    "emailExists": "يوجد موظف بهذا البريد الإلكتروني بالفعل.",
+    "codeExists": "يوجد موظف بهذا الرمز بالفعل."
+  },
+  "empty": {
+    "noEmployees": {
+      "title": "لا يوجد موظفين بعد",
+      "description": "أضف أول موظف للبدء.",
+      "cta": "إضافة موظف"
+    }
+  }
+}

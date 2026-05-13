@@ -1,0 +1,99 @@
+{
+  "app": { "name": "Riman HR" },
+  "auth": {
+    "signIn": "Sign In",
+    "email": "Email",
+    "password": "Password",
+    "signingIn": "Signing in...",
+    "invalidCredentials": "Invalid email or password"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "employees": "Employees",
+    "leaveRequests": "Leave Requests",
+    "attendance": "Attendance",
+    "payroll": "Payroll",
+    "documents": "Documents",
+    "signOut": "Sign Out"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalEmployees": "Total Employees",
+    "pendingLeaves": "Pending Leave Requests",
+    "todayAttendance": "Today's Attendance",
+    "present": "present",
+    "addEmployee": "Add Employee",
+    "viewAll": "View All"
+  },
+  "employees": {
+    "title": "Employees",
+    "addEmployee": "Add Employee",
+    "search": "Search employees...",
+    "name": "Name",
+    "employeeCode": "Code",
+    "department": "Department",
+    "jobTitle": "Job Title",
+    "status": "Status",
+    "actions": "Actions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "noEmployees": "No employees yet",
+    "noEmployeesDesc": "Add your first employee to get started.",
+    "perPage": "per page",
+    "page": "Page",
+    "of": "of"
+  },
+  "employeesAdd": {
+    "title": "Add Employee",
+    "personalInfo": "Personal Information",
+    "jobDetails": "Job Details",
+    "bankDetails": "Bank Details",
+    "emergencyContact": "Emergency Contact",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "password": "Password",
+    "phoneNumber": "Phone Number",
+    "dateOfBirth": "Date of Birth",
+    "nationality": "Nationality",
+    "maritalStatus": "Marital Status",
+    "employeeCode": "Employee Code",
+    "jobTitle": "Job Title",
+    "department": "Department",
+    "hireDate": "Hire Date",
+    "salary": "Salary (AED)",
+    "role": "Role",
+    "bankName": "Bank Name",
+    "iban": "IBAN",
+    "swift": "SWIFT/BIC",
+    "emergencyContactName": "Contact Name",
+    "emergencyContactPhone": "Contact Phone",
+    "save": "Save Employee",
+    "saving": "Saving...",
+    "success": "Employee created successfully",
+    "skip": "Skip",
+    "optional": "Optional"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "search": "Search...",
+    "back": "Back"
+  },
+  "errors": {
+    "network": "Connection lost. Check your internet and try again.",
+    "unauthorized": "You are not authorized to access this page.",
+    "emailExists": "An employee with this email already exists.",
+    "codeExists": "An employee with this code already exists."
+  },
+  "empty": {
+    "noEmployees": {
+      "title": "No employees yet",
+      "description": "Add your first employee to get started.",
+      "cta": "Add Employee"
+    }
+  }
+}
