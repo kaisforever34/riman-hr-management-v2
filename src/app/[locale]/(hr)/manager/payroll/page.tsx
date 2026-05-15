@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic'
 export default async function PayrollPage() {
   const t = await getTranslations('payroll')
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return null
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return null
 
   const periods = await getPayrollPeriods()
 
@@ -22,7 +22,7 @@ export default async function PayrollPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t('title')}</h1>
-          <p className="text-sm text-zinc-500">{t('periods')}</p>
+          <p className="text-sm text-muted-foreground">{t('periods')}</p>
         </div>
         <Link href="/manager/payroll/new" className={buttonVariants()}>
           <Plus className="me-2 h-4 w-4" />
@@ -33,9 +33,9 @@ export default async function PayrollPage() {
       {periods.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <FileText className="mb-4 h-12 w-12 text-zinc-400" />
+            <FileText className="mb-4 h-12 w-12 text-ledger-text-muted" />
             <h3 className="text-lg font-medium">{t('noPeriods')}</h3>
-            <p className="text-sm text-zinc-500">{t('noPeriodsDesc')}</p>
+            <p className="text-sm text-muted-foreground">{t('noPeriodsDesc')}</p>
             <Link
               href="/manager/payroll/new"
               className={buttonVariants({ className: 'mt-4' })}
@@ -51,7 +51,7 @@ export default async function PayrollPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b bg-zinc-50">
+                  <tr className="border-b bg-[rgba(255,255,255,0.03)]">
                     <th className="px-4 py-3 text-start font-medium">{t('periods')}</th>
                     <th className="px-4 py-3 text-start font-medium">{t('status')}</th>
                     <th className="px-4 py-3 text-start font-medium">{t('employees')}</th>
@@ -62,12 +62,12 @@ export default async function PayrollPage() {
                   {periods.map(p => {
                     const monthName = format(new Date(p.year, p.month - 1), 'MMMM yyyy')
                     return (
-                      <tr key={p.id} className="border-b last:border-0 hover:bg-zinc-50">
+                      <tr key={p.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                         <td className="px-4 py-3 font-medium">{monthName}</td>
                         <td className="px-4 py-3">
                           <span className={cn(
                             'inline-block rounded px-1.5 py-0.5 text-xs font-medium',
-                            p.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700',
+                            p.status === 'DRAFT' ? 'bg-[rgba(245,158,11,0.1)] text-[#F59E0B]' : 'bg-[rgba(34,197,94,0.1)] text-[#22C55E]',
                           )}>
                             {p.status === 'DRAFT' ? t('draft') : t('finalized')}
                           </span>

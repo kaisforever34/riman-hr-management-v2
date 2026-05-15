@@ -105,7 +105,7 @@ export function NewReviewClient({ criteria, employees }: Props) {
       <h1 className="text-2xl font-bold">{t('newReview')}</h1>
 
       {message && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{message}</div>
+        <div className="rounded-md bg-[rgba(239,68,68,0.08)] p-3 text-sm text-[#EF4444]">{message}</div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -113,8 +113,8 @@ export function NewReviewClient({ criteria, employees }: Props) {
           <CardHeader><CardTitle>{t('employee')}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <label className="text-xs font-medium text-zinc-500">{t('employee')}</label>
-              <select className="w-full rounded border px-3 py-2 text-sm" value={employeeId} onChange={e => setEmployeeId(e.target.value)} required>
+              <label className="text-xs font-medium text-muted-foreground">{t('employee')}</label>
+              <select className="w-full rounded border bg-card px-3 py-2 text-sm" value={employeeId} onChange={e => setEmployeeId(e.target.value)} required>
                 <option value="">{t('employee')}</option>
                 {employees.map(e => (
                   <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
@@ -123,16 +123,16 @@ export function NewReviewClient({ criteria, employees }: Props) {
             </div>
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="text-xs font-medium text-zinc-500">{t('year')}</label>
-                <select className="w-full rounded border px-3 py-2 text-sm" value={year} onChange={e => setYear(parseInt(e.target.value))}>
+                <label className="text-xs font-medium text-muted-foreground">{t('year')}</label>
+                <select className="w-full rounded border bg-card px-3 py-2 text-sm" value={year} onChange={e => setYear(parseInt(e.target.value))}>
                   {[currentYear, currentYear - 1, currentYear - 2].map(y => (
                     <option key={y} value={y}>{y}</option>
                   ))}
                 </select>
               </div>
               <div className="flex-1">
-                <label className="text-xs font-medium text-zinc-500">{t('quarter')}</label>
-                <select className="w-full rounded border px-3 py-2 text-sm" value={quarter} onChange={e => setQuarter(parseInt(e.target.value))}>
+                <label className="text-xs font-medium text-muted-foreground">{t('quarter')}</label>
+                <select className="w-full rounded border bg-card px-3 py-2 text-sm" value={quarter} onChange={e => setQuarter(parseInt(e.target.value))}>
                   {[1, 2, 3, 4].map(q => (
                     <option key={q} value={q}>{t(`q${q}`)}</option>
                   ))}
@@ -146,46 +146,46 @@ export function NewReviewClient({ criteria, employees }: Props) {
           <CardHeader><CardTitle>{t('ratings')}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             {ratings.map((r, i) => (
-              <div key={i} className="flex flex-wrap items-end gap-3 rounded bg-zinc-50 p-3">
+              <div key={i} className="flex flex-wrap items-end gap-3 rounded bg-[rgba(255,255,255,0.03)] p-3">
                 <div className="min-w-[150px] flex-1">
-                  <label className="text-xs font-medium text-zinc-500">{t('criteria')}</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t('criteria')}</label>
                   <div className="py-2 text-sm font-medium">{criteria[i]?.name}</div>
                 </div>
                 <div className="min-w-[130px]">
-                  <label className="text-xs font-medium text-zinc-500">{t('rating')}</label>
-                  <select className="w-full rounded border px-3 py-2 text-sm" value={r.rating} onChange={e => updateRating(i, 'rating', e.target.value)}>
+                  <label className="text-xs font-medium text-muted-foreground">{t('rating')}</label>
+                  <select className="w-full rounded border bg-card px-3 py-2 text-sm" value={r.rating} onChange={e => updateRating(i, 'rating', e.target.value)}>
                     <option value="EXCEEDS">{t('ratingValues.EXCEEDS')}</option>
                     <option value="MEETS">{t('ratingValues.MEETS')}</option>
                     <option value="BELOW">{t('ratingValues.BELOW')}</option>
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs font-medium text-zinc-500">{t('comment')}</label>
-                  <input className="w-full rounded border px-3 py-2 text-sm" value={r.comment} onChange={e => updateRating(i, 'comment', e.target.value)} />
+                  <label className="text-xs font-medium text-muted-foreground">{t('comment')}</label>
+                  <input className="w-full rounded border bg-card px-3 py-2 text-sm" value={r.comment} onChange={e => updateRating(i, 'comment', e.target.value)} />
                 </div>
               </div>
             ))}
 
             {customRatings.map((r, i) => (
-              <div key={`c-${i}`} className="flex flex-wrap items-end gap-3 rounded border border-dashed bg-zinc-50 p-3">
+              <div key={`c-${i}`} className="flex flex-wrap items-end gap-3 rounded border border-dashed bg-[rgba(255,255,255,0.03)] p-3">
                 <div className="min-w-[150px] flex-1">
-                  <label className="text-xs font-medium text-zinc-500">{t('customCriteria')}</label>
-                  <input className="w-full rounded border px-3 py-2 text-sm" value={r.customName || ''} onChange={e => updateCustomRating(i, 'customName', e.target.value)} placeholder="Criteria name" />
+                  <label className="text-xs font-medium text-muted-foreground">{t('customCriteria')}</label>
+                  <input className="w-full rounded border bg-card px-3 py-2 text-sm" value={r.customName || ''} onChange={e => updateCustomRating(i, 'customName', e.target.value)} placeholder="Criteria name" />
                 </div>
                 <div className="min-w-[130px]">
-                  <label className="text-xs font-medium text-zinc-500">{t('rating')}</label>
-                  <select className="w-full rounded border px-3 py-2 text-sm" value={r.rating} onChange={e => updateCustomRating(i, 'rating', e.target.value)}>
+                  <label className="text-xs font-medium text-muted-foreground">{t('rating')}</label>
+                  <select className="w-full rounded border bg-card px-3 py-2 text-sm" value={r.rating} onChange={e => updateCustomRating(i, 'rating', e.target.value)}>
                     <option value="EXCEEDS">{t('ratingValues.EXCEEDS')}</option>
                     <option value="MEETS">{t('ratingValues.MEETS')}</option>
                     <option value="BELOW">{t('ratingValues.BELOW')}</option>
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs font-medium text-zinc-500">{t('comment')}</label>
-                  <input className="w-full rounded border px-3 py-2 text-sm" value={r.comment} onChange={e => updateCustomRating(i, 'comment', e.target.value)} />
+                  <label className="text-xs font-medium text-muted-foreground">{t('comment')}</label>
+                  <input className="w-full rounded border bg-card px-3 py-2 text-sm" value={r.comment} onChange={e => updateCustomRating(i, 'comment', e.target.value)} />
                 </div>
                 <Button type="button" variant="ghost" size="sm" onClick={() => setCustomRatings(customRatings.filter((_, j) => j !== i))}>
-                  <Trash2 className="h-3 w-3 text-red-500" />
+                          <Trash2 className="h-3 w-3 text-audit-red" />
                 </Button>
               </div>
             ))}
@@ -200,21 +200,21 @@ export function NewReviewClient({ criteria, employees }: Props) {
           <CardHeader><CardTitle>{t('goals')}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             {goals.map((g, i) => (
-              <div key={i} className="flex flex-wrap items-end gap-3 rounded bg-zinc-50 p-3">
+              <div key={i} className="flex flex-wrap items-end gap-3 rounded bg-[rgba(255,255,255,0.03)] p-3">
                 <div className="min-w-[200px] flex-1">
-                  <label className="text-xs font-medium text-zinc-500">{t('goalDescription')}</label>
-                  <input className="w-full rounded border px-3 py-2 text-sm" value={g.description} onChange={e => {
+                  <label className="text-xs font-medium text-muted-foreground">{t('goalDescription')}</label>
+                  <input className="w-full rounded border bg-card px-3 py-2 text-sm" value={g.description} onChange={e => {
                     const updated = [...goals]; updated[i].description = e.target.value; setGoals(updated)
                   }} required />
                 </div>
                 <div className="min-w-[140px]">
-                  <label className="text-xs font-medium text-zinc-500">{t('targetDate')}</label>
-                  <input type="date" className="w-full rounded border px-3 py-2 text-sm" value={g.targetDate} onChange={e => {
+                  <label className="text-xs font-medium text-muted-foreground">{t('targetDate')}</label>
+                  <input type="date" className="w-full rounded border bg-card px-3 py-2 text-sm" value={g.targetDate} onChange={e => {
                     const updated = [...goals]; updated[i].targetDate = e.target.value; setGoals(updated)
                   }} />
                 </div>
                 <Button type="button" variant="ghost" size="sm" onClick={() => setGoals(goals.filter((_, j) => j !== i))}>
-                  <Trash2 className="h-3 w-3 text-red-500" />
+                          <Trash2 className="h-3 w-3 text-audit-red" />
                 </Button>
               </div>
             ))}
@@ -228,11 +228,11 @@ export function NewReviewClient({ criteria, employees }: Props) {
           <CardHeader><CardTitle>{t('comments')}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <label className="text-xs font-medium text-zinc-500">{t('comments')}</label>
-              <textarea className="w-full rounded border px-3 py-2 text-sm" rows={3} value={comments} onChange={e => setComments(e.target.value)} />
+              <label className="text-xs font-medium text-muted-foreground">{t('comments')}</label>
+              <textarea className="w-full rounded border bg-card px-3 py-2 text-sm" rows={3} value={comments} onChange={e => setComments(e.target.value)} />
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500">{t('bonusRecommendation')}</label>
+              <label className="text-xs font-medium text-muted-foreground">{t('bonusRecommendation')}</label>
               <input type="number" step="0.01" min="0" className="w-full max-w-xs rounded border px-3 py-2 text-sm" value={bonus} onChange={e => setBonus(e.target.value)} />
             </div>
           </CardContent>

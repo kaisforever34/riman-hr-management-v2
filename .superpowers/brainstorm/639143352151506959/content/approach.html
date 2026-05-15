@@ -1,0 +1,80 @@
+<h2>Onboarding/Offboarding — Two Approaches</h2>
+<p class="subtitle">Riman Fashion: 5 employees, single manager, atelier context</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#D4A84315;padding:1.5rem;text-align:center;border-bottom:1px solid #D4A84322;">
+      <div style="font-size:2rem;margin-bottom:0.5rem;">📋</div>
+      <div style="font-size:0.8rem;color:#D4A843;letter-spacing:0.1em;">APPROACH A</div>
+    </div>
+    <div class="card-body">
+      <h3>Flexible Checklist Engine</h3>
+      <ul style="font-size:0.85rem;padding-left:1.2rem;line-height:1.6;">
+        <li>Single <code>OnboardingTemplate</code> table with task definitions per role</li>
+        <li>Per-employee <code>OnboardingRecord</code> tracks completion</li>
+        <li>Employee tasks: fill form → submit → auto-mark complete</li>
+        <li>Manager tasks: manual check-off with notes</li>
+        <li>Offboarding: separate template, exit interview form</li>
+        <li>+ Notifications (feature 2) can be bolted on later: email/ in-app reminders for pending tasks</li>
+      </ul>
+      <div class="pros-cons" style="margin-top:0.8rem;">
+        <div class="pros" style="flex:1;">
+          <h4>Pros</h4>
+          <ul>
+            <li>Simple, single model</li>
+            <li>Role-based templates</li>
+            <li>Easy to extend</li>
+          </ul>
+        </div>
+        <div class="cons" style="flex:1;">
+          <h4>Cons</h4>
+          <ul>
+            <li>Less structured (no sub-steps)</li>
+            <li>Manual tracking for docs</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#D4A84315;padding:1.5rem;text-align:center;border-bottom:1px solid #D4A84322;">
+      <div style="font-size:2rem;margin-bottom:0.5rem;">🏗️</div>
+      <div style="font-size:0.8rem;color:#D4A843;letter-spacing:0.1em;">APPROACH B (RECOMMENDED)</div>
+    </div>
+    <div class="card-body">
+      <h3>Staged Workflow with Phases</h3>
+      <ul style="font-size:0.85rem;padding-left:1.2rem;line-height:1.6;">
+        <li>Onboarding split into <strong>phases</strong>: Pre-arrival → Day 1 → Week 1 → Probation End</li>
+        <li>Each phase has tasks (employee + manager), document requirements, and optional forms</li>
+        <li>Tasks can be <strong>auto-completed</strong> (form submitted, doc uploaded) or <strong>manual</strong> (manager check-off)</li>
+        <li>Document requirements link to existing Document module</li>
+        <li>Offboarding: same phased structure — Notice → Handover → Exit Interview → Final Settlement</li>
+        <li>Notification hooks built into each phase trigger</li>
+      </ul>
+      <div class="pros-cons" style="margin-top:0.8rem;">
+        <div class="pros" style="flex:1;">
+          <h4>Pros</h4>
+          <ul>
+            <li>Clear progression</li>
+            <li>Doc integration built-in</li>
+            <li>Offboarding mirrors onboarding</li>
+            <li>Notification hooks ready</li>
+          </ul>
+        </div>
+        <div class="cons" style="flex:1;">
+          <h4>Cons</h4>
+          <ul>
+            <li>More models/tables</li>
+            <li>Over-engineered for 5 employees?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>My Recommendation: Approach A</h3>
+  <p>For a 5-person atelier, Approach B's phase structure adds complexity without proportional benefit. Approach A's flexible checklist engine is simpler to build, maintain, and extend. The notification layer can be added cleanly as Feature #2 without needing phases baked in.</p>
+</div>

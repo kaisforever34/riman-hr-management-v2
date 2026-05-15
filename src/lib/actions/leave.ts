@@ -7,6 +7,7 @@ import { uploadLeaveAttachment } from '@/lib/upload'
 import { getOrCreateLeaveBalance } from '@/lib/queries/leave'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { createNotification } from './notifications'
 
 export async function submitLeave(formData: FormData) {
   const session = await auth()
@@ -69,7 +70,7 @@ export async function submitLeave(formData: FormData) {
     if (!attachmentFile) return { error: 'Invalid attachment file (max 5MB, PDF/JPG/PNG only)' }
   }
 
-  await db.leaveRequest.create({
+  const created = await db.leaveRequest.create({
     data: {
       employeeId: employee.id,
       leaveTypeId: data.leaveTypeId,
@@ -83,6 +84,19 @@ export async function submitLeave(formData: FormData) {
       status: 'PENDING',
     },
   })
+
+  const managers = await db.user.findMany({
+    where: { role: { in: ['HR_ADMIN', 'MANAGER'] }, isActive: true },
+  })
+  for (const manager of managers) {
+    await createNotification(
+      manager.id,
+      'LEAVE_SUBMITTED',
+      'New Leave Request',
+      `${employee.firstName} ${employee.lastName} requested ${leaveType.name} leave.`,
+      `/manager/leaves/${created.id}`,
+    )
+  }
 
   revalidatePath('/leave')
   redirect('/leave')
@@ -136,6 +150,21 @@ export async function approveLeave(formData: FormData) {
     data: { used: balance.used + request.durationDays },
   })
 
+  const reqLeaveType = await db.leaveType.findUnique({ where: { id: request.leaveTypeId } })
+  const empUser = await db.employee.findUnique({
+    where: { id: request.employeeId },
+    include: { user: true },
+  })
+  if (empUser) {
+    await createNotification(
+      empUser.user.id,
+      'LEAVE_APPROVED',
+      'Leave Approved',
+      `Your ${reqLeaveType?.name ?? ''} leave from ${request.startDate.toLocaleDateString()} to ${request.endDate.toLocaleDateString()} has been approved.`,
+      `/leave/${request.id}`,
+    )
+  }
+
   revalidatePath('/manager/leaves')
   redirect('/manager/leaves')
 }
@@ -158,6 +187,20 @@ export async function rejectLeave(formData: FormData) {
     where: { id: parsed.data.id },
     data: { status: 'REJECTED', rejectReason: parsed.data.rejectReason, approvedById: session.user.id },
   })
+
+  const rejectRequest = await db.leaveRequest.findUnique({
+    where: { id: parsed.data.id },
+    include: { employee: { include: { user: true } }, leaveType: true },
+  })
+  if (rejectRequest) {
+    await createNotification(
+      rejectRequest.employee.user.id,
+      'LEAVE_REJECTED',
+      'Leave Rejected',
+      `Your ${rejectRequest.leaveType?.name ?? ''} leave request has been rejected.${rejectRequest.rejectReason ? ` Reason: ${rejectRequest.rejectReason}` : ''}`,
+      `/leave/${parsed.data.id}`,
+    )
+  }
 
   revalidatePath('/manager/leaves')
   redirect('/manager/leaves')

@@ -47,7 +47,7 @@ export default function CalendarClient({ requests }: CalendarClientProps) {
         </div>
       </div>
 
-      <div className="rounded-lg border bg-white">
+      <div className="rounded-lg border bg-card">
         <div className="grid grid-cols-7 border-b">
           {dayNames.map((d) => (
             <div key={d} className="p-2 text-center text-xs font-medium text-muted-foreground">{d}</div>
@@ -67,7 +67,7 @@ export default function CalendarClient({ requests }: CalendarClientProps) {
                   {dayRequests.map((r: any) => (
                     <div
                       key={r.id}
-                      className="truncate rounded bg-blue-100 px-1 py-0.5 text-[10px] text-blue-700"
+                      className="truncate rounded bg-[rgba(75,139,240,0.1)] px-1 py-0.5 text-[10px] text-inquiry-blue"
                       title={`${r.employee.firstName} ${r.employee.lastName} - ${r.leaveType.name}`}
                     >
                       {r.employee.firstName}

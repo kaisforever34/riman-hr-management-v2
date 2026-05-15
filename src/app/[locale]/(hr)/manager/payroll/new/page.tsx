@@ -38,12 +38,12 @@ export default function NewPayrollPeriodPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
+            <div className="rounded-md bg-[rgba(239,68,68,0.08)] p-3 text-sm text-[#EF4444]">{error}</div>
           )}
           <div>
-            <label className="text-xs font-medium text-zinc-500">{t('selectMonth')}</label>
+            <label className="text-xs font-medium text-muted-foreground">{t('selectMonth')}</label>
             <select
-              className="w-full rounded border px-3 py-2 text-sm"
+              className="w-full rounded border bg-card px-3 py-2 text-sm"
               value={month}
               onChange={e => setMonth(Number(e.target.value))}
             >
@@ -55,9 +55,9 @@ export default function NewPayrollPeriodPage() {
             </select>
           </div>
           <div>
-            <label className="text-xs font-medium text-zinc-500">{t('selectYear')}</label>
+            <label className="text-xs font-medium text-muted-foreground">{t('selectYear')}</label>
             <select
-              className="w-full rounded border px-3 py-2 text-sm"
+              className="w-full rounded border bg-card px-3 py-2 text-sm"
               value={year}
               onChange={e => setYear(Number(e.target.value))}
             >

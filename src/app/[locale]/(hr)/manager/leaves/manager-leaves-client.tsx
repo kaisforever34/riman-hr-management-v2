@@ -94,14 +94,14 @@ export default function ManagerLeavesClient({
       </div>
 
       {requests.length === 0 ? (
-        <div className="rounded-lg border bg-white p-12 text-center text-muted-foreground">
+        <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground">
           {t('noRequests')}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border bg-white">
+        <div className="overflow-x-auto rounded-lg border bg-card">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-zinc-50 text-left">
+              <tr className="border-b bg-[rgba(255,255,255,0.03)] text-left">
                 <th className="p-3 font-medium">{t('employee')}</th>
                 <th className="p-3 font-medium">{tl('type')}</th>
                 <th className="p-3 font-medium">{tl('startDate')}</th>
@@ -113,7 +113,7 @@ export default function ManagerLeavesClient({
             </thead>
             <tbody>
               {requests.map((r: any) => (
-                <tr key={r.id} className="border-b last:border-0 hover:bg-zinc-50">
+                <tr key={r.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                   <td className="p-3">{r.employee.firstName} {r.employee.lastName}</td>
                   <td className="p-3">{r.leaveType.name}</td>
                   <td className="p-3">{new Date(r.startDate).toLocaleDateString()}</td>
@@ -121,16 +121,16 @@ export default function ManagerLeavesClient({
                   <td className="p-3">{r.durationDays}d</td>
                   <td className="p-3">
                     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                      r.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                      r.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                      r.status === 'CANCELLED' ? 'bg-zinc-100 text-zinc-600' :
-                      'bg-yellow-100 text-yellow-700'
+                      r.status === 'APPROVED' ? 'bg-[rgba(34,197,94,0.1)] text-[#22C55E]' :
+                      r.status === 'REJECTED' ? 'bg-[rgba(239,68,68,0.08)] text-[#EF4444]' :
+                      r.status === 'CANCELLED' ? 'bg-[#181E38] text-[#8B93A8]' :
+                      'bg-[rgba(245,158,11,0.1)] text-[#F59E0B]'
                     }`}>
                       {tl(`statuses.${r.status}`)}
                     </span>
                   </td>
                   <td className="p-3">
-                    <Link href={`/${locale}/manager/leaves/${r.id}`} className="text-sm text-blue-600 hover:underline">
+                    <Link href={`/${locale}/manager/leaves/${r.id}`} className="text-sm text-inquiry-blue hover:underline">
                       {tc('view')}
                     </Link>
                   </td>

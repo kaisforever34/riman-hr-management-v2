@@ -67,6 +67,33 @@ async function main() {
     await prisma.leaveType.upsert({ where: { name: lt.name }, update: {}, create: lt })
   }
 
+  // ── Onboarding / Offboarding Task Templates ──
+  const onboardingTasks: { type: string; titleEn: string; titleAr: string; category: string; roles: Role[]; order: number; isRequired: boolean }[] = [
+    // Onboarding: FORM tasks (employee fills)
+    { type: 'ONBOARDING', titleEn: 'Personal Information', titleAr: 'المعلومات الشخصية', category: 'FORM', roles: [Role.EMPLOYEE], order: 1, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Bank Account Details', titleAr: 'تفاصيل الحساب البنكي', category: 'FORM', roles: [Role.EMPLOYEE], order: 2, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Emergency Contact', titleAr: 'جهة الاتصال في الطوارئ', category: 'FORM', roles: [Role.EMPLOYEE], order: 3, isRequired: true },
+    // Onboarding: DOCUMENT tasks (employee uploads)
+    { type: 'ONBOARDING', titleEn: 'Passport Copy', titleAr: 'نسخة جواز السفر', category: 'DOCUMENT', roles: [Role.EMPLOYEE], order: 4, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Visa / ID', titleAr: 'الإقامة / الهوية', category: 'DOCUMENT', roles: [Role.EMPLOYEE], order: 5, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Certificate / Qualification', titleAr: 'الشهادات / المؤهلات', category: 'DOCUMENT', roles: [Role.EMPLOYEE], order: 6, isRequired: false },
+    // Onboarding: MANAGER_ACTION tasks
+    { type: 'ONBOARDING', titleEn: 'Assign Workspace / Locker', titleAr: 'تخصيص مساحة عمل / خزانة', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 7, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Uniform Fitting', titleAr: 'تجهيز الزي الرسمي', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 8, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Policy Review & Acknowledgment', titleAr: 'مراجعة السياسات والتوقيع', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 9, isRequired: true },
+    // Offboarding: FORM
+    { type: 'OFFBOARDING', titleEn: 'Exit Interview', titleAr: 'مقابلة الخروج', category: 'FORM', roles: [Role.EMPLOYEE], order: 1, isRequired: true },
+    // Offboarding: MANAGER_ACTION
+    { type: 'OFFBOARDING', titleEn: 'Collect Keys / Access Cards', titleAr: 'استلام المفاتيح / بطاقات الدخول', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 2, isRequired: true },
+    { type: 'OFFBOARDING', titleEn: 'Return Uniform / Equipment', titleAr: 'إعادة الزي الرسمي / المعدات', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 3, isRequired: true },
+    { type: 'OFFBOARDING', titleEn: 'Final Settlement Notification', titleAr: 'إشعار التسوية النهائية', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 4, isRequired: true },
+  ]
+
+  await prisma.onboardingTask.deleteMany()
+  for (const task of onboardingTasks) {
+    await prisma.onboardingTask.create({ data: task })
+  }
+
   // ── Performance Criteria ──
   const criteria = [
     { name: 'Punctuality', nameAr: 'الالتزام بالمواعيد' },

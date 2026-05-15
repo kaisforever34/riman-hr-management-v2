@@ -2,6 +2,8 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getAllLeaveTypes, getEmployeeLeaveBalances, getEmployees } from '@/lib/queries/leave'
 import LeaveTypesClient from './leave-types-client'
+export const dynamic = 'force-dynamic'
+
 
 export default async function LeaveTypesPage({
   params,

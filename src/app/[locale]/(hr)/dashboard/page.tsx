@@ -1,102 +1,57 @@
-import { getTranslations } from 'next-intl/server'
+import { Suspense } from 'react'
 import { db } from '@/lib/db'
+import DashboardContent from '@/components/dashboard/content'
 import { getTodayUaeDate } from '@/lib/schedule'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { buttonVariants } from '@/components/ui/button'
-import { Users, CalendarCheck, Clock, Plus } from 'lucide-react'
-import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-export default async function DashboardPage() {
-  const t = await getTranslations('dashboard')
-  const te = await getTranslations('empty')
+function DashboardSkeleton() {
+  return (
+    <div className="animate-pulse space-y-6">
+      <div className="space-y-2">
+        <div className="h-7 w-48 rounded-md bg-[rgba(255,255,255,0.05)]" />
+        <div className="h-4 w-72 rounded-md bg-[rgba(255,255,255,0.03)]" />
+      </div>
+      <div className="grid grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-28 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.04)]" />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="h-64 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.04)]" />
+        ))}
+      </div>
+    </div>
+  )
+}
 
+async function DashboardData() {
   const today = getTodayUaeDate()
-  const [totalEmployees, todayRecords] = await Promise.all([
-    db.employee.count({ where: { isActive: true } }),
+
+  const [totalEmployees, todayRecords, pendingLeavesCount] = await Promise.all([
+    db.employee.count({ where: { user: { isActive: true } } }),
     db.attendanceRecord.findMany({
       where: { date: today, checkIn: { not: null } },
     }),
+    db.leaveRequest.count({ where: { status: 'PENDING' } }),
   ])
 
   const presentCount = todayRecords.length
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-      </div>
+    <DashboardContent
+      totalEmployees={totalEmployees}
+      presentCount={presentCount}
+      pendingLeaves={pendingLeavesCount}
+    />
+  )
+}
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500">
-              {t('totalEmployees')}
-            </CardTitle>
-            <Users className="h-4 w-4 text-zinc-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalEmployees}</div>
-            <Link href="/employees" className="text-xs text-zinc-500 hover:underline">
-              {t('viewAll')}
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500">
-              {t('pendingLeaves')}
-            </CardTitle>
-            <CalendarCheck className="h-4 w-4 text-zinc-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-zinc-500">--</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500">
-              {t('todayAttendance')}
-            </CardTitle>
-            <Clock className="h-4 w-4 text-zinc-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{presentCount}</div>
-            <p className="text-xs text-zinc-500">{t('present')}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {totalEmployees === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Users className="mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="text-lg font-medium">{te('noEmployees.title')}</h3>
-            <p className="text-sm text-zinc-500">{te('noEmployees.description')}</p>
-            <Link
-              href="employees/new"
-              className={buttonVariants({ className: "mt-4" })}
-            >
-              <Plus className="me-2 h-4 w-4" />
-              {te('noEmployees.cta')}
-            </Link>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="flex justify-end">
-          <Link
-            href="employees/new"
-            className={buttonVariants()}
-          >
-            <Plus className="me-2 h-4 w-4" />
-            {t('addEmployee')}
-          </Link>
-        </div>
-      )}
-    </div>
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardData />
+    </Suspense>
   )
 }

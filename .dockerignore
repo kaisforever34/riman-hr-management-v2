@@ -1,0 +1,14 @@
+node_modules
+.git
+.gitignore
+.env
+.env.local
+.env.production
+.next
+.vscode
+__tests__
+docs
+*.md
+.DS_Store
+vitest.config.ts
+vitest.config.*

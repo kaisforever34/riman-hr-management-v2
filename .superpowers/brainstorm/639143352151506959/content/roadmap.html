@@ -1,0 +1,62 @@
+<h2>Feature Roadmap — 5 Sub-Projects</h2>
+<p class="subtitle">Each gets its own spec → plan → implementation cycle</p>
+
+<div class="section">
+  <h3>Build Order (dependency-driven)</h3>
+  <div class="cards">
+    <div class="card" data-choice="1" onclick="toggleSelect(this)">
+      <div class="card-image" style="background:#D4A84322;display:flex;align-items:center;justify-content:center;padding:1rem;font-size:2rem;">🚪</div>
+      <div class="card-body">
+        <h3>1 — Onboarding / Offboarding</h3>
+        <p>Task checklists per employee type, document triggers, exit interviews. Uses existing Employee &amp; User models.</p>
+      </div>
+    </div>
+    <div class="card" data-choice="2" onclick="toggleSelect(this)">
+      <div class="card-image" style="background:#D4A84322;display:flex;align-items:center;justify-content:center;padding:1rem;font-size:2rem;">🔔</div>
+      <div class="card-body">
+        <h3>2 — Notifications</h3>
+        <p>In-app alerts + optional email. Supports onboarding task reminders + existing leave approval flows.</p>
+      </div>
+    </div>
+    <div class="card" data-choice="3" onclick="toggleSelect(this)">
+      <div class="card-image" style="background:#D4A84322;display:flex;align-items:center;justify-content:center;padding:1rem;font-size:2rem;">📋</div>
+      <div class="card-body">
+        <h3>3 — Surveys &amp; Feedback</h3>
+        <p>Pulse surveys, engagement scoring. Ties into Performance review cycle.</p>
+      </div>
+    </div>
+    <div class="card" data-choice="4" onclick="toggleSelect(this)">
+      <div class="card-image" style="background:#D4A84322;display:flex;align-items:center;justify-content:center;padding:1rem;font-size:2rem;">💼</div>
+      <div class="card-body">
+        <h3>4 — Asset / Expense Management</h3>
+        <p>Company asset tracking (laptops, uniforms, tools). Expense claims with approval flow.</p>
+      </div>
+    </div>
+    <div class="card" data-choice="5" onclick="toggleSelect(this)">
+      <div class="card-image" style="background:#D4A84322;display:flex;align-items:center;justify-content:center;padding:1rem;font-size:2rem;">📊</div>
+      <div class="card-body">
+        <h3>5 — Advanced Analytics</h3>
+        <p>Turnover reports, headcount trends, custom dashboards. Needs data from other modules.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>Why this order</h4>
+    <ul>
+      <li>Onboarding is the highest-impact HR workflow missing from the system</li>
+      <li>Notifications are infrastructure that existing leave + new onboarding flows need</li>
+      <li>Analytics last because it benefits from accumulated data</li>
+      <li>Surveys and Asset management are independent — can be built in parallel</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Trade-off</h4>
+    <ul>
+      <li>5 features means a longer overall timeline vs picking one</li>
+      <li>Each sub-project still follows full spec → plan → code cycle</li>
+    </ul>
+  </div>
+</div>

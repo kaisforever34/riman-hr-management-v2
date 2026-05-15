@@ -2,6 +2,8 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getManagerAllRequests, getAllLeaveTypes, getEmployees } from '@/lib/queries/leave'
 import ManagerLeavesClient from './manager-leaves-client'
+export const dynamic = 'force-dynamic'
+
 
 export default async function ManagerLeavesPage({
   params,

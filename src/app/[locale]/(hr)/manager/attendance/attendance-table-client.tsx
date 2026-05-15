@@ -46,10 +46,10 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
   const recordMap = new Map(records.map(r => [r.employeeId, r]))
 
   const statusColor: Record<string, string> = {
-    PRESENT: 'bg-green-100 text-green-700',
-    LATE: 'bg-yellow-100 text-yellow-700',
-    ABSENT: 'bg-red-100 text-red-700',
-    HALF_DAY: 'bg-orange-100 text-orange-700',
+    PRESENT: 'bg-[rgba(34,197,94,0.1)] text-[#22C55E]',
+    LATE: 'bg-[rgba(245,158,11,0.1)] text-[#F59E0B]',
+    ABSENT: 'bg-[rgba(239,68,68,0.08)] text-[#EF4444]',
+    HALF_DAY: 'bg-[rgba(245,158,11,0.1)] text-[#F59E0B]',
   }
 
   const handleOverride = async (employeeId: string) => {
@@ -75,11 +75,11 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-zinc-500">{t('todayAttendance')}</p>
+        <p className="text-sm text-muted-foreground">{t('todayAttendance')}</p>
       </div>
 
       {message && (
-        <div className={cn('rounded-md p-3 text-sm', message.includes('Failed') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700')}>
+        <div className={cn('rounded-md p-3 text-sm', message.includes('Failed') ? 'bg-[rgba(239,68,68,0.08)] text-[#EF4444]' : 'bg-[rgba(34,197,94,0.1)] text-[#22C55E]')}>
           {message}
         </div>
       )}
@@ -89,7 +89,7 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-zinc-50">
+                <tr className="border-b bg-[rgba(255,255,255,0.03)]">
                   <th className="px-4 py-3 text-start font-medium">{t('employee')}</th>
                   <th className="px-4 py-3 text-start font-medium">{t('department')}</th>
                   <th className="px-4 py-3 text-start font-medium">{t('checkIn')}</th>
@@ -104,9 +104,9 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
                   const record = recordMap.get(emp.id)
                   const isAbsent = !record
                   return (
-                    <tr key={emp.id} className="border-b last:border-0 hover:bg-zinc-50">
+                    <tr key={emp.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                       <td className="px-4 py-3">{emp.firstName} {emp.lastName}</td>
-                      <td className="px-4 py-3 text-zinc-500">{emp.department}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{emp.department}</td>
                       <td className="px-4 py-3">
                         {record?.checkIn ? format(new Date(record.checkIn), 'HH:mm') : '-'}
                       </td>
@@ -115,14 +115,14 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
                       </td>
                       <td className="px-4 py-3">
                         {isAbsent ? (
-                          <span className="inline-block rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-700">{t('absent')}</span>
+                          <span className="inline-block rounded bg-[rgba(239,68,68,0.08)] px-1.5 py-0.5 text-xs font-medium text-[#EF4444]">{t('absent')}</span>
                         ) : (
                           <span className={cn('inline-block rounded px-1.5 py-0.5 text-xs font-medium', statusColor[record.status] || '')}>
                             {record.status === 'PRESENT' ? t('present') : record.status === 'LATE' ? t('late') : record.status === 'ABSENT' ? t('absent') : record.status}
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-zinc-500">{record?.lateMinutes ?? '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{record?.lateMinutes ?? '-'}</td>
                       <td className="px-4 py-3">
                         <Button
                           variant="ghost"
@@ -156,27 +156,27 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <label className="text-xs font-medium text-zinc-500">{t('checkIn')}</label>
+              <label className="text-xs font-medium text-muted-foreground">{t('checkIn')}</label>
               <input
                 type="datetime-local"
-                className="w-full rounded border px-3 py-2 text-sm"
+                className="w-full rounded border bg-card px-3 py-2 text-sm"
                 value={overrideData.checkIn}
                 onChange={e => setOverrideData(d => ({ ...d, checkIn: e.target.value }))}
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500">{t('checkOut')}</label>
+              <label className="text-xs font-medium text-muted-foreground">{t('checkOut')}</label>
               <input
                 type="datetime-local"
-                className="w-full rounded border px-3 py-2 text-sm"
+                className="w-full rounded border bg-card px-3 py-2 text-sm"
                 value={overrideData.checkOut}
                 onChange={e => setOverrideData(d => ({ ...d, checkOut: e.target.value }))}
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500">{t('status')}</label>
+              <label className="text-xs font-medium text-muted-foreground">{t('status')}</label>
               <select
-                className="w-full rounded border px-3 py-2 text-sm"
+                className="w-full rounded border bg-card px-3 py-2 text-sm"
                 value={overrideData.status}
                 onChange={e => setOverrideData(d => ({ ...d, status: e.target.value }))}
               >
@@ -187,9 +187,9 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500">{t('note')}</label>
+              <label className="text-xs font-medium text-muted-foreground">{t('note')}</label>
               <input
-                className="w-full rounded border px-3 py-2 text-sm"
+                className="w-full rounded border bg-card px-3 py-2 text-sm"
                 value={overrideData.note}
                 onChange={e => setOverrideData(d => ({ ...d, note: e.target.value }))}
               />

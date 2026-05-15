@@ -4,6 +4,8 @@ import { db } from '@/lib/db'
 import { getLeaveRequestById } from '@/lib/queries/leave'
 import LeaveDetailClient from './leave-detail-client'
 
+export const dynamic = 'force-dynamic'
+
 export default async function LeaveDetailPage({
   params,
 }: {

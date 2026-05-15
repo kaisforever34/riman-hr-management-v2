@@ -39,7 +39,7 @@ export default function LeaveDetailClient({ request, role, locale }: LeaveDetail
         <h1 className="text-2xl font-bold">{t('title')}</h1>
       </div>
 
-      <div className="rounded-lg border bg-white p-6 space-y-4">
+      <div className="rounded-lg border bg-card p-6 space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <p className="text-sm text-muted-foreground">{t('type')}</p>
@@ -77,14 +77,14 @@ export default function LeaveDetailClient({ request, role, locale }: LeaveDetail
         {request.rejectReason && (
           <div>
             <p className="text-sm text-muted-foreground">{t('rejectReason')}</p>
-            <p className="mt-1 text-red-600">{request.rejectReason}</p>
+            <p className="mt-1 text-audit-red">{request.rejectReason}</p>
           </div>
         )}
 
         {request.attachmentFile && (
           <div>
             <p className="text-sm text-muted-foreground">{t('attachment')}</p>
-            <a href={request.attachmentFile} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+            <a href={request.attachmentFile} target="_blank" rel="noopener noreferrer" className="text-sm text-inquiry-blue hover:underline">
               {tc('view')}
             </a>
           </div>
@@ -97,7 +97,7 @@ export default function LeaveDetailClient({ request, role, locale }: LeaveDetail
 
         {canCancel && (
           <form action={handleCancel}>
-            <Button variant="outline" type="submit" disabled={cancelling} className="text-red-600">
+            <Button variant="outline" type="submit" disabled={cancelling} className="text-audit-red">
               {cancelling ? tc('loading') : t('cancelled')}
             </Button>
           </form>

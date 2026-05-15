@@ -4,6 +4,8 @@ import { db } from '@/lib/db'
 import { getEmployeeLeaveRequests, getEmployeeLeaveBalances } from '@/lib/queries/leave'
 import LeaveClient from './leave-client'
 
+export const dynamic = 'force-dynamic'
+
 export default async function LeavePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const session = await auth()

@@ -1,24 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { LogIn } from 'lucide-react'
+import { LogIn, Eye, EyeOff, Loader2 } from 'lucide-react'
 
 export default function SignInPage() {
   const t = useTranslations('auth')
-  const tc = useTranslations('common')
-  const { locale } = useParams<{ locale: string }>()
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -35,62 +31,87 @@ export default function SignInPage() {
       if (result?.error) {
         setError(t('invalidCredentials'))
       } else {
-        router.push(`/${locale}/dashboard`)
-        router.refresh()
+        window.location.href = '/dashboard'
       }
     } catch {
-      setError(tc('error'))
+      setError(t('invalidCredentials'))
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <Card>
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">{t('signIn')}</CardTitle>
-        <CardDescription>Riman HR Management</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-              {error}
-            </div>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="email">{t('email')}</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="admin@riman.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-            />
+    <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-6">
+      <div className="mb-6">
+        <h2 className="font-syne text-lg font-bold text-[#E0E6F4]">
+          {t('signIn')}
+        </h2>
+        <p className="mt-1 text-[13px] text-[#8B93A8]">
+          {t('enterCredentials')}
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="rounded-lg bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.15)] px-3 py-2 text-[13px] text-[#EF4444]">
+            {error}
           </div>
-          <div className="space-y-2">
+        )}
+
+        <div>
+          <Label htmlFor="email">{t('email')}</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="admin@riman.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loading}
+            autoComplete="email"
+            autoFocus
+          />
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
             <Label htmlFor="password">{t('password')}</Label>
+          </div>
+          <div className="relative">
             <Input
               id="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
+              autoComplete="current-password"
+              className="pr-9"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8B93A8] hover:text-[#E0E6F4] transition-colors"
+              tabIndex={-1}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? t('signingIn') : (
-              <>
-                <LogIn className="me-2 h-4 w-4" />
-                {t('signIn')}
-              </>
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+
+        <Button type="submit" disabled={loading} className="w-full justify-center">
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <LogIn className="h-4 w-4" />
+          )}
+          {loading ? t('signingIn') : t('signIn')}
+        </Button>
+      </form>
+    </div>
   )
 }

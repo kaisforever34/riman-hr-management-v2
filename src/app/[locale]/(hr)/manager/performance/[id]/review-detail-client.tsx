@@ -77,7 +77,7 @@ export function ReviewDetailClient({ review }: Props) {
       </div>
 
       {message && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{message}</div>
+        <div className="rounded-md bg-[rgba(239,68,68,0.08)] p-3 text-sm text-[#EF4444]">{message}</div>
       )}
 
       <Card>
@@ -105,7 +105,7 @@ export function ReviewDetailClient({ review }: Props) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-zinc-50">
+                <tr className="border-b bg-[rgba(255,255,255,0.03)]">
                   <th className="px-4 py-3 text-start font-medium">{t('criteria')}</th>
                   <th className="px-4 py-3 text-start font-medium">{t('rating')}</th>
                   <th className="px-4 py-3 text-start font-medium">{t('comment')}</th>
@@ -113,7 +113,7 @@ export function ReviewDetailClient({ review }: Props) {
               </thead>
               <tbody>
                 {review.ratings.map(r => (
-                  <tr key={r.id} className="border-b last:border-0 hover:bg-zinc-50">
+                  <tr key={r.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                     <td className="px-4 py-3">{r.criteriaName}</td>
                     <td className="px-4 py-3">{t(`ratingValues.${r.rating}`)}</td>
                     <td className="px-4 py-3">{r.comment || '-'}</td>
@@ -131,16 +131,16 @@ export function ReviewDetailClient({ review }: Props) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-zinc-50">
+                <tr className="border-b bg-[rgba(255,255,255,0.03)]">
                   <th className="px-4 py-3 text-start font-medium">{t('goalDescription')}</th>
                   <th className="px-4 py-3 text-start font-medium">{t('targetDate')}</th>
                 </tr>
               </thead>
               <tbody>
                 {review.goals.length === 0 ? (
-                  <tr><td colSpan={2} className="px-4 py-4 text-center text-zinc-500">-</td></tr>
+                  <tr><td colSpan={2} className="px-4 py-4 text-center text-muted-foreground">-</td></tr>
                 ) : review.goals.map(g => (
-                  <tr key={g.id} className="border-b last:border-0 hover:bg-zinc-50">
+                  <tr key={g.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                     <td className="px-4 py-3">{g.description}</td>
                     <td className="px-4 py-3">{g.targetDate ? new Date(g.targetDate).toLocaleDateString() : '-'}</td>
                   </tr>

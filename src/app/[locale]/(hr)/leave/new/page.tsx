@@ -4,6 +4,8 @@ import { db } from '@/lib/db'
 import { getLeaveTypes } from '@/lib/queries/leave'
 import SubmitLeaveForm from './submit-leave-form'
 
+export const dynamic = 'force-dynamic'
+
 export default async function NewLeavePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const session = await auth()

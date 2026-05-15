@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function ManagerAttendancePage() {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return null
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return null
 
   const today = getTodayUaeDate()
   const [records, employees] = await Promise.all([

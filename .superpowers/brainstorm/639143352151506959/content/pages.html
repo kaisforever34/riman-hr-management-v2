@@ -1,0 +1,64 @@
+<h2>Pages &amp; Routes</h2>
+<p class="subtitle">Five new page files following existing patterns</p>
+
+<div class="cards" style="grid-template-columns:1fr;">
+  <div class="card" style="cursor:default;">
+    <div class="card-body">
+      <table style="width:100%;font-size:0.8rem;border-collapse:collapse;">
+        <tr style="border-bottom:1px solid #D4A84322;">
+          <th style="padding:0.5rem;text-align:left;color:#D4A843;">Route</th>
+          <th style="padding:0.5rem;text-align:left;color:#D4A843;">Page</th>
+          <th style="padding:0.5rem;text-align:left;color:#D4A843;">Access</th>
+        </tr>
+        <tr style="border-bottom:1px solid #D4A84322;">
+          <td style="padding:0.5rem;font-family:monospace;">/manager/onboarding</td>
+          <td style="padding:0.5rem;">List all onboarding records, start new</td>
+          <td style="padding:0.5rem;">HR_ADMIN, MANAGER</td>
+        </tr>
+        <tr style="border-bottom:1px solid #D4A84322;">
+          <td style="padding:0.5rem;font-family:monospace;">/manager/onboarding/new</td>
+          <td style="padding:0.5rem;">Select employee → launches onboarding</td>
+          <td style="padding:0.5rem;">HR_ADMIN, MANAGER</td>
+        </tr>
+        <tr style="border-bottom:1px solid #D4A84322;">
+          <td style="padding:0.5rem;font-family:monospace;">/manager/onboarding/[id]</td>
+          <td style="padding:0.5rem;">Task progress view, complete manager tasks</td>
+          <td style="padding:0.5rem;">HR_ADMIN, MANAGER</td>
+        </tr>
+        <tr style="border-bottom:1px solid #D4A84322;">
+          <td style="padding:0.5rem;font-family:monospace;">/manager/offboarding</td>
+          <td style="padding:0.5rem;">List offboarding records, start new</td>
+          <td style="padding:0.5rem;">HR_ADMIN, MANAGER</td>
+        </tr>
+        <tr style="border-bottom:1px solid #D4A84322;">
+          <td style="padding:0.5rem;font-family:monospace;">/manager/offboarding/new</td>
+          <td style="padding:0.5rem;">Select employee → reason → launch</td>
+          <td style="padding:0.5rem;">HR_ADMIN, MANAGER</td>
+        </tr>
+        <tr style="border-bottom:1px solid #D4A84322;">
+          <td style="padding:0.5rem;font-family:monospace;">/manager/offboarding/[id]</td>
+          <td style="padding:0.5rem;">Exit interview response, handover tracking</td>
+          <td style="padding:0.5rem;">HR_ADMIN, MANAGER</td>
+        </tr>
+        <tr>
+          <td style="padding:0.5rem;font-family:monospace;">/[locale]/onboarding</td>
+          <td style="padding:0.5rem;">Employee view: their tasks, forms, docs</td>
+          <td style="padding:0.5rem;">EMPLOYEE</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Nav additions</h3>
+  <ul>
+    <li>Manager sidebar gets "Onboarding" section (between Employees and Directory)</li>
+    <li>Employee sidebar gets "My Onboarding" item</li>
+    <li>Badge shows pending task count</li>
+  </ul>
+</div>
+
+<div class="section">
+  <p style="text-align:center;color:#888;font-size:0.85rem;">Routes + nav structure ok?</p>
+</div>

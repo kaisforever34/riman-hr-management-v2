@@ -77,10 +77,10 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
 
   const statusColor: Record<string, string> = {
-    PRESENT: 'bg-green-100 text-green-700',
-    LATE: 'bg-yellow-100 text-yellow-700',
-    ABSENT: 'bg-red-100 text-red-700',
-    HALF_DAY: 'bg-orange-100 text-orange-700',
+    PRESENT: 'bg-[rgba(34,197,94,0.1)] text-[#22C55E]',
+    LATE: 'bg-[rgba(245,158,11,0.1)] text-[#F59E0B]',
+    ABSENT: 'bg-[rgba(239,68,68,0.08)] text-[#EF4444]',
+    HALF_DAY: 'bg-[rgba(245,158,11,0.1)] text-[#F59E0B]',
   }
 
   return (
@@ -90,7 +90,7 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
       </div>
 
       {message && (
-        <div className={cn('rounded-md p-3 text-sm', message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700')}>
+        <div className={cn('rounded-md p-3 text-sm', message.type === 'success' ? 'bg-[rgba(34,197,94,0.1)] text-[#22C55E]' : 'bg-[rgba(239,68,68,0.08)] text-[#EF4444]')}>
           {message.text}
         </div>
       )}
@@ -105,17 +105,17 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
         <CardContent className="space-y-4">
           {todayRecord?.checkIn ? (
             <div className="space-y-2">
-              <p className="text-sm text-zinc-600">
+              <p className="text-sm text-muted-foreground">
                 {t('checkedInAt')}: {format(new Date(todayRecord.checkIn), 'HH:mm')}
                 {todayRecord.lateMinutes > 0 && (
-                  <span className="ms-2 text-yellow-600">{t('minLate', { minutes: todayRecord.lateMinutes })}</span>
+                  <span className="ms-2 text-warning-amber">{t('minLate', { minutes: todayRecord.lateMinutes })}</span>
                 )}
               </p>
               {todayRecord.checkOut ? (
-                <p className="text-sm text-zinc-600">
+                <p className="text-sm text-muted-foreground">
                   {t('checkedOutAt')}: {format(new Date(todayRecord.checkOut), 'HH:mm')}
                   {todayRecord.earlyLeaveMinutes > 0 && (
-                    <span className="ms-2 text-yellow-600">{t('minEarly', { minutes: todayRecord.earlyLeaveMinutes })}</span>
+                    <span className="ms-2 text-warning-amber">{t('minEarly', { minutes: todayRecord.earlyLeaveMinutes })}</span>
                   )}
                 </p>
               ) : (
@@ -124,7 +124,7 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
                   {loading === 'checkOut' ? '...' : t('checkOut')}
                 </Button>
               )}
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-ledger-text-muted">
                 {t('status')}: <span className={cn('inline-block rounded px-1.5 py-0.5 text-xs font-medium', statusColor[todayRecord.status] || '')}>{t(todayRecord.status.toLowerCase())}</span>
               </p>
             </div>
@@ -144,12 +144,12 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
             <div className="space-y-2 rounded border p-3">
               <input
                 type="datetime-local"
-                className="w-full rounded border px-3 py-2 text-sm"
+                className="w-full rounded border bg-card px-3 py-2 text-sm"
                 value={manualTime}
                 onChange={e => setManualTime(e.target.value)}
               />
               <textarea
-                className="w-full rounded border px-3 py-2 text-sm"
+                className="w-full rounded border bg-card px-3 py-2 text-sm"
                 placeholder={t('reason')}
                 rows={2}
                 value={manualNote}
@@ -173,7 +173,7 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
         <CardContent>
           <div className="grid grid-cols-7 gap-1 text-center text-sm">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-              <div key={d} className="py-1 text-xs font-medium text-zinc-500">{d}</div>
+              <div key={d} className="py-1 text-xs font-medium text-muted-foreground">{d}</div>
             ))}
             {Array.from({ length: getDay(monthStart) }).map((_, i) => (
               <div key={`empty-${i}`} />
@@ -181,11 +181,11 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
             {days.map(day => {
               const record = monthlyRecords.find(r => isSameDay(new Date(r.date), day))
               const col = statusColor[record?.status || ''] || ''
-              const todayCls = isToday(day) ? 'ring-2 ring-blue-500' : ''
+              const todayCls = isToday(day) ? 'ring-2 ring-inquiry-blue' : ''
               return (
                 <div
                   key={day.toISOString()}
-                  className={cn('rounded p-1 text-xs', col, todayCls, record ? 'cursor-default' : 'text-zinc-400')}
+                  className={cn('rounded p-1 text-xs', col, todayCls, record ? 'cursor-default' : 'text-ledger-text-muted')}
                 >
                   {format(day, 'd')}
                 </div>

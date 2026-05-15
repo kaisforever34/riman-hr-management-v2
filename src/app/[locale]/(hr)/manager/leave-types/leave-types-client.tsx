@@ -46,10 +46,10 @@ export default function LeaveTypesClient({ leaveTypes, employees, employeeBalanc
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t('title')}</h1>
 
-      <div className="overflow-x-auto rounded-lg border bg-white">
+      <div className="overflow-x-auto rounded-lg border bg-card">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b bg-zinc-50 text-left">
+            <tr className="border-b bg-[rgba(255,255,255,0.03)] text-left">
               <th className="p-3 font-medium">{t('employee')}</th>
               {leaveTypes.map((lt: any) => (
                 <th key={lt.id} className="p-3 font-medium text-center">{lt.name}</th>
@@ -58,7 +58,7 @@ export default function LeaveTypesClient({ leaveTypes, employees, employeeBalanc
           </thead>
           <tbody>
             {employees.map((emp) => (
-              <tr key={emp.id} className="border-b last:border-0 hover:bg-zinc-50">
+              <tr key={emp.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                 <td className="p-3 font-medium">{emp.firstName} {emp.lastName}</td>
                 {leaveTypes.map((lt: any) => {
                   const balance = getBalance(emp.id, lt.id)
@@ -85,7 +85,7 @@ export default function LeaveTypesClient({ leaveTypes, employees, employeeBalanc
                             setEditingType(lt.id)
                             setAllocationValue(String(remaining))
                           }}
-                          className="inline-flex items-center gap-1 text-sm hover:text-blue-600"
+                          className="inline-flex items-center gap-1 text-sm hover:text-inquiry-blue"
                         >
                           {remaining}
                           <Pencil className="h-3 w-3" />

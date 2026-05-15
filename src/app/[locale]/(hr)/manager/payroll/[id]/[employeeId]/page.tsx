@@ -14,7 +14,7 @@ export default async function PayslipDetailPage({ params }: { params: Promise<{ 
   const { id, employeeId } = await params
   const t = await getTranslations('managerPayroll')
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return null
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return null
 
   const payslip = await db.payslip.findFirst({
     where: { payrollPeriodId: id, employeeId },
@@ -42,7 +42,7 @@ export default async function PayslipDetailPage({ params }: { params: Promise<{ 
       <Card>
         <CardHeader>
           <CardTitle>{payslip.employee.firstName} {payslip.employee.lastName}</CardTitle>
-          <p className="text-sm text-zinc-500">{payslip.employee.department} — {payslip.employee.jobTitle}</p>
+          <p className="text-sm text-muted-foreground">{payslip.employee.department} — {payslip.employee.jobTitle}</p>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -54,15 +54,15 @@ export default async function PayslipDetailPage({ params }: { params: Promise<{ 
               <span>{t('basicSalary')}</span>
               <span className="font-medium">{Number(payslip.basicSalary).toFixed(2)}</span>
             </div>
-            <div className="flex justify-between border-b py-2 text-red-600">
+            <div className="flex justify-between border-b py-2 text-audit-red">
               <span>{t('transportDeduction')}</span>
               <span>{Number(payslip.transportationDeduction) > 0 ? `-${Number(payslip.transportationDeduction).toFixed(2)}` : '0.00'}</span>
             </div>
-            <div className="flex justify-between border-b py-2 text-red-600">
+            <div className="flex justify-between border-b py-2 text-audit-red">
               <span>{t('absenceDeduction')}</span>
               <span>{Number(payslip.absenceDeduction) > 0 ? `-${Number(payslip.absenceDeduction).toFixed(2)}` : '0.00'}</span>
             </div>
-            <div className="flex justify-between border-b py-2 text-red-600">
+            <div className="flex justify-between border-b py-2 text-audit-red">
               <span>{t('lateDeduction')}</span>
               <span>{Number(payslip.lateDeduction) > 0 ? `-${Number(payslip.lateDeduction).toFixed(2)}` : '0.00'}</span>
             </div>

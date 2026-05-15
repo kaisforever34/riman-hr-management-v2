@@ -1,14 +1,36 @@
 services:
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: riman
       POSTGRES_PASSWORD: riman_dev
       POSTGRES_DB: riman_hr
     ports:
-      - '5433:5432'
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U riman -d riman_hr"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://riman:riman_dev@db:5432/riman_hr
+      AUTH_SECRET: ${AUTH_SECRET:-change-this-secret-in-production}
+      NEXTAUTH_URL: http://localhost:3000
+    volumes:
+      - uploads:/app/public/uploads
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:
+  uploads:

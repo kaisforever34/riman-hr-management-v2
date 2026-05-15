@@ -12,11 +12,11 @@ export default async function HrLayout({
   if (!session?.user) redirect('/auth/signin')
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen bg-[#07091A]">
       <Sidebar role={session.user.role} />
-      <div className="lg:ps-64">
+      <div className="ms-52 min-h-screen flex flex-col">
         <Header />
-        <main className="p-4 lg:p-6">{children}</main>
+        <main className="flex-1 p-7">{children}</main>
       </div>
     </div>
   )

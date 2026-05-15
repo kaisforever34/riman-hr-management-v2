@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function AttendanceReportsPage() {
   const t = await getTranslations('managerAttendance')
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return null
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return null
 
   const now = new Date()
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
@@ -23,7 +23,7 @@ export default async function AttendanceReportsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{t('reportTitle')}</h1>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-muted-foreground">
           {monthStart.toLocaleString('default', { month: 'long', year: 'numeric' })}
         </p>
       </div>
@@ -33,7 +33,7 @@ export default async function AttendanceReportsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-zinc-50">
+                <tr className="border-b bg-[rgba(255,255,255,0.03)]">
                   <th className="px-4 py-3 text-start font-medium">{t('employee')}</th>
                   <th className="px-4 py-3 text-start font-medium">{t('presentDays')}</th>
                   <th className="px-4 py-3 text-start font-medium">{t('lateDays')}</th>
@@ -53,7 +53,7 @@ export default async function AttendanceReportsPage() {
                   const avgLate = late > 0 ? Math.round(totalLateMin / late) : 0
 
                   return (
-                    <tr key={emp.id} className="border-b last:border-0 hover:bg-zinc-50">
+                    <tr key={emp.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                       <td className="px-4 py-3">{emp.firstName} {emp.lastName}</td>
                       <td className="px-4 py-3">{present}</td>
                       <td className="px-4 py-3">{late}</td>

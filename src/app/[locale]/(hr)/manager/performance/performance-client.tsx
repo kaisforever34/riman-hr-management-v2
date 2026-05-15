@@ -71,29 +71,29 @@ export function PerformanceClient({ reviews, employees }: Props) {
       </div>
 
       {message && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{message}</div>
+        <div className="rounded-md bg-[rgba(239,68,68,0.08)] p-3 text-sm text-[#EF4444]">{message}</div>
       )}
 
       <div className="flex flex-wrap gap-2">
-        <select className="rounded border px-3 py-2 text-sm" value={filterEmployee} onChange={e => setFilterEmployee(e.target.value)}>
+        <select className="rounded border bg-card px-3 py-2 text-sm" value={filterEmployee} onChange={e => setFilterEmployee(e.target.value)}>
           <option value="">{t('allEmployees')}</option>
           {employees.map(e => (
             <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
           ))}
         </select>
-        <select className="rounded border px-3 py-2 text-sm" value={filterQuarter} onChange={e => setFilterQuarter(e.target.value)}>
+        <select className="rounded border bg-card px-3 py-2 text-sm" value={filterQuarter} onChange={e => setFilterQuarter(e.target.value)}>
           <option value="">{t('allQuarters')}</option>
           {[1, 2, 3, 4].map(q => (
             <option key={q} value={q}>{t(`q${q}`)}</option>
           ))}
         </select>
-        <select className="rounded border px-3 py-2 text-sm" value={filterYear} onChange={e => setFilterYear(e.target.value)}>
+        <select className="rounded border bg-card px-3 py-2 text-sm" value={filterYear} onChange={e => setFilterYear(e.target.value)}>
           <option value="">{t('allYears')}</option>
           {[currentYear, currentYear - 1, currentYear - 2].map(y => (
             <option key={y} value={y}>{y}</option>
           ))}
         </select>
-        <select className="rounded border px-3 py-2 text-sm" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+        <select className="rounded border bg-card px-3 py-2 text-sm" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="">{t('allStatuses')}</option>
           <option value="DRAFT">{t('statusValues.DRAFT')}</option>
           <option value="COMPLETED">{t('statusValues.COMPLETED')}</option>
@@ -105,7 +105,7 @@ export function PerformanceClient({ reviews, employees }: Props) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-zinc-50">
+                <tr className="border-b bg-[rgba(255,255,255,0.03)]">
                   <th className="px-4 py-3 text-start font-medium">{t('employee')}</th>
                   <th className="px-4 py-3 text-start font-medium">{t('department')}</th>
                   <th className="px-4 py-3 text-start font-medium">{t('year')}</th>
@@ -118,10 +118,10 @@ export function PerformanceClient({ reviews, employees }: Props) {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-zinc-500">{t('noReviews')}</td>
+                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">{t('noReviews')}</td>
                   </tr>
                 ) : filtered.map(r => (
-                  <tr key={r.id} className="border-b last:border-0 hover:bg-zinc-50">
+                  <tr key={r.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                     <td className="px-4 py-3">{r.employeeName}</td>
                     <td className="px-4 py-3">{r.department}</td>
                     <td className="px-4 py-3">{r.year}</td>
@@ -134,7 +134,7 @@ export function PerformanceClient({ reviews, employees }: Props) {
                           <Eye className="h-3 w-3" />
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleDelete(r.id)}>
-                          <Trash2 className="h-3 w-3 text-red-500" />
+                          <Trash2 className="h-3 w-3 text-audit-red" />
                         </Button>
                       </div>
                     </td>

@@ -2,6 +2,8 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getLeaveRequestById } from '@/lib/queries/leave'
 import ManagerLeaveActionClient from './manager-leave-action-client'
+export const dynamic = 'force-dynamic'
+
 
 export default async function ManagerLeaveDetailPage({
   params,

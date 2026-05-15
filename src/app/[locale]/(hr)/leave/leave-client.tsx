@@ -32,7 +32,7 @@ export default function LeaveClient({ requests, balances, locale }: LeaveClientP
           <p className="col-span-full text-sm text-muted-foreground">{t('noBalance')}</p>
         )}
         {balances.map((b: any) => (
-          <div key={b.id} className="rounded-lg border bg-white p-4">
+          <div key={b.id} className="rounded-lg border bg-card p-4">
             <p className="text-sm font-medium">{b.leaveType.name}</p>
             <p className="mt-1 text-2xl font-bold">
               {b.allocated + b.carriedOver - b.used}
@@ -45,7 +45,7 @@ export default function LeaveClient({ requests, balances, locale }: LeaveClientP
       </div>
 
       {requests.length === 0 ? (
-        <div className="rounded-lg border bg-white p-12 text-center">
+        <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">{t('noLeaves')}</p>
           <p className="mt-1 text-sm text-muted-foreground">{t('noLeavesDesc')}</p>
           <Link href={`/${locale}/leave/new`} className={buttonVariants({ className: 'mt-4' })}>
@@ -53,10 +53,10 @@ export default function LeaveClient({ requests, balances, locale }: LeaveClientP
           </Link>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border bg-white">
+        <div className="overflow-x-auto rounded-lg border bg-card">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-zinc-50 text-left">
+              <tr className="border-b bg-[rgba(255,255,255,0.03)] text-left">
                 <th className="p-3 font-medium">{t('type')}</th>
                 <th className="p-3 font-medium">{t('startDate')}</th>
                 <th className="p-3 font-medium">{t('endDate')}</th>
@@ -67,23 +67,23 @@ export default function LeaveClient({ requests, balances, locale }: LeaveClientP
             </thead>
             <tbody>
               {requests.map((r: any) => (
-                <tr key={r.id} className="border-b last:border-0 hover:bg-zinc-50">
+                <tr key={r.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                   <td className="p-3">{r.leaveType.name}</td>
                   <td className="p-3">{new Date(r.startDate).toLocaleDateString()}</td>
                   <td className="p-3">{new Date(r.endDate).toLocaleDateString()}</td>
                   <td className="p-3">{r.durationDays} {r.durationDays === 1 ? t('day') : t('days')}</td>
                   <td className="p-3">
                     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                      r.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                      r.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                      r.status === 'CANCELLED' ? 'bg-zinc-100 text-zinc-600' :
-                      'bg-yellow-100 text-yellow-700'
+                      r.status === 'APPROVED' ? 'bg-[rgba(34,197,94,0.1)] text-[#22C55E]' :
+                      r.status === 'REJECTED' ? 'bg-[rgba(239,68,68,0.08)] text-[#EF4444]' :
+                      r.status === 'CANCELLED' ? 'bg-[#181E38] text-[#8B93A8]' :
+                      'bg-[rgba(245,158,11,0.1)] text-[#F59E0B]'
                     }`}>
                       {t(`statuses.${r.status}`)}
                     </span>
                   </td>
                   <td className="p-3">
-                    <Link href={`/${locale}/leave/${r.id}`} className="text-sm text-blue-600 hover:underline">
+                      <Link href={`/${locale}/leave/${r.id}`} className="text-sm text-inquiry-blue hover:underline">
                       {tc('view')}
                     </Link>
                   </td>

@@ -30,6 +30,9 @@ model User {
   payrollProcessed      PayrollPeriod[]
   uploadedEmployeeDocs  EmployeeDocument[]
   uploadedCompanyDocs   CompanyDocument[]
+  notifications         Notification[]
+  surveys               Survey[]
+  expensesReviewed      Expense[]
 }
 
 model Employee {
@@ -61,6 +64,10 @@ model Employee {
   payslips              Payslip[]
   performanceReviews    PerformanceReview[]
   employeeDocuments     EmployeeDocument[]
+  onboarding            EmployeeOnboarding[]
+  surveyAssignments     SurveyAssignment[]
+  assetAssignments      AssetAssignment[]
+  expenses              Expense[]
 }
 
 model LeaveType {
@@ -263,6 +270,54 @@ model ReviewGoal {
   review PerformanceReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 }
 
+model OnboardingTask {
+  id          String   @id @default(cuid())
+  type        String   // "ONBOARDING" | "OFFBOARDING"
+  titleEn     String
+  titleAr     String
+  category    String   // "FORM" | "DOCUMENT" | "MANAGER_ACTION"
+  roles       Role[]
+  order       Int
+  formSchema  Json?    // Zod schema for employee-filled forms
+  isRequired  Boolean                   @default(true)
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+  employeeTasks EmployeeOnboardingTask[]
+}
+
+model EmployeeOnboarding {
+  id              String   @id @default(cuid())
+  employeeId      String
+  type            String   // "ONBOARDING" | "OFFBOARDING"
+  status          String   @default("IN_PROGRESS") // PENDING | IN_PROGRESS | COMPLETED | CANCELLED
+  reason          String?  // offboarding reason
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  employee Employee                @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  tasks    EmployeeOnboardingTask[]
+}
+
+model EmployeeOnboardingTask {
+  id               String   @id @default(cuid())
+  onboardingId     String
+  taskTemplateId   String
+  assignedTo       String   // "EMPLOYEE" | "MANAGER"
+  status           String   @default("PENDING") // PENDING | COMPLETED
+  completedAt      DateTime?
+  completedById    String?
+  formData         Json?
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  onboarding   EmployeeOnboarding @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
+  taskTemplate OnboardingTask     @relation(fields: [taskTemplateId], references: [id])
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -297,4 +352,113 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "LEAVE_SUBMITTED" | "LEAVE_APPROVED" | "LEAVE_REJECTED" | "ONBOARDING_TASK" | "OFFBOARDING_TASK" | "GENERAL"
+  title     String
+  message   String?
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Survey {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  isAnonymous Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  dueDate     DateTime?
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User               @relation(fields: [createdById], references: [id])
+  questions   SurveyQuestion[]
+  assignments SurveyAssignment[]
+}
+
+model SurveyQuestion {
+  id       String  @id @default(cuid())
+  surveyId String
+  type     String  // "RATING" | "MULTIPLE_CHOICE" | "TEXT"
+  question String
+  options  Json?
+  order    Int
+
+  survey    Survey            @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  responses SurveyResponse[]
+}
+
+model SurveyAssignment {
+  id          String    @id @default(cuid())
+  surveyId    String
+  employeeId  String
+  status      String    @default("PENDING") // PENDING | COMPLETED
+  completedAt DateTime?
+
+  survey   Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  responses SurveyResponse[]
+}
+
+model SurveyResponse {
+  id           String  @id @default(cuid())
+  questionId   String
+  assignmentId String?
+  value        Json
+
+  question   SurveyQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  assignment SurveyAssignment? @relation(fields: [assignmentId], references: [id])
+}
+
+model Asset {
+  id            String   @id @default(cuid())
+  name          String
+  category      String   // SEWING_MACHINE, MANNEQUIN, COMPUTER, PHONE, TOOL, FURNITURE, VEHICLE, UNIFORM, OTHER
+  serialNumber  String?
+  purchaseDate  DateTime?
+  purchasePrice Float?
+  status        String   @default("AVAILABLE") // AVAILABLE, ASSIGNED, DAMAGED, RETIRED
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  assignments AssetAssignment[]
+}
+
+model AssetAssignment {
+  id         String    @id @default(cuid())
+  assetId    String
+  employeeId String
+  assignedAt DateTime  @default(now())
+  returnedAt DateTime?
+  note       String?
+
+  asset    Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model Expense {
+  id              String    @id @default(cuid())
+  employeeId      String
+  title           String
+  amount          Float
+  category        String    // MATERIALS, TRAVEL, MEALS, SUPPLIES, MAINTENANCE, UTILITIES, OTHER
+  description     String?
+  receiptUrl      String?
+  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  reviewedById    String?
+  reviewedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  reviewedBy User?    @relation(fields: [reviewedById], references: [id])
 }
