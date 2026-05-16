@@ -37,6 +37,8 @@ RUN npm install -g tsx && \
 
 USER nextjs
 EXPOSE 3000
+ENV AUTH_SECRET=33ea70de375170db98f03913214b9de14da27a693422bbc0878b3a6517beaa17
+ENV NEXTAUTH_URL=https://riman-hr-management-v2-production.up.railway.app
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
