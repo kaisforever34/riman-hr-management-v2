@@ -1,27 +1,27 @@
-import NextAuth from 'next-auth'
-import { authConfig } from '@/lib/auth.config'
 import createMiddleware from 'next-intl/middleware'
-import { routing } from './i18n/routing'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { routing } from '@/i18n/routing'
 
 const intlMiddleware = createMiddleware(routing)
 
-const { auth: authMiddleware } = NextAuth(authConfig)
-
-export default authMiddleware((req) => {
+export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const isAuthPage = pathname.includes('/auth/')
+  
+  // Skip special paths
+  if (pathname.startsWith('/api')) return NextResponse.next()
+  if (pathname.startsWith('/_next') || pathname.includes('/favicon.ico')) return NextResponse.next()
 
-  if (isAuthPage) {
-    return intlMiddleware(req)
+  // Let next-intl handle locale detection, redirect, cookie sync, and headers
+  const response = intlMiddleware(req)
+
+  // Allow auth pages through regardless of session
+  if (pathname.includes('/auth/')) {
+    return response
   }
 
-  if (!req.auth) {
-    const signInUrl = new URL('/auth/signin', req.nextUrl.origin)
-    return Response.redirect(signInUrl)
-  }
-
-  return intlMiddleware(req)
-})
+  return response
+}
 
 export const config = {
   matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],

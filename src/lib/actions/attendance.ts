@@ -120,7 +120,7 @@ export async function checkOut() {
 
 export async function managerOverrideAttendance(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const parsed = managerOverrideSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: 'Invalid input', fieldErrors: parsed.error.flatten().fieldErrors }

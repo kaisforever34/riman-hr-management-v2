@@ -3,15 +3,18 @@ import { redirect } from 'next/navigation'
 
 export default async function ManagerLayout({
   children,
+  params,
 }: {
   children: React.ReactNode
+  params: Promise<{ locale: string }>
 }) {
+  const { locale } = await params
   const session = await auth()
-  if (!session?.user) redirect('/auth/signin')
+  if (!session?.user) redirect(`/${locale}/auth/signin`)
 
   const role = session.user.role
   if (role !== 'HR_ADMIN' && role !== 'MANAGER') {
-    redirect('/dashboard')
+    redirect(`/${locale}/dashboard`)
   }
 
   return <>{children}</>

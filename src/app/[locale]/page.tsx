@@ -1,3 +1,4 @@
+import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
 export default async function RootPage({
@@ -6,5 +7,11 @@ export default async function RootPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  redirect(locale === 'en' ? '/auth/signin' : `/${locale}/auth/signin`)
+  const session = await auth()
+  
+  if (session) {
+    redirect(`/${locale}/dashboard`)
+  }
+  
+  redirect(`/${locale}/auth/signin`)
 }

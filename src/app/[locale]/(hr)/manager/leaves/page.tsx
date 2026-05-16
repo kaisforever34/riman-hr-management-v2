@@ -14,7 +14,7 @@ export default async function ManagerLeavesPage({
 }) {
   const { locale } = await params
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') redirect(`/${locale}/auth/signin`)
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) redirect(`/${locale}/auth/signin`)
 
   const filters = await searchParams
   const [requests, leaveTypes, employees] = await Promise.all([

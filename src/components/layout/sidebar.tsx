@@ -25,9 +25,12 @@ import {
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { useState } from 'react'
+import { useParams } from 'next/navigation'
 
 export default function Sidebar({ role }: { role: string }) {
   const pathname = usePathname()
+  const params = useParams()
+  const locale = params.locale as string
   const t = useTranslations('nav')
   const [collapsed, setCollapsed] = useState(false)
 
@@ -35,26 +38,26 @@ export default function Sidebar({ role }: { role: string }) {
   const isEmployee = role === 'EMPLOYEE'
 
   const navItems = [
-    { href: '/dashboard', icon: LayoutDashboard, label: 'dashboard', show: true },
-    { href: '/directory', icon: BookUser, label: 'directory', show: true },
-    { href: '/notifications', icon: Bell, label: 'notifications', show: true },
-    { href: '/employees', icon: Users, label: 'employees', show: isAdmin },
-    { href: '/manager/onboarding', icon: DoorOpen, label: 'onboarding', show: isAdmin },
-    { href: '/leave', icon: CalendarCheck, label: 'myLeaves', show: true },
-    { href: '/onboarding', icon: DoorOpen, label: 'myOnboarding', show: isEmployee },
-    { href: '/manager/leaves', icon: CalendarRange, label: 'leaveRequests', show: isAdmin },
-    { href: '/attendance', icon: Clock, label: 'attendance', show: true },
-    { href: '/manager/attendance', icon: ListChecks, label: 'managerAttendance', show: isAdmin },
-    { href: '/manager/payroll', icon: Banknote, label: 'payroll', show: isAdmin },
-    { href: '/manager/performance', icon: BarChart3, label: 'performance', show: isAdmin },
-    { href: '/manager/analytics', icon: BarChart3, label: 'analytics', show: isAdmin },
-    { href: '/manager/documents', icon: FolderOpen, label: 'documents', show: isAdmin },
-    { href: '/manager/surveys', icon: ClipboardList, label: 'surveys', show: isAdmin },
-    { href: '/manager/assets', icon: Package, label: 'assets', show: isAdmin },
-    { href: '/manager/expenses', icon: Receipt, label: 'expenses', show: isAdmin },
-    { href: '/surveys', icon: ClipboardList, label: 'mySurveys', show: isEmployee },
-    { href: '/assets', icon: Package, label: 'myAssets', show: isEmployee },
-    { href: '/expenses', icon: Receipt, label: 'myExpenses', show: isEmployee },
+    { href: `/${locale}/dashboard`, icon: LayoutDashboard, label: 'dashboard', show: true },
+    { href: `/${locale}/directory`, icon: BookUser, label: 'directory', show: true },
+    { href: `/${locale}/notifications`, icon: Bell, label: 'notifications', show: true },
+    { href: `/${locale}/employees`, icon: Users, label: 'employees', show: isAdmin },
+    { href: `/${locale}/manager/onboarding`, icon: DoorOpen, label: 'onboarding', show: isAdmin },
+    { href: `/${locale}/leave`, icon: CalendarCheck, label: 'myLeaves', show: true },
+    { href: `/${locale}/onboarding`, icon: DoorOpen, label: 'myOnboarding', show: isEmployee },
+    { href: `/${locale}/manager/leaves`, icon: CalendarRange, label: 'leaveRequests', show: isAdmin },
+    { href: `/${locale}/attendance`, icon: Clock, label: 'attendance', show: true },
+    { href: `/${locale}/manager/attendance`, icon: ListChecks, label: 'managerAttendance', show: isAdmin },
+    { href: `/${locale}/manager/payroll`, icon: Banknote, label: 'payroll', show: isAdmin },
+    { href: `/${locale}/manager/performance`, icon: BarChart3, label: 'performance', show: isAdmin },
+    { href: `/${locale}/manager/analytics`, icon: BarChart3, label: 'analytics', show: isAdmin },
+    { href: `/${locale}/manager/documents`, icon: FolderOpen, label: 'documents', show: isAdmin },
+    { href: `/${locale}/manager/surveys`, icon: ClipboardList, label: 'surveys', show: isAdmin },
+    { href: `/${locale}/manager/assets`, icon: Package, label: 'assets', show: isAdmin },
+    { href: `/${locale}/manager/expenses`, icon: Receipt, label: 'expenses', show: isAdmin },
+    { href: `/${locale}/surveys`, icon: ClipboardList, label: 'mySurveys', show: isEmployee },
+    { href: `/${locale}/assets`, icon: Package, label: 'myAssets', show: isEmployee },
+    { href: `/${locale}/expenses`, icon: Receipt, label: 'myExpenses', show: isEmployee },
   ].filter((item) => item.show)
 
   return (
@@ -65,7 +68,7 @@ export default function Sidebar({ role }: { role: string }) {
       )}
     >
       <div className={cn("flex items-center h-14 border-b border-[rgba(255,255,255,0.065)]", collapsed ? "justify-center px-0" : "px-5")}>
-        <Link href="/dashboard" className={cn("flex items-center gap-2", collapsed && "justify-center")}>
+        <Link href={`/${locale}/dashboard`} className={cn("flex items-center gap-2", collapsed && "justify-center")}>
           <div className="w-7 h-7 rounded-md bg-[#D4A843] flex items-center justify-center flex-shrink-0">
             <span className="text-[11px] font-bold text-[#0D0B07] font-syne">R</span>
           </div>

@@ -3,17 +3,11 @@ import type { Role } from '@prisma/client'
 
 export const authConfig = {
   trustHost: true,
+  session: { strategy: 'jwt' },
   pages: {
     signIn: '/auth/signin',
   },
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user
-      const pathname = nextUrl.pathname
-      const isProtected = !pathname.includes('/auth/')
-      if (isProtected && !isLoggedIn) return false
-      return true
-    },
     jwt({ token, user }) {
       if (user) {
         token.role = user.role

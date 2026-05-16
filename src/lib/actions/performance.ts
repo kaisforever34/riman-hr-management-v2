@@ -15,7 +15,7 @@ function computeOverallRating(ratings: { rating: string }[]): string {
 
 export async function createReview(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const raw = {
     employeeId: formData.get('employeeId') as string,
@@ -75,7 +75,7 @@ export async function createReview(formData: FormData) {
 
 export async function deleteReview(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const parsed = deleteReviewSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: 'Invalid request' }

@@ -18,7 +18,7 @@ async function getTransportationAmount(): Promise<number> {
 
 export async function createPayrollPeriod(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const parsed = createPayrollPeriodSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: 'Invalid month or year' }
@@ -68,7 +68,7 @@ export async function createPayrollPeriod(formData: FormData) {
 
 export async function recalculatePayslips(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const periodId = formData.get('periodId') as string
   const period = await db.payrollPeriod.findUnique({ where: { id: periodId } })
@@ -102,7 +102,7 @@ export async function recalculatePayslips(formData: FormData) {
 
 export async function updateLateDeduction(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const parsed = updateLateDeductionSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: 'Invalid deduction amount' }
@@ -129,7 +129,7 @@ export async function updateLateDeduction(formData: FormData) {
 
 export async function finalizePayroll(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const periodId = formData.get('periodId') as string
   const period = await db.payrollPeriod.findUnique({ where: { id: periodId } })

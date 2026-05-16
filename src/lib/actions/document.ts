@@ -10,7 +10,7 @@ import { join } from 'path'
 
 export async function uploadEmployeeDoc(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const parsed = uploadEmployeeDocumentSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: 'Invalid input', fieldErrors: parsed.error.flatten().fieldErrors }
@@ -39,7 +39,7 @@ export async function uploadEmployeeDoc(formData: FormData) {
 
 export async function uploadCompanyDoc(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const parsed = uploadCompanyDocumentSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: 'Invalid input', fieldErrors: parsed.error.flatten().fieldErrors }
@@ -68,7 +68,7 @@ export async function uploadCompanyDoc(formData: FormData) {
 
 export async function deleteDocument(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const parsed = deleteDocumentSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: 'Invalid request' }

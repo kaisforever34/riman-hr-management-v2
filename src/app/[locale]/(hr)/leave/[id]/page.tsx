@@ -20,7 +20,7 @@ export default async function LeaveDetailPage({
 
   const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
   if (!employee && !['MANAGER', 'HR_ADMIN'].includes(session.user.role)) redirect(`/${locale}/dashboard`)
-  if (employee && request.employeeId !== employee.id && session.user.role !== 'MANAGER') redirect(`/${locale}/leave`)
+  if (employee && request.employeeId !== employee.id && session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN') redirect(`/${locale}/leave`)
 
   return (
     <LeaveDetailClient

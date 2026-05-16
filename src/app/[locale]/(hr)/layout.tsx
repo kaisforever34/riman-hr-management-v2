@@ -5,11 +5,14 @@ import { redirect } from 'next/navigation'
 
 export default async function HrLayout({
   children,
+  params,
 }: {
   children: React.ReactNode
+  params: Promise<{ locale: string }>
 }) {
+  const { locale } = await params
   const session = await auth()
-  if (!session?.user) redirect('/auth/signin')
+  if (!session?.user) redirect(`/${locale}/auth/signin`)
 
   return (
     <div className="min-h-screen bg-[#07091A]">

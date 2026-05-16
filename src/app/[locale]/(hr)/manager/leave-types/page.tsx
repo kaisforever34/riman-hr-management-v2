@@ -12,7 +12,7 @@ export default async function LeaveTypesPage({
 }) {
   const { locale } = await params
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') redirect(`/${locale}/auth/signin`)
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) redirect(`/${locale}/auth/signin`)
 
   const [leaveTypes, employees] = await Promise.all([
     getAllLeaveTypes(),

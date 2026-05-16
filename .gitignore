@@ -34,6 +34,19 @@ yarn-error.log*
 .env*
 !.env.example
 
+# debug logs
+dev-err.log
+dev-out.log
+cookies.txt
+headers.txt
+headers2.txt
+response.html
+signin-test.html
+
+# testing
+test-results/
+playwright-report/
+
 # vercel
 .vercel
 

@@ -104,7 +104,7 @@ export async function submitLeave(formData: FormData) {
 
 export async function approveLeave(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const raw = { id: formData.get('id') as string }
   const parsed = approveLeaveSchema.safeParse(raw)
@@ -171,7 +171,7 @@ export async function approveLeave(formData: FormData) {
 
 export async function rejectLeave(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const raw = {
     id: formData.get('id') as string,
@@ -221,7 +221,7 @@ export async function cancelLeave(formData: FormData) {
   if (!request) return { error: 'Request not found' }
 
   const isOwner = request.employee.userId === session.user.id
-  const isManager = session.user.role === 'MANAGER'
+  const isManager = session.user.role === 'MANAGER' || session.user.role === 'HR_ADMIN'
   if (!isOwner && !isManager) return { error: 'Unauthorized' }
   if (isOwner && !isManager && request.status !== 'PENDING') return { error: 'Cannot cancel a processed request' }
 
@@ -248,7 +248,7 @@ export async function cancelLeave(formData: FormData) {
 
 export async function setAllocation(formData: FormData) {
   const session = await auth()
-  if (!session?.user || session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
 
   const raw = {
     employeeId: formData.get('employeeId') as string,

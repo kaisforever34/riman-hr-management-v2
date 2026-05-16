@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
+import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,6 +11,8 @@ import { LogIn, Eye, EyeOff, Loader2 } from 'lucide-react'
 
 export default function SignInPage() {
   const t = useTranslations('auth')
+  const params = useParams()
+  const locale = params.locale as string
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -31,7 +34,7 @@ export default function SignInPage() {
       if (result?.error) {
         setError(t('invalidCredentials'))
       } else {
-        window.location.href = '/dashboard'
+        window.location.href = `/${locale}/dashboard`
       }
     } catch {
       setError(t('invalidCredentials'))
