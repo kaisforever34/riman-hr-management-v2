@@ -28,6 +28,7 @@ declare module '@auth/core/jwt' {
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
+  secret: process.env.AUTH_SECRET ?? '33ea70de375170db98f03913214b9de14da27a693422bbc0878b3a6517beaa17',
 
   providers: [
     Credentials({
