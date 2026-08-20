@@ -139,7 +139,7 @@ export function PeriodClient({ period, payslips }: Props) {
                 {payslips.map(slip => (
                   <tr key={slip.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                     <td className="px-4 py-3">{slip.employeeName}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{slip.department}</td>
+                    <td className="px-4 py-3 text-[#8B93A8]">{slip.department}</td>
                     <td className="px-4 py-3 text-end">{slip.basicSalary.toFixed(2)}</td>
                     <td className="px-4 py-3 text-end text-audit-red">{slip.transportationDeduction > 0 ? `-${slip.transportationDeduction.toFixed(2)}` : '0.00'}</td>
                     <td className="px-4 py-3 text-end text-audit-red">{slip.absenceDeduction > 0 ? `-${slip.absenceDeduction.toFixed(2)}` : '0.00'}</td>
@@ -148,7 +148,7 @@ export function PeriodClient({ period, payslips }: Props) {
                         <span className="inline-flex items-center gap-1">
                           <input
                             type="number"
-                            className="w-20 rounded border bg-card px-2 py-1 text-end text-sm"
+                            className="w-20 rounded border bg-[#0D1028] px-2 py-1 text-end text-sm"
                             value={editValue}
                             onChange={e => setEditValue(e.target.value)}
                             min="0"
@@ -160,7 +160,7 @@ export function PeriodClient({ period, payslips }: Props) {
                         </span>
                       ) : (
                         <span
-                          className={cn('cursor-pointer', isDraft && 'hover:text-inquiry-blue')}
+                          className={cn('cursor-pointer', isDraft && 'hover:text-[#4B8BF0]')}
                           onClick={() => {
                             if (!isDraft) return
                             setEditingId(slip.id)

@@ -17,9 +17,9 @@ export default async function HrLayout({
   return (
     <div className="min-h-screen bg-[#07091A]">
       <Sidebar role={session.user.role} />
-      <div className="ms-52 min-h-screen flex flex-col">
+      <div className="ms-0 md:ms-60 min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 p-7">{children}</main>
+        <main className="flex-1 p-4 md:p-7 pt-14 md:pt-4">{children}</main>
       </div>
     </div>
   )

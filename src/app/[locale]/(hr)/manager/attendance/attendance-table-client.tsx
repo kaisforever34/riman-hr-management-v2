@@ -75,7 +75,7 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('todayAttendance')}</p>
+        <p className="text-sm text-[#8B93A8]">{t('todayAttendance')}</p>
       </div>
 
       {message && (
@@ -106,7 +106,7 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
                   return (
                     <tr key={emp.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                       <td className="px-4 py-3">{emp.firstName} {emp.lastName}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{emp.department}</td>
+                      <td className="px-4 py-3 text-[#8B93A8]">{emp.department}</td>
                       <td className="px-4 py-3">
                         {record?.checkIn ? format(new Date(record.checkIn), 'HH:mm') : '-'}
                       </td>
@@ -122,7 +122,7 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{record?.lateMinutes ?? '-'}</td>
+                      <td className="px-4 py-3 text-[#8B93A8]">{record?.lateMinutes ?? '-'}</td>
                       <td className="px-4 py-3">
                         <Button
                           variant="ghost"
@@ -156,27 +156,27 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <label className="text-xs font-medium text-muted-foreground">{t('checkIn')}</label>
+              <label className="text-xs font-medium text-[#8B93A8]">{t('checkIn')}</label>
               <input
                 type="datetime-local"
-                className="w-full rounded border bg-card px-3 py-2 text-sm"
+                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
                 value={overrideData.checkIn}
                 onChange={e => setOverrideData(d => ({ ...d, checkIn: e.target.value }))}
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground">{t('checkOut')}</label>
+              <label className="text-xs font-medium text-[#8B93A8]">{t('checkOut')}</label>
               <input
                 type="datetime-local"
-                className="w-full rounded border bg-card px-3 py-2 text-sm"
+                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
                 value={overrideData.checkOut}
                 onChange={e => setOverrideData(d => ({ ...d, checkOut: e.target.value }))}
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground">{t('status')}</label>
+              <label className="text-xs font-medium text-[#8B93A8]">{t('status')}</label>
               <select
-                className="w-full rounded border bg-card px-3 py-2 text-sm"
+                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
                 value={overrideData.status}
                 onChange={e => setOverrideData(d => ({ ...d, status: e.target.value }))}
               >
@@ -187,9 +187,9 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground">{t('note')}</label>
+              <label className="text-xs font-medium text-[#8B93A8]">{t('note')}</label>
               <input
-                className="w-full rounded border bg-card px-3 py-2 text-sm"
+                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
                 value={overrideData.note}
                 onChange={e => setOverrideData(d => ({ ...d, note: e.target.value }))}
               />

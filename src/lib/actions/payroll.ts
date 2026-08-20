@@ -3,7 +3,7 @@
 import { db } from '@/lib/db'
 import { createPayrollPeriodSchema, updateLateDeductionSchema } from '@/lib/validations/payroll'
 import { auth } from '@/lib/auth'
-import { getAnnualLeaveDaysInPeriod, getAbsentDaysInPeriod, getAppSetting, getActiveEmployeesForPayroll } from '@/lib/queries/payroll'
+import { getAppSetting, getActiveEmployeesForPayroll } from '@/lib/queries/payroll'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth } from 'date-fns'
@@ -14,6 +14,69 @@ const DEFAULT_TRANSPORTATION = 500
 async function getTransportationAmount(): Promise<number> {
   const val = await getAppSetting('TRANSPORTATION_AMOUNT')
   return val ? parseInt(val, 10) : DEFAULT_TRANSPORTATION
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100
+}
+
+function overlapDays(reqStart: Date, reqEnd: Date, periodStart: Date, periodEnd: Date): number {
+  const overlapStart = reqStart > periodStart ? reqStart : periodStart
+  const overlapEnd = reqEnd < periodEnd ? reqEnd : periodEnd
+  const ms = overlapEnd.getTime() - overlapStart.getTime()
+  return Math.floor(ms / (1000 * 60 * 60 * 24)) + 1
+}
+
+async function computeDeductions(
+  employeeIds: string[],
+  periodStart: Date,
+  periodEnd: Date,
+): Promise<Map<string, { annualLeaveDays: number; absentDays: number }>> {
+  const result = new Map<string, { annualLeaveDays: number; absentDays: number }>()
+  for (const id of employeeIds) result.set(id, { annualLeaveDays: 0, absentDays: 0 })
+
+  const annualLeaveType = await db.leaveType.findUnique({ where: { name: 'Annual' } })
+
+  if (annualLeaveType) {
+    const requests = await db.leaveRequest.findMany({
+      where: {
+        employeeId: { in: employeeIds },
+        leaveTypeId: annualLeaveType.id,
+        status: 'APPROVED',
+        startDate: { lte: periodEnd },
+        endDate: { gte: periodStart },
+      },
+      select: { employeeId: true, startDate: true, endDate: true, durationDays: true },
+    })
+
+    for (const req of requests) {
+      const entry = result.get(req.employeeId)
+      if (!entry) continue
+      const requestDays = Math.floor((req.endDate.getTime() - req.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      const overlap = overlapDays(req.startDate, req.endDate, periodStart, periodEnd)
+      entry.annualLeaveDays += (req.durationDays / requestDays) * overlap
+    }
+  }
+
+  const absentCounts = await db.attendanceRecord.groupBy({
+    by: ['employeeId'],
+    where: {
+      employeeId: { in: employeeIds },
+      date: { gte: periodStart, lte: periodEnd },
+      status: 'ABSENT',
+    },
+    _count: { _all: true },
+  })
+  for (const row of absentCounts) {
+    const entry = result.get(row.employeeId)
+    if (entry) entry.absentDays = row._count._all
+  }
+
+  for (const entry of result.values()) {
+    entry.annualLeaveDays = Math.round(entry.annualLeaveDays)
+  }
+
+  return result
 }
 
 export async function createPayrollPeriod(formData: FormData) {
@@ -33,34 +96,38 @@ export async function createPayrollPeriod(formData: FormData) {
   const periodStart = startOfMonth(new Date(year, month - 1))
   const periodEnd = endOfMonth(periodStart)
   const employees = await getActiveEmployeesForPayroll()
-  const transportationAmount = await getTransportationAmount()
 
   if (employees.length === 0) return { error: 'No active employees with salary' }
 
-  const period = await db.payrollPeriod.create({
-    data: { month, year, status: 'DRAFT' },
-  })
+  const transportationAmount = await getTransportationAmount()
+  const deductions = await computeDeductions(employees.map((e) => e.id), periodStart, periodEnd)
 
-  for (const emp of employees) {
-    const annualLeaveDays = await getAnnualLeaveDaysInPeriod(emp.id, periodStart, periodEnd)
-    const absentDays = await getAbsentDaysInPeriod(emp.id, periodStart, periodEnd)
+  const payslipData = employees.map((emp) => {
+    const { annualLeaveDays, absentDays } = deductions.get(emp.id) ?? { annualLeaveDays: 0, absentDays: 0 }
     const salary = Number(emp.salary)
     const dailyRate = salary / DAILY_RATE_DIVISOR
-    const transportDeduction = (transportationAmount / DAILY_RATE_DIVISOR) * annualLeaveDays
-    const absenceDeduction = dailyRate * absentDays
+    const transportDeduction = round2((transportationAmount / DAILY_RATE_DIVISOR) * annualLeaveDays)
+    const absenceDeduction = round2(dailyRate * absentDays)
 
-    await db.payslip.create({
-      data: {
-        payrollPeriodId: period.id,
-        employeeId: emp.id,
-        basicSalary: salary,
-        transportationDeduction: Math.round(transportDeduction * 100) / 100,
-        absenceDeduction: Math.round(absenceDeduction * 100) / 100,
-        lateDeduction: 0,
-        netPay: salary - Math.round(transportDeduction * 100) / 100 - Math.round(absenceDeduction * 100) / 100,
-      },
+    return {
+      employeeId: emp.id,
+      basicSalary: salary,
+      transportationDeduction: transportDeduction,
+      absenceDeduction,
+      lateDeduction: 0,
+      netPay: round2(salary - transportDeduction - absenceDeduction),
+    }
+  })
+
+  const period = await db.$transaction(async (tx) => {
+    const created = await tx.payrollPeriod.create({
+      data: { month, year, status: 'DRAFT' },
     })
-  }
+    await tx.payslip.createMany({
+      data: payslipData.map((p) => ({ ...p, payrollPeriodId: created.id })),
+    })
+    return created
+  })
 
   revalidatePath('/manager/payroll')
   redirect(`/manager/payroll/${period.id}`)
@@ -78,24 +145,26 @@ export async function recalculatePayslips(formData: FormData) {
   const periodEnd = endOfMonth(periodStart)
   const existingPayslips = await db.payslip.findMany({ where: { payrollPeriodId: periodId } })
   const transportationAmount = await getTransportationAmount()
+  const deductions = await computeDeductions(existingPayslips.map((s) => s.employeeId), periodStart, periodEnd)
 
-  for (const slip of existingPayslips) {
-    const annualLeaveDays = await getAnnualLeaveDaysInPeriod(slip.employeeId, periodStart, periodEnd)
-    const absentDays = await getAbsentDaysInPeriod(slip.employeeId, periodStart, periodEnd)
-    const salary = Number(slip.basicSalary)
-    const dailyRate = salary / DAILY_RATE_DIVISOR
-    const transportDeduction = (transportationAmount / DAILY_RATE_DIVISOR) * annualLeaveDays
-    const absenceDeduction = dailyRate * absentDays
+  await db.$transaction(async (tx) => {
+    for (const slip of existingPayslips) {
+      const { annualLeaveDays, absentDays } = deductions.get(slip.employeeId) ?? { annualLeaveDays: 0, absentDays: 0 }
+      const salary = Number(slip.basicSalary)
+      const dailyRate = salary / DAILY_RATE_DIVISOR
+      const transportDeduction = round2((transportationAmount / DAILY_RATE_DIVISOR) * annualLeaveDays)
+      const absenceDeduction = round2(dailyRate * absentDays)
 
-    await db.payslip.update({
-      where: { id: slip.id },
-      data: {
-        transportationDeduction: Math.round(transportDeduction * 100) / 100,
-        absenceDeduction: Math.round(absenceDeduction * 100) / 100,
-        netPay: salary - Math.round(transportDeduction * 100) / 100 - Math.round(absenceDeduction * 100) / 100 - Number(slip.lateDeduction),
-      },
-    })
-  }
+      await tx.payslip.update({
+        where: { id: slip.id },
+        data: {
+          transportationDeduction: transportDeduction,
+          absenceDeduction,
+          netPay: round2(salary - transportDeduction - absenceDeduction - Number(slip.lateDeduction)),
+        },
+      })
+    }
+  })
 
   revalidatePath(`/manager/payroll/${periodId}`)
 }
@@ -121,7 +190,7 @@ export async function updateLateDeduction(formData: FormData) {
 
   await db.payslip.update({
     where: { id: slip.id },
-    data: { lateDeduction, netPay: Math.round(netPay * 100) / 100 },
+    data: { lateDeduction, netPay: round2(netPay) },
   })
 
   revalidatePath(`/manager/payroll/${slip.payrollPeriodId}`)

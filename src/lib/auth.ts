@@ -9,12 +9,14 @@ import type { Role } from '@prisma/client'
 declare module 'next-auth' {
   interface User {
     role?: Role
+    name?: string
   }
   interface Session {
     user: {
       id: string
       email: string
       role: Role
+      name?: string
     }
   }
 }
@@ -23,12 +25,17 @@ declare module '@auth/core/jwt' {
   interface JWT {
     role?: Role
     id?: string
+    name?: string
   }
+}
+
+const secret = process.env.AUTH_SECRET
+if (!secret && process.env.NODE_ENV === 'production') {
+  throw new Error('AUTH_SECRET must be set in production')
 }
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
-  secret: process.env.AUTH_SECRET || '33ea70de375170db98f03913214b9de14da27a693422bbc0878b3a6517beaa17',
 
   providers: [
     Credentials({
@@ -44,7 +51,10 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         const passwordsMatch = await bcrypt.compare(password, user.passwordHash)
         if (!passwordsMatch) return null
 
-        return { id: user.id, email: user.email, role: user.role }
+        const employee = await db.employee.findUnique({ where: { userId: user.id } })
+        const name = employee ? `${employee.firstName} ${employee.lastName}` : user.email.split('@')[0]
+
+        return { id: user.id, email: user.email, role: user.role, name }
       },
     }),
   ],

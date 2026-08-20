@@ -7,7 +7,7 @@ import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LogIn, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { LogIn, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 
 export default function SignInPage() {
   const t = useTranslations('auth')
@@ -44,7 +44,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-6">
+    <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-6 fi">
       <div className="mb-6">
         <h2 className="font-syne text-lg font-bold text-[#E0E6F4]">
           {t('signIn')}
@@ -56,8 +56,9 @@ export default function SignInPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="rounded-lg bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.15)] px-3 py-2 text-[13px] text-[#EF4444]">
-            {error}
+          <div className="flex items-start gap-2.5 rounded-lg bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.15)] px-3.5 py-2.5">
+            <AlertCircle className="h-4 w-4 text-[#EF4444] mt-0.5 flex-shrink-0" />
+            <span className="text-[13px] text-[#EF4444]">{error}</span>
           </div>
         )}
 

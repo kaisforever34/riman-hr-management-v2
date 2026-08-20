@@ -46,7 +46,7 @@ export default function AssetsListClient({ assets, locale }: { assets: AssetItem
         {assets.map((a) => {
           const assignedTo = a.assignments[0]?.employee
           return (
-            <div key={a.id} className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+            <div key={a.id} className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-[rgba(212,168,67,0.12)] flex items-center justify-center">

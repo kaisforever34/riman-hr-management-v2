@@ -42,7 +42,7 @@ export default async function PayslipDetailPage({ params }: { params: Promise<{ 
       <Card>
         <CardHeader>
           <CardTitle>{payslip.employee.firstName} {payslip.employee.lastName}</CardTitle>
-          <p className="text-sm text-muted-foreground">{payslip.employee.department} — {payslip.employee.jobTitle}</p>
+          <p className="text-sm text-[#8B93A8]">{payslip.employee.department} — {payslip.employee.jobTitle}</p>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">

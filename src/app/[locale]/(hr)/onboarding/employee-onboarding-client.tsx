@@ -54,15 +54,15 @@ export default function EmployeeOnboardingClient({ record }: { record: Onboardin
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-xl font-syne font-bold text-[#E0E6F4]">{t('employeeTitle')}</h1>
-        <p className="text-sm text-[#8B93A8]">{t('employeeSubtitle')}</p>
+        <h1 className="text-xl font-syne font-bold tracking-tight text-[#E0E6F4]">{t('employeeTitle')}</h1>
+        <p className="text-[13px] text-[#8B93A8]">{t('employeeSubtitle')}</p>
       </div>
 
-      <div className="bg-[#0D0F1A] rounded-xl p-4 border border-[rgba(255,255,255,0.065)] mb-6">
+      <div className="bg-[#0D1028] rounded-xl p-4 border border-[rgba(255,255,255,0.065)] mb-6">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-medium text-[#E0E6F4]">{t('yourChecklist')}</span>
+          <span className="text-[13px] font-medium text-[#E0E6F4]">{t('yourChecklist')}</span>
           {pendingTasks.length > 0 && (
-            <span className="px-2 py-0.5 bg-[#D4A843] text-[#07091A] rounded-full text-xs font-medium">
+            <span className="px-2 py-0.5 bg-[#D4A843] text-[#07091A] rounded-full text-[12px] font-medium">
               {pendingTasks.length} {t('remaining')}
             </span>
           )}
@@ -87,8 +87,8 @@ export default function EmployeeOnboardingClient({ record }: { record: Onboardin
                 )}
 
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm text-[#E0E6F4]">{task.taskTemplate.titleEn}</span>
-                  <span className="text-xs text-[#8B93A8] ml-2">
+                  <span className="text-[13px] text-[#E0E6F4]">{task.taskTemplate.titleEn}</span>
+                  <span className="text-[12px] text-[#8B93A8] ml-2">
                     {task.taskTemplate.category === 'FORM' ? t('form') : t('document')}
                   </span>
                 </div>
@@ -97,7 +97,7 @@ export default function EmployeeOnboardingClient({ record }: { record: Onboardin
                   <button
                     onClick={() => handleComplete(task.id)}
                     disabled={loading === task.id}
-                    className="px-3 py-1 bg-[#D4A843] text-[#07091A] rounded-lg text-xs font-medium hover:bg-[#C49A3A] transition-colors disabled:opacity-50 flex-shrink-0"
+                    className="px-3 py-1 bg-[#D4A843] text-[#07091A] rounded-lg text-[12px] font-medium hover:bg-[#C49A3A] transition-colors disabled:opacity-50 flex-shrink-0"
                   >
                     {loading === task.id ? '...' : task.taskTemplate.category === 'FORM' ? t('fillForm') : t('upload')}
                   </button>
@@ -108,8 +108,8 @@ export default function EmployeeOnboardingClient({ record }: { record: Onboardin
         </div>
       </div>
 
-      <div className="bg-[#0D0F1A] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
-        <div className="text-sm text-[#8B93A8]">
+      <div className="bg-[#0D1028] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
+        <div className="text-[13px] text-[#8B93A8]">
           {t('progress')}: {done}/{total} {t('tasksCompleted')}
         </div>
       </div>

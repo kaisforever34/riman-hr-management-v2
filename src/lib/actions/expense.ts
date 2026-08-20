@@ -3,13 +3,16 @@
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
+import { createExpenseSchema, reviewExpenseSchema } from '@/lib/validations/expense'
 
-export async function createExpense(data: {
-  title: string
-  amount: number
-  category: string
-  description?: string
-}) {
+export async function createExpense(raw: Record<string, unknown>) {
+  const parsed = createExpenseSchema.safeParse(raw)
+  if (!parsed.success) {
+    const errors = parsed.error.flatten().fieldErrors
+    const first = Object.values(errors).flat()[0]
+    return { error: first || 'Invalid input' }
+  }
+
   const session = await auth()
   if (!session?.user) return { error: 'Unauthorized' }
 
@@ -19,10 +22,10 @@ export async function createExpense(data: {
   const expense = await db.expense.create({
     data: {
       employeeId: employee.id,
-      title: data.title,
-      amount: data.amount,
-      category: data.category,
-      description: data.description || null,
+      title: parsed.data.title,
+      amount: parsed.data.amount,
+      category: parsed.data.category,
+      description: parsed.data.description || null,
     },
   })
 
@@ -37,10 +40,12 @@ export async function getMyExpenses() {
   const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
   if (!employee) return []
 
-  return db.expense.findMany({
+  const expenses = await db.expense.findMany({
     where: { employeeId: employee.id },
     orderBy: { createdAt: 'desc' },
   })
+
+  return expenses.map((e) => ({ ...e, amount: Number(e.amount) }))
 }
 
 export async function getExpenses() {
@@ -49,13 +54,15 @@ export async function getExpenses() {
     return []
   }
 
-  return db.expense.findMany({
+  const expenses = await db.expense.findMany({
     include: {
       employee: { select: { firstName: true, lastName: true, department: true } },
       reviewedBy: { select: { email: true } },
     },
     orderBy: { createdAt: 'desc' },
   })
+
+  return expenses.map((e) => ({ ...e, amount: Number(e.amount) }))
 }
 
 export async function getExpenseDetail(id: string) {
@@ -64,16 +71,26 @@ export async function getExpenseDetail(id: string) {
     return null
   }
 
-  return db.expense.findUnique({
+  const expense = await db.expense.findUnique({
     where: { id },
     include: {
       employee: { select: { firstName: true, lastName: true, department: true } },
       reviewedBy: { select: { email: true } },
     },
   })
+
+  if (!expense) return null
+  return { ...expense, amount: Number(expense.amount) }
 }
 
 export async function reviewExpense(id: string, status: 'APPROVED' | 'REJECTED', rejectionReason?: string) {
+  const parsed = reviewExpenseSchema.safeParse({ id, status, rejectionReason })
+  if (!parsed.success) {
+    const errors = parsed.error.flatten().fieldErrors
+    const first = Object.values(errors).flat()[0]
+    return { error: first || 'Invalid input' }
+  }
+
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
     return { error: 'Unauthorized' }
@@ -85,7 +102,7 @@ export async function reviewExpense(id: string, status: 'APPROVED' | 'REJECTED',
       status,
       reviewedById: session.user.id,
       reviewedAt: new Date(),
-      rejectionReason: status === 'REJECTED' ? (rejectionReason || null) : null,
+      rejectionReason: parsed.data.status === 'REJECTED' ? (parsed.data.rejectionReason || null) : null,
     },
   })
 

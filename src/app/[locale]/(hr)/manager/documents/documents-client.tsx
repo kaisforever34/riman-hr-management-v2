@@ -107,13 +107,13 @@ export function DocumentsClient({ employeeDocs, companyDocs, employees }: Props)
 
       <div className="flex gap-1 rounded-lg bg-[rgba(255,255,255,0.05)] p-1">
         <button
-          className={cn('flex-1 rounded-md px-3 py-2 text-sm font-medium transition', tab === 'employee' ? 'bg-card shadow' : 'hover:text-[#E0E6F4]')}
+          className={cn('flex-1 rounded-md px-3 py-2 text-sm font-medium transition', tab === 'employee' ? 'bg-[#0D1028] shadow' : 'hover:text-[#E0E6F4]')}
           onClick={() => setTab('employee')}
         >
           {t('employeeDocuments')}
         </button>
         <button
-          className={cn('flex-1 rounded-md px-3 py-2 text-sm font-medium transition', tab === 'company' ? 'bg-card shadow' : 'hover:text-[#E0E6F4]')}
+          className={cn('flex-1 rounded-md px-3 py-2 text-sm font-medium transition', tab === 'company' ? 'bg-[#0D1028] shadow' : 'hover:text-[#E0E6F4]')}
           onClick={() => setTab('company')}
         >
           {t('companyDocuments')}
@@ -122,7 +122,7 @@ export function DocumentsClient({ employeeDocs, companyDocs, employees }: Props)
 
       {tab === 'employee' && (
         <select
-          className="w-full max-w-xs rounded border bg-card px-3 py-2 text-sm"
+          className="w-full max-w-xs rounded border bg-[#0D1028] px-3 py-2 text-sm"
           value={selectedEmployee}
           onChange={e => setSelectedEmployee(e.target.value)}
         >
@@ -142,8 +142,8 @@ export function DocumentsClient({ employeeDocs, companyDocs, employees }: Props)
             <form onSubmit={handleUpload} className="space-y-3">
               {tab === 'employee' && (
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">{t('selectEmployee')}</label>
-                  <select name="employeeId" className="w-full rounded border bg-card px-3 py-2 text-sm" required>
+                  <label className="text-xs font-medium text-[#8B93A8]">{t('selectEmployee')}</label>
+                  <select name="employeeId" className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm" required>
                     <option value="">{t('selectEmployee')}</option>
                     {employees.map(e => (
                       <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
@@ -153,13 +153,13 @@ export function DocumentsClient({ employeeDocs, companyDocs, employees }: Props)
               )}
               {tab === 'company' && (
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">{t('title_label')}</label>
-                  <input name="title" className="w-full rounded border bg-card px-3 py-2 text-sm" required />
+                  <label className="text-xs font-medium text-[#8B93A8]">{t('title_label')}</label>
+                  <input name="title" className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm" required />
                 </div>
               )}
               <div>
-                <label className="text-xs font-medium text-muted-foreground">{t('category')}</label>
-                <select name="category" className="w-full rounded border bg-card px-3 py-2 text-sm" required>
+                <label className="text-xs font-medium text-[#8B93A8]">{t('category')}</label>
+                <select name="category" className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm" required>
                   <option value="">{t('category')}</option>
                   {(tab === 'employee' ? EMP_CATEGORIES : COMP_CATEGORIES).map(c => (
                     <option key={c} value={c}>{t(`categories.${c}`)}</option>
@@ -167,12 +167,12 @@ export function DocumentsClient({ employeeDocs, companyDocs, employees }: Props)
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground">{t('fileName')}</label>
-                <input name="file" type="file" className="w-full rounded border bg-card px-3 py-2 text-sm" required />
+                <label className="text-xs font-medium text-[#8B93A8]">{t('fileName')}</label>
+                <input name="file" type="file" className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm" required />
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground">{t('notes')}</label>
-                <input name="notes" className="w-full rounded border bg-card px-3 py-2 text-sm" />
+                <label className="text-xs font-medium text-[#8B93A8]">{t('notes')}</label>
+                <input name="notes" className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm" />
               </div>
               <div className="flex gap-2">
                 <Button type="submit"><Upload className="me-2 h-4 w-4" />{t('upload')}</Button>
@@ -201,7 +201,7 @@ export function DocumentsClient({ employeeDocs, companyDocs, employees }: Props)
               <tbody>
                 {filteredDocs.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">{t('noDocuments')}</td>
+                    <td colSpan={7} className="px-4 py-8 text-center text-[#8B93A8]">{t('noDocuments')}</td>
                   </tr>
                 ) : filteredDocs.map(doc => (
                   <tr key={doc.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.05)]">

@@ -94,7 +94,7 @@ export default function AssetDetailClient({ asset, employees, locale }: { asset:
       </div>
 
       {editingStatus && (
-        <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4 mb-4 flex items-center gap-3">
+        <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4 mb-4 flex items-center gap-3">
           <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} className="px-3 py-1.5 bg-[#0F1120] border border-[rgba(255,255,255,0.1)] rounded-lg text-[#E0E6F4] text-sm focus:outline-none focus:border-[#D4A843]">
             {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{t(s.toLowerCase())}</option>)}
           </select>
@@ -105,26 +105,26 @@ export default function AssetDetailClient({ asset, employees, locale }: { asset:
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         {asset.purchaseDate && (
-          <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-3">
+          <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-3">
             <span className="text-[10px] text-[#8B93A8] uppercase">{t('purchaseDate')}</span>
             <p className="text-sm text-[#E0E6F4] mt-0.5">{new Date(asset.purchaseDate).toLocaleDateString()}</p>
           </div>
         )}
         {asset.purchasePrice !== null && asset.purchasePrice !== undefined && (
-          <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-3">
+          <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-3">
             <span className="text-[10px] text-[#8B93A8] uppercase">{t('purchasePrice')}</span>
             <p className="text-sm text-[#E0E6F4] mt-0.5">{asset.purchasePrice.toFixed(2)} AED</p>
           </div>
         )}
         {asset.notes && (
-          <div className="col-span-2 bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-3">
+          <div className="col-span-2 bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-3">
             <span className="text-[10px] text-[#8B93A8] uppercase">{t('notes')}</span>
             <p className="text-sm text-[#E0E6F4] mt-0.5">{asset.notes}</p>
           </div>
         )}
       </div>
 
-      <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4 mb-6">
+      <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4 mb-6">
         <h3 className="text-sm font-semibold text-[#E0E6F4] mb-4">{t('assignToEmployee')}</h3>
         {activeAssignment ? (
           <div className="flex items-center justify-between p-3 bg-[#0F1120] rounded-lg border border-[rgba(255,255,255,0.04)] mb-3">
@@ -150,7 +150,7 @@ export default function AssetDetailClient({ asset, employees, locale }: { asset:
         </div>
       </div>
 
-      <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+      <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
         <h3 className="text-sm font-semibold text-[#E0E6F4] mb-3">{t('history')}</h3>
         <div className="space-y-2">
           {asset.assignments.map((a) => (

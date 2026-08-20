@@ -2,8 +2,10 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getManagerAllRequests, getAllLeaveTypes, getEmployees } from '@/lib/queries/leave'
 import ManagerLeavesClient from './manager-leaves-client'
+import type { LeaveStatus } from '@prisma/client'
 export const dynamic = 'force-dynamic'
 
+const LEAVE_STATUSES: LeaveStatus[] = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']
 
 export default async function ManagerLeavesPage({
   params,
@@ -16,7 +18,12 @@ export default async function ManagerLeavesPage({
   const session = await auth()
   if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) redirect(`/${locale}/auth/signin`)
 
-  const filters = await searchParams
+  const raw = await searchParams
+  const filters = {
+    employeeId: raw.employeeId,
+    leaveTypeId: raw.leaveTypeId,
+    status: LEAVE_STATUSES.includes(raw.status as LeaveStatus) ? (raw.status as LeaveStatus) : undefined,
+  }
   const [requests, leaveTypes, employees] = await Promise.all([
     getManagerAllRequests(filters),
     getAllLeaveTypes(),

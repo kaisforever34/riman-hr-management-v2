@@ -13,6 +13,60 @@ enum Role {
   EMPLOYEE
 }
 
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  HALF_DAY
+}
+
+enum PayrollStatus {
+  DRAFT
+  FINALIZED
+}
+
+enum ReviewStatus {
+  DRAFT
+  COMPLETED
+}
+
+enum OnboardingStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum OnboardingTaskStatus {
+  PENDING
+  COMPLETED
+}
+
+enum SurveyAssignmentStatus {
+  PENDING
+  COMPLETED
+}
+
+enum AssetStatus {
+  AVAILABLE
+  ASSIGNED
+  DAMAGED
+  RETIRED
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -55,6 +109,9 @@ model Employee {
   swift                 String?
   emergencyContactName  String?
   emergencyContactPhone String?
+  managerId             String?
+  manager               Employee?      @relation("ManagerReports", fields: [managerId], references: [id], onDelete: SetNull)
+  reports               Employee[]     @relation("ManagerReports")
   isActive              Boolean        @default(true)
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
@@ -92,7 +149,7 @@ model LeaveBalance {
   yearEnd     DateTime
   allocated   Int       @default(0)
   carriedOver Int       @default(0)
-  used        Int       @default(0)
+  used        Float     @default(0)
   employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id])
 
@@ -108,7 +165,7 @@ model LeaveRequest {
   durationDays   Float
   isHalfDay      Boolean   @default(false)
   halfDayPeriod  String?
-  status         String    @default("PENDING")
+  status         LeaveStatus @default(PENDING)
   reason         String
   rejectReason   String?
   attachmentFile String?
@@ -127,7 +184,7 @@ model AttendanceRecord {
   date              DateTime
   checkIn           DateTime?
   checkOut          DateTime?
-  status            String    @default("PRESENT")
+  status            AttendanceStatus @default(PRESENT)
   lateMinutes       Int       @default(0)
   earlyLeaveMinutes Int       @default(0)
   checkInMethod     String    @default("CLICK")
@@ -187,7 +244,7 @@ model PayrollPeriod {
   id            String    @id @default(cuid())
   month         Int
   year          Int
-  status        String    @default("DRAFT")
+  status        PayrollStatus @default(DRAFT)
   processedAt   DateTime?
   processedById String?
   createdAt     DateTime  @default(now())
@@ -235,7 +292,7 @@ model PerformanceReview {
   overallRating       String?
   comments            String?
   bonusRecommendation Decimal? @db.Decimal(10, 2)
-  status              String   @default("DRAFT")
+  status              ReviewStatus @default(DRAFT)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
@@ -289,7 +346,7 @@ model EmployeeOnboarding {
   id              String   @id @default(cuid())
   employeeId      String
   type            String   // "ONBOARDING" | "OFFBOARDING"
-  status          String   @default("IN_PROGRESS") // PENDING | IN_PROGRESS | COMPLETED | CANCELLED
+  status          OnboardingStatus @default(IN_PROGRESS)
   reason          String?  // offboarding reason
   startedAt       DateTime @default(now())
   completedAt     DateTime?
@@ -306,7 +363,7 @@ model EmployeeOnboardingTask {
   onboardingId     String
   taskTemplateId   String
   assignedTo       String   // "EMPLOYEE" | "MANAGER"
-  status           String   @default("PENDING") // PENDING | COMPLETED
+  status           OnboardingTaskStatus @default(PENDING)
   completedAt      DateTime?
   completedById    String?
   formData         Json?
@@ -399,7 +456,7 @@ model SurveyAssignment {
   id          String    @id @default(cuid())
   surveyId    String
   employeeId  String
-  status      String    @default("PENDING") // PENDING | COMPLETED
+  status      SurveyAssignmentStatus @default(PENDING)
   completedAt DateTime?
 
   survey   Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
@@ -423,8 +480,8 @@ model Asset {
   category      String   // SEWING_MACHINE, MANNEQUIN, COMPUTER, PHONE, TOOL, FURNITURE, VEHICLE, UNIFORM, OTHER
   serialNumber  String?
   purchaseDate  DateTime?
-  purchasePrice Float?
-  status        String   @default("AVAILABLE") // AVAILABLE, ASSIGNED, DAMAGED, RETIRED
+  purchasePrice Decimal? @db.Decimal(10, 2)
+  status        AssetStatus @default(AVAILABLE)
   notes         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -448,11 +505,11 @@ model Expense {
   id              String    @id @default(cuid())
   employeeId      String
   title           String
-  amount          Float
+  amount          Decimal  @db.Decimal(10, 2)
   category        String    // MATERIALS, TRAVEL, MEALS, SUPPLIES, MAINTENANCE, UTILITIES, OTHER
   description     String?
   receiptUrl      String?
-  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  status          ExpenseStatus @default(PENDING)
   reviewedById    String?
   reviewedAt      DateTime?
   rejectionReason String?

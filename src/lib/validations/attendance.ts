@@ -10,6 +10,6 @@ export const managerOverrideSchema = z.object({
   date: z.string().min(1),
   checkIn: z.string().optional(),
   checkOut: z.string().optional(),
-  status: z.string().optional(),
+  status: z.enum(['PRESENT', 'LATE', 'ABSENT', 'HALF_DAY']).optional(),
   note: z.string().optional(),
 })

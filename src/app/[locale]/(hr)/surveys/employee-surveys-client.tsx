@@ -35,19 +35,19 @@ export default function EmployeeSurveysClient({ assignments, locale }: { assignm
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-xl font-syne font-bold text-[#E0E6F4]">{tNav('mySurveys')}</h1>
-        <p className="text-sm text-[#8B93A8]">{t('mySurveysDesc')}</p>
+        <h1 className="text-xl font-syne font-bold tracking-tight text-[#E0E6F4]">{tNav('mySurveys')}</h1>
+        <p className="text-[13px] text-[#8B93A8]">{t('mySurveysDesc')}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {assignments.map((a) => {
           const isCompleted = a.status === 'COMPLETED'
           return (
-            <div key={a.id} className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+            <div key={a.id} className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-[#E0E6F4] truncate">{a.survey.title}</h3>
-                  {a.survey.description && <p className="text-xs text-[#8B93A8] mt-1 line-clamp-2">{a.survey.description}</p>}
+                  <h3 className="text-[13px] font-semibold text-[#E0E6F4] truncate">{a.survey.title}</h3>
+                  {a.survey.description && <p className="text-[12px] text-[#8B93A8] mt-1 line-clamp-2">{a.survey.description}</p>}
                 </div>
                 {isCompleted ? (
                   <CheckCircle className="w-5 h-5 text-[#22A854] flex-shrink-0" />
@@ -56,7 +56,7 @@ export default function EmployeeSurveysClient({ assignments, locale }: { assignm
                 )}
               </div>
 
-              <div className="flex items-center gap-4 text-xs text-[#8B93A8] mb-3">
+              <div className="flex items-center gap-4 text-[12px] text-[#8B93A8] mb-3">
                 <span>{a.survey.questions.length} {t('questions')}</span>
                 <span className={isCompleted ? 'text-[#22A854]' : 'text-[#D4A843]'}>
                   {isCompleted ? t('completed') : t('pending')}
@@ -70,7 +70,7 @@ export default function EmployeeSurveysClient({ assignments, locale }: { assignm
                 )}
                 <Link
                   href={`/${locale}/surveys/${a.id}`}
-                  className={`inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                  className={`inline-flex items-center gap-1 text-[12px] font-medium px-3 py-1.5 rounded-lg transition-colors ${
                     isCompleted
                       ? 'text-[#8B93A8] bg-[#0F1120] border border-[rgba(255,255,255,0.1)] hover:text-[#E0E6F4]'
                       : 'text-[#07091A] bg-[#D4A843] hover:bg-[#C49A3A]'
@@ -85,7 +85,7 @@ export default function EmployeeSurveysClient({ assignments, locale }: { assignm
         {assignments.length === 0 && (
           <div className="col-span-2 py-12 text-center text-[#8B93A8]">
             <ClipboardList className="w-8 h-8 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">{t('empty')}</p>
+            <p className="text-[13px]">{t('empty')}</p>
           </div>
         )}
       </div>

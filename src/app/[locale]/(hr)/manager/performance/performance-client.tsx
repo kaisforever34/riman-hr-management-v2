@@ -75,25 +75,25 @@ export function PerformanceClient({ reviews, employees }: Props) {
       )}
 
       <div className="flex flex-wrap gap-2">
-        <select className="rounded border bg-card px-3 py-2 text-sm" value={filterEmployee} onChange={e => setFilterEmployee(e.target.value)}>
+        <select className="rounded border bg-[#0D1028] px-3 py-2 text-sm" value={filterEmployee} onChange={e => setFilterEmployee(e.target.value)}>
           <option value="">{t('allEmployees')}</option>
           {employees.map(e => (
             <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
           ))}
         </select>
-        <select className="rounded border bg-card px-3 py-2 text-sm" value={filterQuarter} onChange={e => setFilterQuarter(e.target.value)}>
+        <select className="rounded border bg-[#0D1028] px-3 py-2 text-sm" value={filterQuarter} onChange={e => setFilterQuarter(e.target.value)}>
           <option value="">{t('allQuarters')}</option>
           {[1, 2, 3, 4].map(q => (
             <option key={q} value={q}>{t(`q${q}`)}</option>
           ))}
         </select>
-        <select className="rounded border bg-card px-3 py-2 text-sm" value={filterYear} onChange={e => setFilterYear(e.target.value)}>
+        <select className="rounded border bg-[#0D1028] px-3 py-2 text-sm" value={filterYear} onChange={e => setFilterYear(e.target.value)}>
           <option value="">{t('allYears')}</option>
           {[currentYear, currentYear - 1, currentYear - 2].map(y => (
             <option key={y} value={y}>{y}</option>
           ))}
         </select>
-        <select className="rounded border bg-card px-3 py-2 text-sm" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+        <select className="rounded border bg-[#0D1028] px-3 py-2 text-sm" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="">{t('allStatuses')}</option>
           <option value="DRAFT">{t('statusValues.DRAFT')}</option>
           <option value="COMPLETED">{t('statusValues.COMPLETED')}</option>
@@ -118,7 +118,7 @@ export function PerformanceClient({ reviews, employees }: Props) {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">{t('noReviews')}</td>
+                    <td colSpan={7} className="px-4 py-8 text-center text-[#8B93A8]">{t('noReviews')}</td>
                   </tr>
                 ) : filtered.map(r => (
                   <tr key={r.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">

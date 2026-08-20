@@ -3,15 +3,16 @@
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
+import { createAssetSchema, updateAssetSchema, assignAssetSchema } from '@/lib/validations/asset'
 
-export async function createAsset(data: {
-  name: string
-  category: string
-  serialNumber?: string
-  purchaseDate?: string
-  purchasePrice?: number
-  notes?: string
-}) {
+export async function createAsset(raw: Record<string, unknown>) {
+  const parsed = createAssetSchema.safeParse(raw)
+  if (!parsed.success) {
+    const errors = parsed.error.flatten().fieldErrors
+    const first = Object.values(errors).flat()[0]
+    return { error: first || 'Invalid input' }
+  }
+
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
     return { error: 'Unauthorized' }
@@ -19,12 +20,12 @@ export async function createAsset(data: {
 
   const asset = await db.asset.create({
     data: {
-      name: data.name,
-      category: data.category,
-      serialNumber: data.serialNumber || null,
-      purchaseDate: data.purchaseDate ? new Date(data.purchaseDate) : null,
-      purchasePrice: data.purchasePrice || null,
-      notes: data.notes || null,
+      name: parsed.data.name,
+      category: parsed.data.category,
+      serialNumber: parsed.data.serialNumber || null,
+      purchaseDate: parsed.data.purchaseDate ? new Date(parsed.data.purchaseDate) : null,
+      purchasePrice: parsed.data.purchasePrice || null,
+      notes: parsed.data.notes || null,
     },
   })
 
@@ -32,15 +33,14 @@ export async function createAsset(data: {
   return { id: asset.id }
 }
 
-export async function updateAsset(id: string, data: {
-  name?: string
-  category?: string
-  serialNumber?: string
-  purchaseDate?: string
-  purchasePrice?: number
-  status?: string
-  notes?: string
-}) {
+export async function updateAsset(id: string, raw: Record<string, unknown>) {
+  const parsed = updateAssetSchema.safeParse(raw)
+  if (!parsed.success) {
+    const errors = parsed.error.flatten().fieldErrors
+    const first = Object.values(errors).flat()[0]
+    return { error: first || 'Invalid input' }
+  }
+
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
     return { error: 'Unauthorized' }
@@ -49,13 +49,13 @@ export async function updateAsset(id: string, data: {
   await db.asset.update({
     where: { id },
     data: {
-      ...(data.name !== undefined && { name: data.name }),
-      ...(data.category !== undefined && { category: data.category }),
-      ...(data.serialNumber !== undefined && { serialNumber: data.serialNumber || null }),
-      ...(data.purchaseDate !== undefined && { purchaseDate: data.purchaseDate ? new Date(data.purchaseDate) : null }),
-      ...(data.purchasePrice !== undefined && { purchasePrice: data.purchasePrice || null }),
-      ...(data.status !== undefined && { status: data.status }),
-      ...(data.notes !== undefined && { notes: data.notes || null }),
+      ...(parsed.data.name !== undefined && { name: parsed.data.name }),
+      ...(parsed.data.category !== undefined && { category: parsed.data.category }),
+      ...(parsed.data.serialNumber !== undefined && { serialNumber: parsed.data.serialNumber || null }),
+      ...(parsed.data.purchaseDate !== undefined && { purchaseDate: parsed.data.purchaseDate ? new Date(parsed.data.purchaseDate) : null }),
+      ...(parsed.data.purchasePrice !== undefined && { purchasePrice: parsed.data.purchasePrice || null }),
+      ...(parsed.data.status !== undefined && { status: parsed.data.status }),
+      ...(parsed.data.notes !== undefined && { notes: parsed.data.notes || null }),
     },
   })
 
@@ -69,7 +69,7 @@ export async function getAssets() {
     return []
   }
 
-  return db.asset.findMany({
+  const assets = await db.asset.findMany({
     include: {
       assignments: {
         where: { returnedAt: null },
@@ -80,6 +80,8 @@ export async function getAssets() {
     },
     orderBy: { createdAt: 'desc' },
   })
+
+  return assets.map((a) => ({ ...a, purchasePrice: a.purchasePrice === null ? null : Number(a.purchasePrice) }))
 }
 
 export async function getAssetDetail(id: string) {
@@ -88,7 +90,7 @@ export async function getAssetDetail(id: string) {
     return null
   }
 
-  return db.asset.findUnique({
+  const asset = await db.asset.findUnique({
     where: { id },
     include: {
       assignments: {
@@ -97,16 +99,26 @@ export async function getAssetDetail(id: string) {
       },
     },
   })
+
+  if (!asset) return null
+  return { ...asset, purchasePrice: asset.purchasePrice === null ? null : Number(asset.purchasePrice) }
 }
 
 export async function assignAsset(assetId: string, employeeId: string, note?: string) {
+  const parsed = assignAssetSchema.safeParse({ assetId, employeeId, note })
+  if (!parsed.success) {
+    const errors = parsed.error.flatten().fieldErrors
+    const first = Object.values(errors).flat()[0]
+    return { error: first || 'Invalid input' }
+  }
+
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
     return { error: 'Unauthorized' }
   }
 
   await db.assetAssignment.create({
-    data: { assetId, employeeId, note: note || null },
+    data: { assetId: parsed.data.assetId, employeeId: parsed.data.employeeId, note: parsed.data.note || null },
   })
 
   await db.asset.update({ where: { id: assetId }, data: { status: 'ASSIGNED' } })

@@ -1,5 +1,7 @@
 import { db } from '@/lib/db'
-import type { LeaveRequest, LeaveBalance, LeaveType } from '@prisma/client'
+import type { LeaveRequest, LeaveBalance, LeaveType, LeaveStatus, Prisma } from '@prisma/client'
+
+type DbClient = Prisma.TransactionClient | typeof db
 
 export async function getLeaveTypes(): Promise<LeaveType[]> {
   return db.leaveType.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } })
@@ -30,7 +32,7 @@ export async function getLeaveRequestById(id: string): Promise<(LeaveRequest & {
 
 export async function getManagerAllRequests(filters?: {
   employeeId?: string
-  status?: string
+  status?: LeaveStatus
   leaveTypeId?: string
 }): Promise<LeaveRequest[]> {
   return db.leaveRequest.findMany({
@@ -55,7 +57,13 @@ export async function getEmployeeLeaveBalances(employeeId: string): Promise<(Lea
   })
 }
 
-export async function getOrCreateLeaveBalance(employeeId: string, leaveTypeId: string, hireDate: Date): Promise<LeaveBalance> {
+export async function getOrCreateLeaveBalance(
+  employeeId: string,
+  leaveTypeId: string,
+  hireDate: Date,
+  tx?: DbClient,
+): Promise<LeaveBalance> {
+  const client = tx ?? db
   const now = new Date()
   const yearStart = new Date(Date.UTC(now.getFullYear(), hireDate.getMonth(), hireDate.getDate()))
   if (yearStart > now) {
@@ -65,18 +73,25 @@ export async function getOrCreateLeaveBalance(employeeId: string, leaveTypeId: s
   yearEnd.setFullYear(yearEnd.getFullYear() + 1)
   yearEnd.setDate(yearEnd.getDate() - 1)
 
-  let balance = await db.leaveBalance.findUnique({
+  const existing = await client.leaveBalance.findUnique({
     where: { employeeId_leaveTypeId_yearStart: { employeeId, leaveTypeId, yearStart } },
   })
+  if (existing) return existing
 
-  if (!balance) {
-    const leaveType = await db.leaveType.findUniqueOrThrow({ where: { id: leaveTypeId } })
-    balance = await db.leaveBalance.create({
+  const leaveType = await client.leaveType.findUniqueOrThrow({ where: { id: leaveTypeId } })
+  try {
+    return await client.leaveBalance.create({
       data: { employeeId, leaveTypeId, yearStart, yearEnd, allocated: leaveType.defaultDays, carriedOver: 0, used: 0 },
     })
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('Unique constraint')) {
+      const created = await client.leaveBalance.findUnique({
+        where: { employeeId_leaveTypeId_yearStart: { employeeId, leaveTypeId, yearStart } },
+      })
+      if (created) return created
+    }
+    throw e
   }
-
-  return balance
 }
 
 export async function getEmployees(): Promise<{ id: string; firstName: string; lastName: string }[]> {

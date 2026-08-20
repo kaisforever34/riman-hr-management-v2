@@ -5,6 +5,7 @@ import { manualCheckInSchema, managerOverrideSchema } from '@/lib/validations/at
 import { auth } from '@/lib/auth'
 import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes } from '@/lib/schedule'
 import { revalidatePath } from 'next/cache'
+import type { AttendanceStatus } from '@prisma/client'
 
 export async function checkIn() {
   const session = await auth()
@@ -14,32 +15,29 @@ export async function checkIn() {
   if (!employee) return { error: 'Employee record not found' }
 
   const today = getTodayUaeDate()
-  const existing = await db.attendanceRecord.findUnique({
-    where: { employeeId_date: { employeeId: employee.id, date: today } },
-  })
-  if (existing?.checkIn) return { error: 'Already checked in today' }
-
   const now = new Date()
   const { isLate, lateMinutes } = isWithinSchedule(now)
 
-  await db.attendanceRecord.upsert({
-    where: { employeeId_date: { employeeId: employee.id, date: today } },
-    update: {
-      checkIn: now,
-      status: isLate ? 'LATE' : 'PRESENT',
-      lateMinutes,
-      checkInMethod: 'CLICK',
-      checkInNote: null,
-    },
-    create: {
-      employeeId: employee.id,
-      date: today,
-      checkIn: now,
-      status: isLate ? 'LATE' : 'PRESENT',
-      lateMinutes,
-      checkInMethod: 'CLICK',
-    },
-  })
+  const data = {
+    checkIn: now,
+    status: (isLate ? 'LATE' : 'PRESENT') as AttendanceStatus,
+    lateMinutes,
+    checkInMethod: 'CLICK',
+  }
+
+  try {
+    await db.attendanceRecord.create({
+      data: { employeeId: employee.id, date: today, ...data },
+    })
+  } catch (e) {
+    const isUniqueViolation = typeof e === 'object' && e !== null && 'code' in e && (e as { code: string }).code === 'P2002'
+    if (!isUniqueViolation) throw e
+    const updated = await db.attendanceRecord.updateMany({
+      where: { employeeId: employee.id, date: today, checkIn: null },
+      data,
+    })
+    if (updated.count === 0) return { error: 'Already checked in today' }
+  }
 
   revalidatePath('/attendance')
 }
@@ -59,32 +57,29 @@ export async function manualCheckIn(formData: FormData) {
   if (checkInTime > now) return { error: 'Check-in time cannot be in the future' }
 
   const today = getTodayUaeDate()
-  const existing = await db.attendanceRecord.findUnique({
-    where: { employeeId_date: { employeeId: employee.id, date: today } },
-  })
-  if (existing?.checkIn) return { error: 'Already checked in today' }
-
   const { isLate, lateMinutes } = isWithinSchedule(checkInTime)
 
-  await db.attendanceRecord.upsert({
-    where: { employeeId_date: { employeeId: employee.id, date: today } },
-    update: {
-      checkIn: checkInTime,
-      status: isLate ? 'LATE' : 'PRESENT',
-      lateMinutes,
-      checkInMethod: 'MANUAL',
-      checkInNote: parsed.data.note,
-    },
-    create: {
-      employeeId: employee.id,
-      date: today,
-      checkIn: checkInTime,
-      status: isLate ? 'LATE' : 'PRESENT',
-      lateMinutes,
-      checkInMethod: 'MANUAL',
-      checkInNote: parsed.data.note,
-    },
-  })
+  const data = {
+    checkIn: checkInTime,
+    status: (isLate ? 'LATE' : 'PRESENT') as AttendanceStatus,
+    lateMinutes,
+    checkInMethod: 'MANUAL',
+    checkInNote: parsed.data.note,
+  }
+
+  try {
+    await db.attendanceRecord.create({
+      data: { employeeId: employee.id, date: today, ...data },
+    })
+  } catch (e) {
+    const isUniqueViolation = typeof e === 'object' && e !== null && 'code' in e && (e as { code: string }).code === 'P2002'
+    if (!isUniqueViolation) throw e
+    const updated = await db.attendanceRecord.updateMany({
+      where: { employeeId: employee.id, date: today, checkIn: null },
+      data,
+    })
+    if (updated.count === 0) return { error: 'Already checked in today' }
+  }
 
   revalidatePath('/attendance')
 }
@@ -106,14 +101,15 @@ export async function checkOut() {
   const now = new Date()
   const earlyLeaveMinutes = getEarlyLeaveMinutes(now)
 
-  await db.attendanceRecord.update({
-    where: { id: record.id },
+  const updated = await db.attendanceRecord.updateMany({
+    where: { id: record.id, checkOut: null },
     data: {
       checkOut: now,
       checkOutMethod: 'CLICK',
       earlyLeaveMinutes,
     },
   })
+  if (updated.count === 0) return { error: 'Already checked out today' }
 
   revalidatePath('/attendance')
 }
@@ -141,7 +137,7 @@ export async function managerOverrideAttendance(formData: FormData) {
 
   if (data.checkIn) {
     const { isLate, lateMinutes } = isWithinSchedule(new Date(data.checkIn))
-    updateData.status = data.status || (isLate ? 'LATE' : 'PRESENT')
+    updateData.status = data.status || ((isLate ? 'LATE' : 'PRESENT') as AttendanceStatus)
     updateData.lateMinutes = lateMinutes
   }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => {
@@ -8,6 +8,10 @@ vi.mock('next-intl', () => ({
       leaveRequests: 'Leave Requests', attendance: 'Attendance',
       managerAttendance: 'Attendance Overview', payroll: 'Payroll',
       performance: 'Performance', documents: 'Documents', signOut: 'Sign Out',
+      collapse: 'Collapse', directory: 'Directory', notifications: 'Notifications',
+      onboarding: 'Onboarding', myOnboarding: 'My Onboarding', analytics: 'Analytics',
+      surveys: 'Surveys', mySurveys: 'My Surveys', assets: 'Assets', myAssets: 'My Assets',
+      expenses: 'Expenses', myExpenses: 'My Expenses',
     }
     return map[key] || key
   },
@@ -34,6 +38,7 @@ describe('Sidebar', () => {
     expect(screen.getByText('Payroll')).toBeDefined()
     expect(screen.getByText('Performance')).toBeDefined()
     expect(screen.getByText('Documents')).toBeDefined()
+    expect(screen.getByText('Analytics')).toBeDefined()
   })
 
   it('hides manager-only items from employees', () => {
@@ -49,5 +54,25 @@ describe('Sidebar', () => {
   it('renders sign out button', () => {
     render(<Sidebar role="MANAGER" />)
     expect(screen.getByText('Sign Out')).toBeDefined()
+  })
+
+  it('renders collapse button with correct aria-label', () => {
+    render(<Sidebar role="MANAGER" />)
+    const collapseBtn = screen.getByLabelText('Collapse sidebar')
+    expect(collapseBtn).toBeDefined()
+  })
+
+  it('renders mobile hamburger with aria-label', () => {
+    render(<Sidebar role="MANAGER" />)
+    const hamburger = screen.getByLabelText('Open navigation menu')
+    expect(hamburger).toBeDefined()
+  })
+
+  it('shows employee-specific items for employees', () => {
+    render(<Sidebar role="EMPLOYEE" />)
+    expect(screen.getByText('My Onboarding')).toBeDefined()
+    expect(screen.getByText('My Surveys')).toBeDefined()
+    expect(screen.getByText('My Assets')).toBeDefined()
+    expect(screen.getByText('My Expenses')).toBeDefined()
   })
 })

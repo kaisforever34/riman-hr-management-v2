@@ -29,7 +29,8 @@
     "expenses": "Expenses",
     "myExpenses": "My Expenses",
     "analytics": "Analytics",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "collapse": "Collapse"
   },
   "dashboard": {
     "title": "Dashboard",

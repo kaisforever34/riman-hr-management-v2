@@ -55,3 +55,9 @@ playwright-report/
 next-env.d.ts
 
 /src/generated/prisma
+
+# tooling artifacts
+graphify-out/
+
+# uploaded files
+/public/uploads

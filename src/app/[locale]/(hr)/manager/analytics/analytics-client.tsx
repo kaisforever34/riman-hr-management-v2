@@ -34,7 +34,7 @@ export default function AnalyticsClient({ data }: { data: AnalyticsData; locale:
           { icon: CalendarCheck, label: t('pendingLeaves'), value: data.leaves.pendingLeaves, sub: `${data.leaves.approvedLeaves} ${t('approved')}` },
           { icon: Banknote, label: t('totalPayroll'), value: `${Math.round(totalPayroll).toLocaleString()} AED`, sub: t('allPeriods') },
         ].map((card, i) => (
-          <div key={i} className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+          <div key={i} className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
               <card.icon className="w-4 h-4 text-[#D4A843]" />
               <span className="text-xs text-[#8B93A8]">{card.label}</span>
@@ -46,7 +46,7 @@ export default function AnalyticsClient({ data }: { data: AnalyticsData; locale:
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+        <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-4 h-4 text-[#D4A843]" />
             <h3 className="text-sm font-semibold text-[#E0E6F4]">{t('departmentDistribution')}</h3>
@@ -64,7 +64,7 @@ export default function AnalyticsClient({ data }: { data: AnalyticsData; locale:
           </div>
         </div>
 
-        <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+        <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-4 h-4 text-[#D4A843]" />
             <h3 className="text-sm font-semibold text-[#E0E6F4]">{t('attendanceOverview')}</h3>
@@ -100,7 +100,7 @@ export default function AnalyticsClient({ data }: { data: AnalyticsData; locale:
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+        <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-4">
             <CalendarCheck className="w-4 h-4 text-[#D4A843]" />
             <h3 className="text-sm font-semibold text-[#E0E6F4]">{t('leaveOverview')}</h3>
@@ -129,7 +129,7 @@ export default function AnalyticsClient({ data }: { data: AnalyticsData; locale:
           )}
         </div>
 
-        <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+        <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-4">
             <Banknote className="w-4 h-4 text-[#D4A843]" />
             <h3 className="text-sm font-semibold text-[#E0E6F4]">{t('payrollOverview')}</h3>

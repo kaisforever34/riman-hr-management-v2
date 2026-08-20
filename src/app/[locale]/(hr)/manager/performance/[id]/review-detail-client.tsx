@@ -138,7 +138,7 @@ export function ReviewDetailClient({ review }: Props) {
               </thead>
               <tbody>
                 {review.goals.length === 0 ? (
-                  <tr><td colSpan={2} className="px-4 py-4 text-center text-muted-foreground">-</td></tr>
+                  <tr><td colSpan={2} className="px-4 py-4 text-center text-[#8B93A8]">-</td></tr>
                 ) : review.goals.map(g => (
                   <tr key={g.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
                     <td className="px-4 py-3">{g.description}</td>

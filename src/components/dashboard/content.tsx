@@ -5,7 +5,10 @@ import {
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 import { Users, UserCheck, Calendar, CreditCard, ChevronRight } from 'lucide-react'
-import { KPICard, Avatar, Badge, type BadgeVariant } from '@/components/shared'
+import { KPICard, Badge, type BadgeVariant } from '@/components/shared'
+import { buttonVariants } from '@/components/ui/button'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
 
 const C = {
   gold: '#D4A843',
@@ -49,23 +52,13 @@ const LEAVE_DIST = [
   { name: 'Other', value: 8, color: C.amber },
 ]
 
-const LEAVE_BADGE_VARIANT: Record<string, BadgeVariant> = {
-  'Annual Leave': 'green',
-  'Sick Leave': 'red',
-  'Maternity Leave': 'purple',
-  'Parental Leave': 'teal',
-  'Bereavement Leave': 'amber',
-  'Study Leave': 'blue',
-  'Hajj Leave': 'gold',
-}
-
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; color?: string }[]; label?: string }) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: C.surf3, border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px' }}>
-      <div style={{ fontSize: 12, color: C.textSub, marginBottom: 4 }}>{label}</div>
+    <div className="rounded-lg bg-[#181E38] border border-[rgba(255,255,255,0.065)] px-3.5 py-2.5">
+      <div className="text-[12px] text-[#8B93A8] mb-1">{label}</div>
       {payload.map((p, i) => (
-        <div key={i} style={{ fontSize: 13, color: p.color || C.gold, fontWeight: 600 }}>
+        <div key={i} className="text-[13px] font-semibold" style={{ color: p.color || C.gold }}>
           {p.name}: {p.name === 'total' ? `AED ${Number(p.value).toLocaleString()}` : p.value}
         </div>
       ))}
@@ -82,30 +75,32 @@ export default function DashboardContent({
   presentCount: number
   pendingLeaves: number
 }) {
+  const params = useParams()
+  const locale = params.locale as string
   const presentRate = totalEmployees > 0 ? Math.round((presentCount / totalEmployees) * 100) : 0
 
   return (
     <div className="fi">
-      <div style={{ marginBottom: 28 }}>
-        <h1 className="font-syne text-[24px] font-bold text-[#E0E6F4] tracking-tight">HR Dashboard</h1>
-        <p style={{ color: C.textSub, fontSize: 13.5, marginTop: 4 }}>
+      <div className="mb-7">
+        <h1 className="font-syne text-2xl font-bold text-[#E0E6F4] tracking-tight">HR Dashboard</h1>
+        <p className="text-[13px] text-[#8B93A8] mt-1">
           {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · Dubai, UAE
         </p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KPICard icon={Users} col={C.gold} label="Total Employees" value={String(totalEmployees)} sub="Active" />
         <KPICard icon={UserCheck} col={C.green} label="Present Today" value={`${presentCount} / ${totalEmployees}`} sub="Clocked in" trend={`${presentRate}%`} up={presentRate > 50} />
         <KPICard icon={Calendar} col={C.blue} label="Pending Leaves" value={String(pendingLeaves)} sub="Awaiting approval" />
         <KPICard icon={CreditCard} col={C.teal} label="Payroll" value={`AED ${(totalEmployees * 5000).toLocaleString()}`} sub="Current month" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5">
           <div className="flex justify-between items-center mb-5">
             <div>
               <div className="font-syne text-[15px] font-bold text-[#E0E6F4]">Payroll Trend</div>
-              <div style={{ fontSize: 12, color: C.textSub, marginTop: 2 }}>Dec 2025 – May 2026</div>
+              <div className="text-[12px] text-[#8B93A8] mt-0.5">Dec 2025 – May 2026</div>
             </div>
             <Badge variant="gold">AED / Month</Badge>
           </div>
@@ -130,7 +125,7 @@ export default function DashboardContent({
           <div className="flex justify-between items-center mb-5">
             <div>
               <div className="font-syne text-[15px] font-bold text-[#E0E6F4]">Weekly Attendance</div>
-              <div style={{ fontSize: 12, color: C.textSub, marginTop: 2 }}>Current week (Sun–Thu)</div>
+              <div className="text-[12px] text-[#8B93A8] mt-0.5">Current week (Sun–Thu)</div>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={175}>
@@ -147,23 +142,23 @@ export default function DashboardContent({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5">
           <div className="font-syne text-[15px] font-bold text-[#E0E6F4] mb-5">Leave Distribution 2026</div>
-          <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+          <div className="flex items-center gap-5">
             <PieChart width={140} height={140}>
               <Pie data={LEAVE_DIST} cx={65} cy={65} innerRadius={40} outerRadius={64} paddingAngle={3} dataKey="value">
                 {LEAVE_DIST.map((e, i) => <Cell key={i} fill={e.color} />)}
               </Pie>
             </PieChart>
-            <div style={{ flex: 1 }}>
+            <div className="flex-1">
               {LEAVE_DIST.map((d, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: d.color }} />
-                    <span style={{ fontSize: 12.5, color: C.textSub }}>{d.name}</span>
+                <div key={i} className="flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-[7px] h-[7px] rounded-full" style={{ background: d.color }} />
+                    <span className="text-[12.5px] text-[#8B93A8]">{d.name}</span>
                   </div>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>{d.value}%</span>
+                  <span className="text-[12.5px] font-semibold text-[#E0E6F4]">{d.value}%</span>
                 </div>
               ))}
             </div>
@@ -180,11 +175,12 @@ export default function DashboardContent({
               ? `${pendingLeaves} leave request${pendingLeaves > 1 ? 's' : ''} awaiting review`
               : 'No pending actions'}
           </div>
-          <button
-            className="w-full mt-3.5 flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg border border-[rgba(255,255,255,0.065)] text-[13px] font-medium text-[#8B93A8] hover:border-[rgba(255,255,255,0.13)] hover:text-[#E0E6F4] transition-all duration-150 cursor-pointer"
+          <Link
+            href={`/${locale}/manager/leaves`}
+            className={buttonVariants({ variant: "outline", className: "w-full justify-center" })}
           >
-            View all requests <ChevronRight size={14} />
-          </button>
+            View all requests <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </div>
     </div>

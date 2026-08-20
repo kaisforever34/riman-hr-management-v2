@@ -61,7 +61,7 @@ export default function NewAssetClient({ employees, locale }: { employees: Emplo
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4 space-y-4">
+      <form onSubmit={handleSubmit} className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4 space-y-4">
         <div>
           <label className="block text-sm font-medium text-[#8B93A8] mb-1">{t('name')}</label>
           <input value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-3 py-2 bg-[#0F1120] border border-[rgba(255,255,255,0.1)] rounded-lg text-[#E0E6F4] text-sm focus:outline-none focus:border-[#D4A843]" />

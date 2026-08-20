@@ -84,9 +84,9 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
   }
 
   return (
-    <div className="space-y-6">
+    <div className="fi space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
+        <h1 className="font-syne text-2xl font-bold text-[#E0E6F4] tracking-tight">{t('title')}</h1>
       </div>
 
       {message && (
@@ -105,17 +105,17 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
         <CardContent className="space-y-4">
           {todayRecord?.checkIn ? (
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-[13px] text-[#8B93A8]">
                 {t('checkedInAt')}: {format(new Date(todayRecord.checkIn), 'HH:mm')}
                 {todayRecord.lateMinutes > 0 && (
-                  <span className="ms-2 text-warning-amber">{t('minLate', { minutes: todayRecord.lateMinutes })}</span>
+                  <span className="ms-2 text-[#F59E0B]">{t('minLate', { minutes: todayRecord.lateMinutes })}</span>
                 )}
               </p>
               {todayRecord.checkOut ? (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-[13px] text-[#8B93A8]">
                   {t('checkedOutAt')}: {format(new Date(todayRecord.checkOut), 'HH:mm')}
                   {todayRecord.earlyLeaveMinutes > 0 && (
-                    <span className="ms-2 text-warning-amber">{t('minEarly', { minutes: todayRecord.earlyLeaveMinutes })}</span>
+                    <span className="ms-2 text-[#F59E0B]">{t('minEarly', { minutes: todayRecord.earlyLeaveMinutes })}</span>
                   )}
                 </p>
               ) : (
@@ -124,8 +124,8 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
                   {loading === 'checkOut' ? '...' : t('checkOut')}
                 </Button>
               )}
-              <p className="text-xs text-ledger-text-muted">
-                {t('status')}: <span className={cn('inline-block rounded px-1.5 py-0.5 text-xs font-medium', statusColor[todayRecord.status] || '')}>{t(todayRecord.status.toLowerCase())}</span>
+              <p className="text-[12px] text-[#4A5168]">
+                {t('status')}: <span className={cn('inline-block rounded px-1.5 py-0.5 text-[11.5px] font-semibold', statusColor[todayRecord.status] || '')}>{t(todayRecord.status.toLowerCase())}</span>
               </p>
             </div>
           ) : (
@@ -141,15 +141,15 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
           )}
 
           {showManual && !todayRecord?.checkIn && (
-            <div className="space-y-2 rounded border p-3">
+            <div className="space-y-2 rounded-lg border border-[rgba(255,255,255,0.065)] bg-[#131830] p-3">
               <input
                 type="datetime-local"
-                className="w-full rounded border bg-card px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.065)] bg-[#0D1028] px-3 py-2 text-[13px] text-[#E0E6F4] outline-none focus-visible:border-[rgba(212,168,67,0.4)]"
                 value={manualTime}
                 onChange={e => setManualTime(e.target.value)}
               />
               <textarea
-                className="w-full rounded border bg-card px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.065)] bg-[#0D1028] px-3 py-2 text-[13px] text-[#E0E6F4] outline-none focus-visible:border-[rgba(212,168,67,0.4)] placeholder:text-[#4A5168]"
                 placeholder={t('reason')}
                 rows={2}
                 value={manualNote}
@@ -173,7 +173,7 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
         <CardContent>
           <div className="grid grid-cols-7 gap-1 text-center text-sm">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-              <div key={d} className="py-1 text-xs font-medium text-muted-foreground">{d}</div>
+              <div key={d} className="py-1 text-[11px] font-semibold tracking-[0.06em] uppercase text-[#4A5168]">{d}</div>
             ))}
             {Array.from({ length: getDay(monthStart) }).map((_, i) => (
               <div key={`empty-${i}`} />
@@ -181,11 +181,11 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
             {days.map(day => {
               const record = monthlyRecords.find(r => isSameDay(new Date(r.date), day))
               const col = statusColor[record?.status || ''] || ''
-              const todayCls = isToday(day) ? 'ring-2 ring-inquiry-blue' : ''
+              const todayCls = isToday(day) ? 'ring-2 ring-[#4B8BF0]' : ''
               return (
                 <div
                   key={day.toISOString()}
-                  className={cn('rounded p-1 text-xs', col, todayCls, record ? 'cursor-default' : 'text-ledger-text-muted')}
+                  className={cn('rounded p-1 text-[12px]', col, todayCls, record ? 'cursor-default' : 'text-[#4A5168]')}
                 >
                   {format(day, 'd')}
                 </div>

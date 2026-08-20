@@ -7,22 +7,17 @@ function avCol(ini: string) {
 }
 
 export function Avatar({ ini, sz = 32 }: { ini: string; sz?: number }) {
+  const color = avCol(ini)
   return (
     <div
+      className="flex items-center justify-center rounded-full flex-shrink-0 font-syne font-bold"
       style={{
         width: sz,
         height: sz,
-        borderRadius: '50%',
-        background: `${avCol(ini)}22`,
-        border: `1.5px solid ${avCol(ini)}55`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        background: `${color}22`,
+        border: `1.5px solid ${color}55`,
         fontSize: sz * 0.33,
-        fontWeight: 700,
-        color: avCol(ini),
-        flexShrink: 0,
-        fontFamily: "'Syne', sans-serif",
+        color,
       }}
     >
       {ini}
@@ -102,14 +97,21 @@ export function KPICard({
   up?: boolean
 }) {
   return (
-    <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5 relative overflow-hidden">
-      <div style={{ position: 'absolute', top: -30, right: -30, width: 90, height: 90, borderRadius: '50%', background: col, opacity: 0.06 }} />
+    <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5 relative overflow-hidden group">
+      {/* Subtle ambient glow */}
+      <div
+        className="absolute -top-8 -end-8 w-24 h-24 rounded-full opacity-[0.06] transition-opacity duration-300 group-hover:opacity-[0.1]"
+        style={{ background: col }}
+      />
       <div className="flex justify-between items-start">
-        <div style={{ width: 40, height: 40, borderRadius: 10, background: `${col}18`, border: `1px solid ${col}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div
+          className="w-10 h-10 rounded-[10px] flex items-center justify-center"
+          style={{ background: `${col}18`, border: `1px solid ${col}30` }}
+        >
           <Icon size={18} color={col} />
         </div>
         {trend && (
-          <div className="flex items-center gap-1 text-[12px] font-semibold" style={{ color: up ? '#22C55E' : '#EF4444' }}>
+          <div className={`flex items-center gap-1 text-[12px] font-semibold ${up ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
             {up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
             {trend}
           </div>

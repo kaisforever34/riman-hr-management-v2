@@ -39,58 +39,58 @@ export default function LeaveDetailClient({ request, role, locale }: LeaveDetail
         <h1 className="text-2xl font-bold">{t('title')}</h1>
       </div>
 
-      <div className="rounded-lg border bg-card p-6 space-y-4">
+      <div className="rounded-lg border bg-[#0D1028] p-6 space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <p className="text-sm text-muted-foreground">{t('type')}</p>
+            <p className="text-sm text-[#8B93A8]">{t('type')}</p>
             <p className="font-medium">{request.leaveType.name}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">{t('status')}</p>
+            <p className="text-sm text-[#8B93A8]">{t('status')}</p>
             <p className="font-medium">{t(`statuses.${request.status}`)}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">{t('startDate')}</p>
+            <p className="text-sm text-[#8B93A8]">{t('startDate')}</p>
             <p className="font-medium">{new Date(request.startDate).toLocaleDateString()}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">{t('endDate')}</p>
+            <p className="text-sm text-[#8B93A8]">{t('endDate')}</p>
             <p className="font-medium">{new Date(request.endDate).toLocaleDateString()}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">{t('duration')}</p>
+            <p className="text-sm text-[#8B93A8]">{t('duration')}</p>
             <p className="font-medium">{request.durationDays} {request.durationDays === 1 ? t('day') : t('days')}</p>
           </div>
           {request.isHalfDay && (
             <div>
-              <p className="text-sm text-muted-foreground">{t('halfDayPeriod')}</p>
+              <p className="text-sm text-[#8B93A8]">{t('halfDayPeriod')}</p>
               <p className="font-medium">{t(request.halfDayPeriod)}</p>
             </div>
           )}
         </div>
 
         <div>
-          <p className="text-sm text-muted-foreground">{t('reason')}</p>
+          <p className="text-sm text-[#8B93A8]">{t('reason')}</p>
           <p className="mt-1">{request.reason}</p>
         </div>
 
         {request.rejectReason && (
           <div>
-            <p className="text-sm text-muted-foreground">{t('rejectReason')}</p>
+            <p className="text-sm text-[#8B93A8]">{t('rejectReason')}</p>
             <p className="mt-1 text-audit-red">{request.rejectReason}</p>
           </div>
         )}
 
         {request.attachmentFile && (
           <div>
-            <p className="text-sm text-muted-foreground">{t('attachment')}</p>
-            <a href={request.attachmentFile} target="_blank" rel="noopener noreferrer" className="text-sm text-inquiry-blue hover:underline">
+            <p className="text-sm text-[#8B93A8]">{t('attachment')}</p>
+            <a href={request.attachmentFile} target="_blank" rel="noopener noreferrer" className="text-sm text-[#4B8BF0] hover:underline">
               {tc('view')}
             </a>
           </div>
         )}
 
-        <div className="text-xs text-muted-foreground">
+        <div className="text-xs text-[#8B93A8]">
           <p>{t('submittedOn')}: {new Date(request.createdAt).toLocaleDateString()}</p>
           {request.approvedAt && <p>{t('approvedOn')}: {new Date(request.approvedAt).toLocaleDateString()}</p>}
         </div>

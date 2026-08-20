@@ -29,7 +29,8 @@
     "expenses": "المصروفات",
     "myExpenses": "مصروفاتي",
     "analytics": "التحليلات",
-    "signOut": "تسجيل الخروج"
+    "signOut": "تسجيل الخروج",
+    "collapse": "طي"
   },
   "dashboard": {
     "title": "لوحة التحكم",

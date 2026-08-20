@@ -4,7 +4,7 @@ import type { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
-import { createNotification } from './notifications'
+import { createNotification, createNotifications, getApproverUserIds } from './notifications'
 
 export async function startOnboarding(employeeId: string, type: 'ONBOARDING' | 'OFFBOARDING', reason?: string) {
   const session = await auth()
@@ -48,8 +48,8 @@ export async function startOnboarding(employeeId: string, type: 'ONBOARDING' | '
     )
   }
 
-  revalidatePath('/en/manager/onboarding')
-  revalidatePath('/en/manager/offboarding')
+  revalidatePath('/manager/onboarding')
+  revalidatePath('/manager/offboarding')
   return { id: onboarding.id }
 }
 
@@ -75,42 +75,38 @@ export async function completeOnboardingTask(taskId: string, formData?: Record<s
     if (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
   }
 
-  await db.employeeOnboardingTask.update({
-    where: { id: taskId },
-    data: {
-      status: 'COMPLETED',
-      completedAt: new Date(),
-      completedById: session.user.id,
-      formData: (formData ?? undefined) as Prisma.InputJsonValue,
-    },
-  })
-
-  // Check if all tasks completed -> mark onboarding complete
-  const allTasks = await db.employeeOnboardingTask.findMany({
-    where: { onboardingId: task.onboardingId },
-  })
-
-  const allDone = allTasks.every((t) => t.status === 'COMPLETED')
-  if (allDone) {
-    await db.employeeOnboarding.update({
-      where: { id: task.onboardingId },
-      data: { status: 'COMPLETED', completedAt: new Date() },
+  await db.$transaction(async (tx) => {
+    await tx.employeeOnboardingTask.update({
+      where: { id: taskId },
+      data: {
+        status: 'COMPLETED',
+        completedAt: new Date(),
+        completedById: session.user.id,
+        formData: (formData ?? undefined) as Prisma.InputJsonValue,
+      },
     })
-  }
+
+    const remaining = await tx.employeeOnboardingTask.count({
+      where: { onboardingId: task.onboardingId, status: { not: 'COMPLETED' } },
+    })
+
+    if (remaining === 0) {
+      await tx.employeeOnboarding.update({
+        where: { id: task.onboardingId },
+        data: { status: 'COMPLETED', completedAt: new Date() },
+      })
+    }
+  })
 
   if (task.assignedTo === 'EMPLOYEE') {
-    const managers = await db.user.findMany({
-      where: { role: { in: ['HR_ADMIN', 'MANAGER'] }, isActive: true },
-    })
-    for (const manager of managers) {
-      await createNotification(
-        manager.id,
-        'ONBOARDING_TASK',
-        'Task Completed',
-        `${task.onboarding.employee.firstName} ${task.onboarding.employee.lastName} completed: ${task.taskTemplate.titleEn}`,
-        `/manager/${task.onboarding.type.toLowerCase()}/${task.onboardingId}`,
-      )
-    }
+    const approverIds = await getApproverUserIds(task.onboarding.employeeId)
+    await createNotifications(
+      approverIds,
+      'ONBOARDING_TASK',
+      'Task Completed',
+      `${task.onboarding.employee.firstName} ${task.onboarding.employee.lastName} completed: ${task.taskTemplate.titleEn}`,
+      `/manager/${task.onboarding.type.toLowerCase()}/${task.onboardingId}`,
+    )
   }
 
   revalidatePath('/en/onboarding')

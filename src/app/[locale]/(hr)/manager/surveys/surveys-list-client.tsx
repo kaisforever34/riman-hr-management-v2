@@ -33,7 +33,7 @@ export default function SurveysListClient({ surveys, locale }: { surveys: Survey
           const completed = s.assignments.filter((a) => a.status === 'COMPLETED').length
           const total = s.assignments.length
           return (
-            <div key={s.id} className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+            <div key={s.id} className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="text-sm font-semibold text-[#E0E6F4]">{s.title}</h3>

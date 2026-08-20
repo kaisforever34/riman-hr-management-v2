@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from '@prisma/client'
+import { PrismaClient, Role, AttendanceStatus } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -109,23 +109,23 @@ async function main() {
 
   // ── Sample Employees ──
   const sampleEmployees = [
-    { email: 'ahmed@riman.com', firstName: 'Ahmed', lastName: 'Hassan', code: 'EMP-001', dob: uaeDate(1988, 5, 12), nationality: 'AE', jobTitle: 'Store Manager', department: 'Retail', hireDate: uaeDate(2021, 3, 1), salary: 8000.00 },
-    { email: 'fatima@riman.com', firstName: 'Fatima', lastName: 'Ali', code: 'EMP-002', dob: uaeDate(1995, 8, 22), nationality: 'AE', jobTitle: 'Sales Associate', department: 'Retail', hireDate: uaeDate(2022, 6, 15), salary: 3500.00 },
-    { email: 'mohammed@riman.com', firstName: 'Mohammed', lastName: 'Rashed', code: 'EMP-003', dob: uaeDate(1990, 11, 3), nationality: 'AE', jobTitle: 'Warehouse Supervisor', department: 'Warehouse', hireDate: uaeDate(2020, 9, 1), salary: 5000.00 },
-    { email: 'sara@riman.com', firstName: 'Sara', lastName: 'Khalid', code: 'EMP-004', dob: uaeDate(1998, 2, 14), nationality: 'AE', jobTitle: 'Admin Assistant', department: 'Admin', hireDate: uaeDate(2023, 1, 10), salary: 4000.00 },
-    { email: 'omar@riman.com', firstName: 'Omar', lastName: 'Said', code: 'EMP-005', dob: uaeDate(1993, 7, 30), nationality: 'AE', jobTitle: 'Cashier', department: 'Retail', hireDate: uaeDate(2022, 11, 20), salary: 3000.00 },
+    { email: 'ahmed@riman.com', firstName: 'Ahmed', lastName: 'Hassan', code: 'EMP-001', dob: uaeDate(1988, 5, 12), nationality: 'AE', jobTitle: 'Store Manager', department: 'Retail', hireDate: uaeDate(2021, 3, 1), salary: 8000.00, role: Role.MANAGER },
+    { email: 'fatima@riman.com', firstName: 'Fatima', lastName: 'Ali', code: 'EMP-002', dob: uaeDate(1995, 8, 22), nationality: 'AE', jobTitle: 'Sales Associate', department: 'Retail', hireDate: uaeDate(2022, 6, 15), salary: 3500.00, role: Role.EMPLOYEE },
+    { email: 'mohammed@riman.com', firstName: 'Mohammed', lastName: 'Rashed', code: 'EMP-003', dob: uaeDate(1990, 11, 3), nationality: 'AE', jobTitle: 'Warehouse Supervisor', department: 'Warehouse', hireDate: uaeDate(2020, 9, 1), salary: 5000.00, role: Role.MANAGER },
+    { email: 'sara@riman.com', firstName: 'Sara', lastName: 'Khalid', code: 'EMP-004', dob: uaeDate(1998, 2, 14), nationality: 'AE', jobTitle: 'Admin Assistant', department: 'Admin', hireDate: uaeDate(2023, 1, 10), salary: 4000.00, role: Role.EMPLOYEE },
+    { email: 'omar@riman.com', firstName: 'Omar', lastName: 'Said', code: 'EMP-005', dob: uaeDate(1993, 7, 30), nationality: 'AE', jobTitle: 'Cashier', department: 'Retail', hireDate: uaeDate(2022, 11, 20), salary: 3000.00, role: Role.EMPLOYEE },
   ]
 
-  const createdEmployees: { id: string; email: string; hireDate: Date }[] = []
+  const createdEmployees: { id: string; email: string; hireDate: Date; role: Role }[] = []
 
   for (const emp of sampleEmployees) {
     const user = await prisma.user.upsert({
       where: { email: emp.email },
-      update: {},
+      update: { role: emp.role },
       create: {
         email: emp.email,
         passwordHash: empPasswordHash,
-        role: Role.EMPLOYEE,
+        role: emp.role,
         employee: {
           create: {
             firstName: emp.firstName,
@@ -142,7 +142,23 @@ async function main() {
       },
       include: { employee: { select: { id: true, hireDate: true } } },
     })
-    createdEmployees.push({ id: user.employee!.id, email: emp.email, hireDate: user.employee!.hireDate })
+    createdEmployees.push({ id: user.employee!.id, email: emp.email, hireDate: user.employee!.hireDate, role: emp.role })
+  }
+
+  // ── Manager assignments: employees report to a manager in their department ──
+  const managersByDept = new Map<string, string>()
+  for (const emp of createdEmployees) {
+    if (emp.role === Role.MANAGER) {
+      const record = sampleEmployees.find((s) => s.email === emp.email)
+      if (record) managersByDept.set(record.department, emp.id)
+    }
+  }
+  for (const emp of createdEmployees) {
+    if (emp.role === Role.MANAGER) continue
+    const record = sampleEmployees.find((s) => s.email === emp.email)
+    if (!record) continue
+    const managerId = managersByDept.get(record.department) ?? null
+    await prisma.employee.update({ where: { id: emp.id }, data: { managerId } })
   }
 
   // ── Leave Balances for Current Year ──
@@ -180,21 +196,21 @@ async function main() {
 
     for (const emp of createdEmployees) {
       const rand = Math.random()
-      let status = 'PRESENT'
+      let status: AttendanceStatus = AttendanceStatus.PRESENT
       let checkInHour = 11
       let checkInMin = 30 + Math.floor(Math.random() * 15)
       let lateMinutes = 0
       let checkOutHour = 20
       let checkOutMin = 15 + Math.floor(Math.random() * 20)
-      let earlyLeaveMinutes = 0
+      const earlyLeaveMinutes = 0
 
       if (rand < 0.1) {
         // 10% chance absent
-        status = 'ABSENT'
+        status = AttendanceStatus.ABSENT
         checkInHour = 0; checkInMin = 0; checkOutHour = 0; checkOutMin = 0
       } else if (rand < 0.25) {
         // 15% chance late
-        status = 'LATE'
+        status = AttendanceStatus.LATE
         checkInHour = 11
         checkInMin = 45 + Math.floor(Math.random() * 45)
         lateMinutes = (checkInHour - workStart.hour) * 60 + (checkInMin - workStart.minute)

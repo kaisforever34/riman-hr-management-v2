@@ -1,10 +1,11 @@
 import { db } from '@/lib/db'
+import type { ReviewStatus } from '@prisma/client'
 
 export async function getReviews(filters?: {
   employeeId?: string
   year?: number
   quarter?: number
-  status?: string
+  status?: ReviewStatus
 }) {
   return db.performanceReview.findMany({
     where: {

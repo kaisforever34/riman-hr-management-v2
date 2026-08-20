@@ -47,7 +47,7 @@ export default function NewOffboardingClient({ employees, locale }: { employees:
           <select
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
-            className="w-full px-3 py-2 bg-[#0D0F1A] border border-[rgba(255,255,255,0.1)] rounded-lg text-[#E0E6F4] text-sm focus:outline-none focus:border-[#D4A843]"
+            className="w-full px-3 py-2 bg-[#0D1028] border border-[rgba(255,255,255,0.1)] rounded-lg text-[#E0E6F4] text-sm focus:outline-none focus:border-[#D4A843]"
           >
             <option value="">{t('chooseEmployee')}</option>
             {employees.map((emp) => (
@@ -64,7 +64,7 @@ export default function NewOffboardingClient({ employees, locale }: { employees:
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={3}
-            className="w-full px-3 py-2 bg-[#0D0F1A] border border-[rgba(255,255,255,0.1)] rounded-lg text-[#E0E6F4] text-sm focus:outline-none focus:border-[#D4A843] resize-none"
+            className="w-full px-3 py-2 bg-[#0D1028] border border-[rgba(255,255,255,0.1)] rounded-lg text-[#E0E6F4] text-sm focus:outline-none focus:border-[#D4A843] resize-none"
             placeholder={t('reasonPlaceholder')}
           />
         </div>

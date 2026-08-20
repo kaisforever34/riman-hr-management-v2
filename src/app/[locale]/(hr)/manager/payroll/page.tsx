@@ -22,7 +22,7 @@ export default async function PayrollPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('periods')}</p>
+          <p className="text-sm text-[#8B93A8]">{t('periods')}</p>
         </div>
         <Link href="/manager/payroll/new" className={buttonVariants()}>
           <Plus className="me-2 h-4 w-4" />
@@ -33,9 +33,9 @@ export default async function PayrollPage() {
       {periods.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <FileText className="mb-4 h-12 w-12 text-ledger-text-muted" />
+            <FileText className="mb-4 h-12 w-12 text-[#4A5168]" />
             <h3 className="text-lg font-medium">{t('noPeriods')}</h3>
-            <p className="text-sm text-muted-foreground">{t('noPeriodsDesc')}</p>
+            <p className="text-sm text-[#8B93A8]">{t('noPeriodsDesc')}</p>
             <Link
               href="/manager/payroll/new"
               className={buttonVariants({ className: 'mt-4' })}

@@ -92,7 +92,7 @@ export function DirectoryClient({ managers, staff }: Props) {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ledger-text-muted" />
+          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#4A5168]" />
           <Input
             name="q"
             placeholder={t('search')}
@@ -102,7 +102,7 @@ export function DirectoryClient({ managers, staff }: Props) {
           />
         </div>
         <select
-          className="rounded border bg-card px-3 py-2 text-sm"
+          className="rounded border bg-[#0D1028] px-3 py-2 text-sm"
           value={deptFilter}
           onChange={(e) => setDeptFilter(e.target.value)}
         >
@@ -116,7 +116,7 @@ export function DirectoryClient({ managers, staff }: Props) {
       <div className="space-y-8">
         {filteredManagers.length > 0 && (
           <div>
-            <h2 className="text-sm font-semibold text-warning-amber uppercase tracking-wider mb-3">
+            <h2 className="text-sm font-semibold text-[#F59E0B] uppercase tracking-wider mb-3">
               {t('management')}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -133,7 +133,7 @@ export function DirectoryClient({ managers, staff }: Props) {
         )}
         {grouped.map(([dept, emps]) => (
           <div key={dept}>
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <h2 className="text-sm font-semibold text-[#8B93A8] uppercase tracking-wider mb-3">
               {dept} ({emps.length})
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -148,7 +148,7 @@ export function DirectoryClient({ managers, staff }: Props) {
           </div>
         ))}
         {filteredManagers.length === 0 && grouped.length === 0 && (
-          <div className="py-12 text-center text-muted-foreground">
+          <div className="py-12 text-center text-[#8B93A8]">
             {t('noResults')}
           </div>
         )}

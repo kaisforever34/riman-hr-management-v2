@@ -46,7 +46,7 @@ export default function LeaveTypesClient({ leaveTypes, employees, employeeBalanc
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t('title')}</h1>
 
-      <div className="overflow-x-auto rounded-lg border bg-card">
+      <div className="overflow-x-auto rounded-lg border bg-[#0D1028]">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-[rgba(255,255,255,0.03)] text-left">
@@ -85,7 +85,7 @@ export default function LeaveTypesClient({ leaveTypes, employees, employeeBalanc
                             setEditingType(lt.id)
                             setAllocationValue(String(remaining))
                           }}
-                          className="inline-flex items-center gap-1 text-sm hover:text-inquiry-blue"
+                          className="inline-flex items-center gap-1 text-sm hover:text-[#4B8BF0]"
                         >
                           {remaining}
                           <Pencil className="h-3 w-3" />

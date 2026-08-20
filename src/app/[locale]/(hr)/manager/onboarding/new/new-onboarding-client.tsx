@@ -46,7 +46,7 @@ export default function NewOnboardingClient({ employees, locale }: { employees: 
           <select
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
-            className="w-full px-3 py-2 bg-[#0D0F1A] border border-[rgba(255,255,255,0.1)] rounded-lg text-[#E0E6F4] text-sm focus:outline-none focus:border-[#D4A843]"
+            className="w-full px-3 py-2 bg-[#0D1028] border border-[rgba(255,255,255,0.1)] rounded-lg text-[#E0E6F4] text-sm focus:outline-none focus:border-[#D4A843]"
           >
             <option value="">{t('chooseEmployee')}</option>
             {employees.map((emp) => (

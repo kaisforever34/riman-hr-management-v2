@@ -116,7 +116,7 @@ export default function EmployeeSurveyFillClient({ assignment, locale }: { assig
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {questions.map((q) => (
-          <div key={q.id} className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+          <div key={q.id} className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <span className="text-[10px] text-[#D4A843] font-medium uppercase">{q.type === 'RATING' ? t('rating') : q.type === 'TEXT' ? t('textAnswer') : t('selectOption')}</span>

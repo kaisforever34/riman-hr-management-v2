@@ -40,7 +40,7 @@ export function EmployeeCard({ employee: e, onClick, variant = 'default' }: Prop
         <div className="text-[14px] font-semibold text-[#E0E6F4] truncate">
           {e.firstName} {e.lastName}
         </div>
-        <div className="text-[12.5px] text-muted-foreground truncate mt-0.5">
+        <div className="text-[12.5px] text-[#8B93A8] truncate mt-0.5">
           {e.jobTitle}
         </div>
         <div className="mt-1">

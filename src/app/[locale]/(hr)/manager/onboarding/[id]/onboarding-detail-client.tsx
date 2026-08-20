@@ -85,15 +85,15 @@ export default function OnboardingDetailClient({ record, locale }: { record: Onb
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-[#0D0F1A] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
+        <div className="bg-[#0D1028] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
           <div className="text-2xl font-bold text-[#D4A843]">{done}/{total}</div>
           <div className="text-xs text-[#8B93A8]">{t('tasksCompleted')}</div>
         </div>
-        <div className="bg-[#0D0F1A] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
+        <div className="bg-[#0D1028] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
           <div className="text-2xl font-bold text-[#E0E6F4]">{pendingEmployee}</div>
           <div className="text-xs text-[#8B93A8]">{t('pendingEmployee')}</div>
         </div>
-        <div className="bg-[#0D0F1A] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
+        <div className="bg-[#0D1028] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
           <div className="text-2xl font-bold text-[#E0E6F4]">{pendingManager}</div>
           <div className="text-xs text-[#8B93A8]">{t('pendingManager')}</div>
         </div>
@@ -108,10 +108,10 @@ export default function OnboardingDetailClient({ record, locale }: { record: Onb
               key={task.id}
               className={`flex items-center gap-3 p-3 rounded-xl border ${
                 isDone
-                  ? 'bg-[#0D0F1A] border-[rgba(34,168,84,0.2)]'
+                  ? 'bg-[#0D1028] border-[rgba(34,168,84,0.2)]'
                   : isManagerTask
                     ? 'bg-[rgba(212,168,67,0.04)] border-[#D4A84333]'
-                    : 'bg-[#0D0F1A] border-[rgba(255,255,255,0.065)]'
+                    : 'bg-[#0D1028] border-[rgba(255,255,255,0.065)]'
               }`}
             >
               {isDone ? (

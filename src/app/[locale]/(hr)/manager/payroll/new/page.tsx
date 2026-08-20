@@ -41,9 +41,9 @@ export default function NewPayrollPeriodPage() {
             <div className="rounded-md bg-[rgba(239,68,68,0.08)] p-3 text-sm text-[#EF4444]">{error}</div>
           )}
           <div>
-            <label className="text-xs font-medium text-muted-foreground">{t('selectMonth')}</label>
+            <label className="text-xs font-medium text-[#8B93A8]">{t('selectMonth')}</label>
             <select
-              className="w-full rounded border bg-card px-3 py-2 text-sm"
+              className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
               value={month}
               onChange={e => setMonth(Number(e.target.value))}
             >
@@ -55,9 +55,9 @@ export default function NewPayrollPeriodPage() {
             </select>
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">{t('selectYear')}</label>
+            <label className="text-xs font-medium text-[#8B93A8]">{t('selectYear')}</label>
             <select
-              className="w-full rounded border bg-card px-3 py-2 text-sm"
+              className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
               value={year}
               onChange={e => setYear(Number(e.target.value))}
             >

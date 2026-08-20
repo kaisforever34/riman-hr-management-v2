@@ -7,7 +7,7 @@ import { uploadLeaveAttachment } from '@/lib/upload'
 import { getOrCreateLeaveBalance } from '@/lib/queries/leave'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createNotification } from './notifications'
+import { createNotifications, createNotification, getApproverUserIds } from './notifications'
 
 export async function submitLeave(formData: FormData) {
   const session = await auth()
@@ -56,9 +56,8 @@ export async function submitLeave(formData: FormData) {
     where: {
       employeeId: employee.id,
       status: { in: ['PENDING', 'APPROVED'] },
-      OR: [
-        { startDate: { lte: end }, endDate: { gte: start } },
-      ],
+      startDate: { lte: end },
+      endDate: { gte: start },
     },
   })
   if (overlapping) return { error: 'You already have a pending or approved request overlapping these dates' }
@@ -85,18 +84,14 @@ export async function submitLeave(formData: FormData) {
     },
   })
 
-  const managers = await db.user.findMany({
-    where: { role: { in: ['HR_ADMIN', 'MANAGER'] }, isActive: true },
-  })
-  for (const manager of managers) {
-    await createNotification(
-      manager.id,
-      'LEAVE_SUBMITTED',
-      'New Leave Request',
-      `${employee.firstName} ${employee.lastName} requested ${leaveType.name} leave.`,
-      `/manager/leaves/${created.id}`,
-    )
-  }
+  const approverIds = await getApproverUserIds(employee.id)
+  await createNotifications(
+    approverIds,
+    'LEAVE_SUBMITTED',
+    'New Leave Request',
+    `${employee.firstName} ${employee.lastName} requested ${leaveType.name} leave.`,
+    `/manager/leaves/${created.id}`,
+  )
 
   revalidatePath('/leave')
   redirect('/leave')
@@ -112,45 +107,42 @@ export async function approveLeave(formData: FormData) {
 
   const request = await db.leaveRequest.findUnique({
     where: { id: parsed.data.id },
-    include: { employee: true },
+    include: { employee: true, leaveType: true },
   })
   if (!request || request.status !== 'PENDING') return { error: 'Request not found or already processed' }
 
   const now = new Date()
-  let balance = await getOrCreateLeaveBalance(request.employeeId, request.leaveTypeId, request.employee.hireDate)
-  const yearEnd = new Date(balance.yearEnd)
-  if (now > yearEnd) {
-    const carriedOver = Math.max(0, balance.allocated + balance.carriedOver - balance.used)
-    const yearStart = new Date(balance.yearStart)
-    yearStart.setFullYear(yearStart.getFullYear() + 1)
-    const newYearEnd = new Date(yearStart)
-    newYearEnd.setFullYear(newYearEnd.getFullYear() + 1)
-    newYearEnd.setDate(newYearEnd.getDate() - 1)
-    const leaveType = await db.leaveType.findUniqueOrThrow({ where: { id: request.leaveTypeId } })
-    balance = await db.leaveBalance.create({
-      data: {
-        employeeId: request.employeeId,
-        leaveTypeId: request.leaveTypeId,
-        yearStart,
-        yearEnd: newYearEnd,
-        allocated: leaveType.defaultDays,
-        carriedOver,
-        used: 0,
-      },
+
+  try {
+    await db.$transaction(async (tx) => {
+      const balance = await getOrCreateLeaveBalance(request.employeeId, request.leaveTypeId, request.employee.hireDate, tx)
+
+      const remaining = balance.allocated + balance.carriedOver - balance.used
+      if (request.durationDays > remaining) {
+        throw new Error('INSUFFICIENT_BALANCE')
+      }
+
+      const updated = await tx.leaveRequest.updateMany({
+        where: { id: request.id, status: 'PENDING' },
+        data: { status: 'APPROVED', approvedById: session.user.id, approvedAt: now },
+      })
+      if (updated.count === 0) throw new Error('ALREADY_PROCESSED')
+
+      await tx.leaveBalance.update({
+        where: { id: balance.id },
+        data: { used: { increment: request.durationDays } },
+      })
     })
+  } catch (e) {
+    if (e instanceof Error && e.message === 'INSUFFICIENT_BALANCE') {
+      return { error: 'Employee does not have enough leave balance for this request' }
+    }
+    if (e instanceof Error && e.message === 'ALREADY_PROCESSED') {
+      return { error: 'Request not found or already processed' }
+    }
+    throw e
   }
 
-  await db.leaveRequest.update({
-    where: { id: parsed.data.id },
-    data: { status: 'APPROVED', approvedById: session.user.id, approvedAt: now },
-  })
-
-  await db.leaveBalance.update({
-    where: { id: balance.id },
-    data: { used: balance.used + request.durationDays },
-  })
-
-  const reqLeaveType = await db.leaveType.findUnique({ where: { id: request.leaveTypeId } })
   const empUser = await db.employee.findUnique({
     where: { id: request.employeeId },
     include: { user: true },
@@ -160,7 +152,7 @@ export async function approveLeave(formData: FormData) {
       empUser.user.id,
       'LEAVE_APPROVED',
       'Leave Approved',
-      `Your ${reqLeaveType?.name ?? ''} leave from ${request.startDate.toLocaleDateString()} to ${request.endDate.toLocaleDateString()} has been approved.`,
+      `Your ${request.leaveType.name} leave from ${request.startDate.toLocaleDateString()} to ${request.endDate.toLocaleDateString()} has been approved.`,
       `/leave/${request.id}`,
     )
   }
@@ -180,13 +172,11 @@ export async function rejectLeave(formData: FormData) {
   const parsed = rejectLeaveSchema.safeParse(raw)
   if (!parsed.success) return { error: 'Rejection reason is required' }
 
-  const request = await db.leaveRequest.findUnique({ where: { id: parsed.data.id } })
-  if (!request || request.status !== 'PENDING') return { error: 'Request not found or already processed' }
-
-  await db.leaveRequest.update({
-    where: { id: parsed.data.id },
+  const updated = await db.leaveRequest.updateMany({
+    where: { id: parsed.data.id, status: 'PENDING' },
     data: { status: 'REJECTED', rejectReason: parsed.data.rejectReason, approvedById: session.user.id },
   })
+  if (updated.count === 0) return { error: 'Request not found or already processed' }
 
   const rejectRequest = await db.leaveRequest.findUnique({
     where: { id: parsed.data.id },
@@ -197,7 +187,7 @@ export async function rejectLeave(formData: FormData) {
       rejectRequest.employee.user.id,
       'LEAVE_REJECTED',
       'Leave Rejected',
-      `Your ${rejectRequest.leaveType?.name ?? ''} leave request has been rejected.${rejectRequest.rejectReason ? ` Reason: ${rejectRequest.rejectReason}` : ''}`,
+      `Your ${rejectRequest.leaveType?.name ?? ''} leave request has been rejected. Reason: ${parsed.data.rejectReason}`,
       `/leave/${parsed.data.id}`,
     )
   }
@@ -219,28 +209,37 @@ export async function cancelLeave(formData: FormData) {
     include: { employee: true },
   })
   if (!request) return { error: 'Request not found' }
+  if (request.status === 'CANCELLED') return { error: 'Request already cancelled' }
 
   const isOwner = request.employee.userId === session.user.id
   const isManager = session.user.role === 'MANAGER' || session.user.role === 'HR_ADMIN'
   if (!isOwner && !isManager) return { error: 'Unauthorized' }
   if (isOwner && !isManager && request.status !== 'PENDING') return { error: 'Cannot cancel a processed request' }
 
-  await db.leaveRequest.update({
-    where: { id: parsed.data.id },
-    data: { status: 'CANCELLED' },
-  })
-
-  if (request.status === 'APPROVED') {
-    const balance = await db.leaveBalance.findFirst({
-      where: { employeeId: request.employeeId, leaveTypeId: request.leaveTypeId, yearStart: { lte: request.createdAt }, yearEnd: { gte: request.createdAt } },
+  await db.$transaction(async (tx) => {
+    const updated = await tx.leaveRequest.updateMany({
+      where: { id: request.id, status: request.status },
+      data: { status: 'CANCELLED' },
     })
-    if (balance) {
-      await db.leaveBalance.update({
-        where: { id: balance.id },
-        data: { used: { decrement: request.durationDays } },
+    if (updated.count === 0) throw new Error('ALREADY_PROCESSED')
+
+    if (request.status === 'APPROVED') {
+      const balance = await tx.leaveBalance.findFirst({
+        where: {
+          employeeId: request.employeeId,
+          leaveTypeId: request.leaveTypeId,
+          yearStart: { lte: request.startDate },
+          yearEnd: { gte: request.startDate },
+        },
       })
+      if (balance) {
+        await tx.leaveBalance.update({
+          where: { id: balance.id },
+          data: { used: { decrement: request.durationDays } },
+        })
+      }
     }
-  }
+  })
 
   revalidatePath('/leave')
   revalidatePath('/manager/leaves')

@@ -94,11 +94,11 @@ export default function ManagerLeavesClient({
       </div>
 
       {requests.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground">
+        <div className="rounded-lg border bg-[#0D1028] p-12 text-center text-[#8B93A8]">
           {t('noRequests')}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border bg-card">
+        <div className="overflow-x-auto rounded-lg border bg-[#0D1028]">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-[rgba(255,255,255,0.03)] text-left">
@@ -130,7 +130,7 @@ export default function ManagerLeavesClient({
                     </span>
                   </td>
                   <td className="p-3">
-                    <Link href={`/${locale}/manager/leaves/${r.id}`} className="text-sm text-inquiry-blue hover:underline">
+                    <Link href={`/${locale}/manager/leaves/${r.id}`} className="text-sm text-[#4B8BF0] hover:underline">
                       {tc('view')}
                     </Link>
                   </td>

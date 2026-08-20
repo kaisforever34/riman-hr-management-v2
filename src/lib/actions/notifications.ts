@@ -16,6 +16,53 @@ export async function createNotification(
   })
 }
 
+export async function createNotifications(
+  userIds: string[],
+  type: string,
+  title: string,
+  message?: string,
+  link?: string,
+) {
+  if (userIds.length === 0) return
+  await db.notification.createMany({
+    data: userIds.map((userId) => ({
+      userId,
+      type,
+      title,
+      message: message ?? null,
+      link: link ?? null,
+    })),
+  })
+}
+
+export async function getApproverUserIds(employeeId: string): Promise<string[]> {
+  const employee = await db.employee.findUnique({
+    where: { id: employeeId },
+    include: { manager: { include: { user: { select: { id: true, isActive: true } } } } },
+  })
+
+  const userIds: string[] = []
+  if (employee?.manager?.user?.isActive) userIds.push(employee.manager.user.id)
+
+  const admins = await db.user.findMany({
+    where: { role: 'HR_ADMIN', isActive: true },
+    select: { id: true },
+  })
+  for (const admin of admins) {
+    if (!userIds.includes(admin.id)) userIds.push(admin.id)
+  }
+
+  if (userIds.length === 0) {
+    const managers = await db.user.findMany({
+      where: { role: 'MANAGER', isActive: true },
+      select: { id: true },
+    })
+    userIds.push(...managers.map((m) => m.id))
+  }
+
+  return userIds
+}
+
 export async function getUnreadCount() {
   const session = await auth()
   if (!session?.user) return { count: 0, recent: [] }

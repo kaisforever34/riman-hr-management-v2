@@ -56,7 +56,7 @@ export default function ExpensesListClient({ expenses, locale }: { expenses: Exp
 
       <div className="space-y-3">
         {filtered.map((e) => (
-          <div key={e.id} className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+          <div key={e.id} className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">

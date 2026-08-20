@@ -2,12 +2,18 @@
 
 import { db } from '@/lib/db'
 import { employeeFormSchema } from '@/lib/validations/employee'
+import { auth } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { Role } from '@prisma/client'
 
 export async function createEmployee(formData: FormData) {
+  const session = await auth()
+  if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
+    return { error: 'Unauthorized' }
+  }
+
   const raw = Object.fromEntries(formData.entries())
 
   const parsed = employeeFormSchema.safeParse(raw)
@@ -30,9 +36,9 @@ export async function createEmployee(formData: FormData) {
     return { error: 'An employee with this code already exists.', fieldErrors: {} }
   }
 
-  try {
-    const passwordHash = await bcrypt.hash(data.password, 10)
+  const passwordHash = await bcrypt.hash(data.password, 10)
 
+  try {
     await db.user.create({
       data: {
         email: data.email,
@@ -60,8 +66,12 @@ export async function createEmployee(formData: FormData) {
         },
       },
     })
-  } catch {
-    return { error: 'Something went wrong. Please try again.', fieldErrors: {} }
+  } catch (e) {
+    const isUniqueViolation = typeof e === 'object' && e !== null && 'code' in e && (e as { code: string }).code === 'P2002'
+    if (isUniqueViolation) {
+      return { error: 'An employee with this email or code already exists.', fieldErrors: {} }
+    }
+    throw e
   }
 
   revalidatePath('/employees')

@@ -29,7 +29,7 @@ test.describe('Employee Leave Request', () => {
     const dayAfter = new Date(today);
     dayAfter.setDate(dayAfter.getDate() + 2);
 
-    const formatDate = (date) => date.toISOString().split('T')[0];
+    const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
     await page.fill('#startDate', formatDate(tomorrow));
     await page.fill('#endDate', formatDate(dayAfter));

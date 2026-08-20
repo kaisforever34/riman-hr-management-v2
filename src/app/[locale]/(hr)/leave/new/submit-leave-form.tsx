@@ -151,7 +151,7 @@ export default function SubmitLeaveForm({ leaveTypes, locale }: SubmitLeaveFormP
                 disabled={loading}
               />
               {selectedType?.requiresAttachment && (
-                <p className="text-xs text-muted-foreground">{t('validation.sickRequiresAttachment')}</p>
+                <p className="text-xs text-[#8B93A8]">{t('validation.sickRequiresAttachment')}</p>
               )}
             </div>
           </CardContent>

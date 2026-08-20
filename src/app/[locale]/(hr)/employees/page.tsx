@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Avatar } from '@/components/shared'
 import { Plus, Search, Users } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -21,18 +22,19 @@ export const dynamic = 'force-dynamic'
 function EmployeesSkeleton() {
   return (
     <div className="fi space-y-6 animate-pulse">
-      <div className="flex justify-between items-center">
-        <div className="h-8 w-32 rounded-md bg-[rgba(255,255,255,0.05)]" />
-        <div className="h-10 w-36 rounded-md bg-[rgba(255,255,255,0.05)]" />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="h-8 w-40 rounded-lg bg-[rgba(255,255,255,0.05)]" />
+        <div className="h-10 w-36 rounded-lg bg-[rgba(255,255,255,0.05)]" />
       </div>
-      <div className="rounded-md border bg-card">
+      <div className="h-11 rounded-lg bg-[rgba(255,255,255,0.03)]" />
+      <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] overflow-hidden">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-14 px-4 flex items-center gap-4 border-b last:border-0">
+          <div key={i} className="h-14 px-4 flex items-center gap-4 border-b border-[rgba(255,255,255,0.04)] last:border-0">
             <div className="h-4 w-40 rounded bg-[rgba(255,255,255,0.05)]" />
             <div className="h-4 w-20 rounded bg-[rgba(255,255,255,0.03)]" />
             <div className="h-4 w-24 rounded bg-[rgba(255,255,255,0.03)]" />
             <div className="h-4 w-28 rounded bg-[rgba(255,255,255,0.03)]" />
-            <div className="h-6 w-16 rounded bg-[rgba(255,255,255,0.05)]" />
+            <div className="h-6 w-16 rounded-full bg-[rgba(255,255,255,0.05)]" />
           </div>
         ))}
       </div>
@@ -77,7 +79,7 @@ async function EmployeesData(props: {
     <div className="fi space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <h1 className="font-syne text-2xl font-bold text-[#E0E6F4] tracking-tight">{t('title')}</h1>
         </div>
         <Link
           href="employees/new"
@@ -90,20 +92,22 @@ async function EmployeesData(props: {
 
       {totalCount > 0 && (
         <form className="relative">
-          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ledger-text-muted" />
+          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#4A5168]" />
           <Input name="q" placeholder={t('search')} defaultValue={q} className="ps-9" />
         </form>
       )}
 
       {employees.length === 0 && !q ? (
         <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Users className="mb-4 h-12 w-12 text-ledger-text-muted" />
-            <h3 className="text-lg font-medium">{te('noEmployees.title')}</h3>
-            <p className="text-sm text-muted-foreground">{te('noEmployees.description')}</p>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="w-14 h-14 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.065)] flex items-center justify-center mb-4">
+              <Users className="h-7 w-7 text-[#4A5168]" />
+            </div>
+            <h3 className="font-syne text-lg font-bold text-[#E0E6F4]">{te('noEmployees.title')}</h3>
+            <p className="text-[13px] text-[#8B93A8] mt-1">{te('noEmployees.description')}</p>
             <Link
               href="employees/new"
-              className={buttonVariants({ className: "mt-4" })}
+              className={buttonVariants({ className: "mt-5" })}
             >
               <Plus className="me-2 h-4 w-4" />
               {te('noEmployees.cta')}
@@ -111,11 +115,12 @@ async function EmployeesData(props: {
           </CardContent>
         </Card>
       ) : employees.length === 0 && q ? (
-        <div className="py-12 text-center">
-          <p className="text-muted-foreground">No employees match your search.</p>
+        <div className="py-16 text-center">
+          <Search className="h-8 w-8 text-[#4A5168] mx-auto mb-3" />
+          <p className="text-[13px] text-[#8B93A8]">No employees match your search.</p>
         </div>
       ) : (
-        <div className="rounded-md border bg-card">
+        <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -129,16 +134,22 @@ async function EmployeesData(props: {
             <TableBody>
               {employees.map((emp) => (
                 <TableRow key={emp.id}>
-                  <TableCell className="font-medium">
-                    {emp.firstName} {emp.lastName}
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar ini={`${emp.firstName[0]}${emp.lastName[0]}`} sz={32} />
+                      <div>
+                        <div className="font-medium text-[#E0E6F4]">{emp.firstName} {emp.lastName}</div>
+                        <div className="text-[12px] text-[#4A5168]">{emp.user.email}</div>
+                      </div>
+                    </div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell text-muted-foreground">
+                  <TableCell className="hidden sm:table-cell text-[#8B93A8]">
                     {emp.employeeCode}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">{emp.department}</TableCell>
                   <TableCell className="hidden md:table-cell">{emp.jobTitle}</TableCell>
                   <TableCell>
-                    <Badge variant={emp.user.isActive ? 'default' : 'secondary'}>
+                    <Badge variant={emp.user.isActive ? 'green' : 'red'}>
                       {emp.user.isActive ? t('active') : t('inactive')}
                     </Badge>
                   </TableCell>
@@ -157,7 +168,7 @@ async function EmployeesData(props: {
               className={buttonVariants({ variant: "outline", size: "sm" })}
             >Previous</Link>
           )}
-            <span className="text-sm text-muted-foreground">
+          <span className="text-[13px] text-[#8B93A8] px-2">
             {t('page')} {page} {t('of')} {totalPages}
           </span>
           {page < totalPages && (

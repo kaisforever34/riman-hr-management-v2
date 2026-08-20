@@ -55,7 +55,7 @@ export default function ExpenseDetailClient({ expense, locale }: { expense: Expe
         <ArrowLeft className="w-4 h-4" />{t('back')}
       </Link>
 
-      <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-5 mb-4">
+      <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-5 mb-4">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-[rgba(212,168,67,0.12)] flex items-center justify-center">
@@ -110,7 +110,7 @@ export default function ExpenseDetailClient({ expense, locale }: { expense: Expe
       {expense.status === 'PENDING' && (
         <div className="space-y-3">
           {showRejectReason ? (
-            <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4 space-y-3">
+            <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4 space-y-3">
               <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={2} placeholder={t('rejectionReasonPlaceholder')} className="w-full px-3 py-2 bg-[#0F1120] border border-[rgba(255,255,255,0.1)] rounded-lg text-[#E0E6F4] text-sm focus:outline-none focus:border-[#D4A843] resize-none" />
               <div className="flex gap-2">
                 <button onClick={handleReject} disabled={actionLoading}

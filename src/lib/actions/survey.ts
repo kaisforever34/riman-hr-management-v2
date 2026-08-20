@@ -120,19 +120,19 @@ export async function submitSurveyResponses(assignmentId: string, responses: { q
   if (assignment.employee.userId !== session.user.id) return { error: 'Not your survey' }
   if (assignment.status === 'COMPLETED') return { error: 'Already completed' }
 
-  for (const r of responses) {
-    await db.surveyResponse.create({
-      data: {
+  await db.$transaction(async (tx) => {
+    await tx.surveyResponse.createMany({
+      data: responses.map((r) => ({
         questionId: r.questionId,
         assignmentId,
         value: r.value as Prisma.InputJsonValue,
-      },
+      })),
     })
-  }
 
-  await db.surveyAssignment.update({
-    where: { id: assignmentId },
-    data: { status: 'COMPLETED', completedAt: new Date() },
+    await tx.surveyAssignment.update({
+      where: { id: assignmentId },
+      data: { status: 'COMPLETED', completedAt: new Date() },
+    })
   })
 
   revalidatePath('/surveys')

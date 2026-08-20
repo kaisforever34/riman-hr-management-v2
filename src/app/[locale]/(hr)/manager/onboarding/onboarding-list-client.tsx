@@ -30,7 +30,7 @@ export default function OnboardingListClient({ records, type, locale }: { record
         </Link>
       </div>
 
-      <div className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl overflow-hidden">
+      <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.065)]">

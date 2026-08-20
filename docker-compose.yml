@@ -23,8 +23,8 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://riman:riman_dev@db:5432/riman_hr
-      AUTH_SECRET: ${AUTH_SECRET:-change-this-secret-in-production}
-      NEXTAUTH_URL: http://localhost:3000
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
     volumes:
       - uploads:/app/public/uploads
     depends_on:

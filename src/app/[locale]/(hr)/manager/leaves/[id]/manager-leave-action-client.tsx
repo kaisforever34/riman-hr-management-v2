@@ -74,39 +74,39 @@ export default function ManagerLeaveActionClient({ request, locale }: ManagerLea
         <CardContent className="space-y-4 p-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-sm text-muted-foreground">{t('employee')}</p>
+              <p className="text-sm text-[#8B93A8]">{t('employee')}</p>
               <p className="font-medium">{request.employee.firstName} {request.employee.lastName}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{tl('type')}</p>
+              <p className="text-sm text-[#8B93A8]">{tl('type')}</p>
               <p className="font-medium">{request.leaveType.name}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{tl('startDate')}</p>
+              <p className="text-sm text-[#8B93A8]">{tl('startDate')}</p>
               <p className="font-medium">{new Date(request.startDate).toLocaleDateString()}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{tl('endDate')}</p>
+              <p className="text-sm text-[#8B93A8]">{tl('endDate')}</p>
               <p className="font-medium">{new Date(request.endDate).toLocaleDateString()}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{tl('duration')}</p>
+              <p className="text-sm text-[#8B93A8]">{tl('duration')}</p>
               <p className="font-medium">{request.durationDays} {tl('days')}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{tl('status')}</p>
+              <p className="text-sm text-[#8B93A8]">{tl('status')}</p>
               <p className="font-medium">{tl(`statuses.${request.status}`)}</p>
             </div>
           </div>
 
           <div>
-            <p className="text-sm text-muted-foreground">{tl('reason')}</p>
+            <p className="text-sm text-[#8B93A8]">{tl('reason')}</p>
             <p className="mt-1">{request.reason}</p>
           </div>
 
           {request.attachmentFile && (
             <div>
-              <p className="text-sm text-muted-foreground">{tl('attachment')}</p>
+              <p className="text-sm text-[#8B93A8]">{tl('attachment')}</p>
               <a href={request.attachmentFile} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
                 {tc('view')}
               </a>

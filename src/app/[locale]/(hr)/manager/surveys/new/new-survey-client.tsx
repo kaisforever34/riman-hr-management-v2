@@ -50,7 +50,7 @@ export default function NewSurveyClient({ employees, locale }: { employees: Empl
       <h1 className="text-xl font-syne font-bold text-[#E0E6F4] mb-6">{t('createSurvey')}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-[#0D0F1A] rounded-xl p-4 border border-[rgba(255,255,255,0.065)] space-y-4">
+        <div className="bg-[#0D1028] rounded-xl p-4 border border-[rgba(255,255,255,0.065)] space-y-4">
           <div>
             <label className="block text-sm font-medium text-[#8B93A8] mb-1">{t('title')}</label>
             <input value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full px-3 py-2 bg-[#0F1120] border border-[rgba(255,255,255,0.1)] rounded-lg text-[#E0E6F4] text-sm focus:outline-none focus:border-[#D4A843]" />
@@ -71,7 +71,7 @@ export default function NewSurveyClient({ employees, locale }: { employees: Empl
           </div>
         </div>
 
-        <div className="bg-[#0D0F1A] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
+        <div className="bg-[#0D1028] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-[#E0E6F4]">{t('questions')}</h3>
             <button type="button" onClick={addQuestion} className="flex items-center gap-1 text-xs text-[#D4A843]"><Plus className="w-3 h-3" />{t('addQuestion')}</button>
@@ -80,15 +80,15 @@ export default function NewSurveyClient({ employees, locale }: { employees: Empl
             {questions.map((q, i) => (
               <div key={i} className="flex items-start gap-2 p-3 bg-[#0F1120] rounded-lg border border-[rgba(255,255,255,0.04)]">
                 <div className="flex-1 space-y-2">
-                  <input value={q.question} onChange={(e) => updateQuestion(i, 'question', e.target.value)} placeholder={t('questionPlaceholder')} className="w-full px-2 py-1.5 bg-[#0D0F1A] border border-[rgba(255,255,255,0.1)] rounded text-[#E0E6F4] text-xs focus:outline-none focus:border-[#D4A843]" />
+                  <input value={q.question} onChange={(e) => updateQuestion(i, 'question', e.target.value)} placeholder={t('questionPlaceholder')} className="w-full px-2 py-1.5 bg-[#0D1028] border border-[rgba(255,255,255,0.1)] rounded text-[#E0E6F4] text-xs focus:outline-none focus:border-[#D4A843]" />
                   <div className="flex gap-2">
-                    <select value={q.type} onChange={(e) => updateQuestion(i, 'type', e.target.value)} className="px-2 py-1 bg-[#0D0F1A] border border-[rgba(255,255,255,0.1)] rounded text-[#E0E6F4] text-xs focus:outline-none focus:border-[#D4A843]">
+                    <select value={q.type} onChange={(e) => updateQuestion(i, 'type', e.target.value)} className="px-2 py-1 bg-[#0D1028] border border-[rgba(255,255,255,0.1)] rounded text-[#E0E6F4] text-xs focus:outline-none focus:border-[#D4A843]">
                       <option value="RATING">Rating (1-5)</option>
                       <option value="MULTIPLE_CHOICE">Multiple Choice</option>
                       <option value="TEXT">Text</option>
                     </select>
                     {q.type === 'MULTIPLE_CHOICE' && (
-                      <input value={q.options} onChange={(e) => updateQuestion(i, 'options', e.target.value)} placeholder="Option1, Option2" className="flex-1 px-2 py-1 bg-[#0D0F1A] border border-[rgba(255,255,255,0.1)] rounded text-[#E0E6F4] text-xs focus:outline-none focus:border-[#D4A843]" />
+                      <input value={q.options} onChange={(e) => updateQuestion(i, 'options', e.target.value)} placeholder="Option1, Option2" className="flex-1 px-2 py-1 bg-[#0D1028] border border-[rgba(255,255,255,0.1)] rounded text-[#E0E6F4] text-xs focus:outline-none focus:border-[#D4A843]" />
                     )}
                   </div>
                 </div>
@@ -100,7 +100,7 @@ export default function NewSurveyClient({ employees, locale }: { employees: Empl
           </div>
         </div>
 
-        <div className="bg-[#0D0F1A] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
+        <div className="bg-[#0D1028] rounded-xl p-4 border border-[rgba(255,255,255,0.065)]">
           <h3 className="text-sm font-semibold text-[#E0E6F4] mb-3">{t('assignTo')}</h3>
           <div className="flex flex-wrap gap-2">
             {employees.map((emp) => (

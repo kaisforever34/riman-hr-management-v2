@@ -48,7 +48,7 @@ export default function SurveyResultsClient({ survey, locale }: { survey: Survey
 
       <div className="grid gap-4">
         {survey.questions.map((q) => (
-          <div key={q.id} className="bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+          <div key={q.id} className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <span className="text-xs text-[#D4A843] font-medium uppercase">{q.type}</span>
@@ -111,7 +111,7 @@ export default function SurveyResultsClient({ survey, locale }: { survey: Survey
         ))}
       </div>
 
-      <div className="mt-6 bg-[#0D0F1A] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
+      <div className="mt-6 bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
         <h3 className="text-sm font-semibold text-[#E0E6F4] mb-3">{t('respondents')}</h3>
         <div className="space-y-2">
           {survey.assignments.map((a) => (
