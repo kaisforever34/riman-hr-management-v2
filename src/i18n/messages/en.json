@@ -644,6 +644,8 @@
     "startDatePast": "Start date cannot be in the past",
     "endDateBeforeStart": "End date must be on or after start date",
     "durationExceeds365": "Duration cannot exceed 365 days",
+    "noWorkingDays": "The selected period contains no working days.",
+    "halfDayMustBeSingleDay": "Half-day leave must be within a single day.",
     "invalidLeaveType": "Invalid leave type",
     "sickRequiresAttachment": "Sick leave requires a medical report attachment",
     "overlappingRequest": "You already have a pending or approved request overlapping these dates",

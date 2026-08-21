@@ -4,14 +4,19 @@ export const leaveTypeSchema = z.enum([
   'Annual', 'Sick', 'Personal', 'Maternity', 'Paternity', 'Hajj/Umrah', 'Compassionate', 'Unpaid',
 ])
 
-export const submitLeaveSchema = z.object({
-  leaveTypeId: z.string().min(1, 'Leave type is required'),
-  startDate: z.string().min(1, 'Start date is required'),
-  endDate: z.string().min(1, 'End date is required'),
-  isHalfDay: z.string().optional(),
-  halfDayPeriod: z.string().optional(),
-  reason: z.string().min(1, 'Reason is required'),
-})
+export const submitLeaveSchema = z
+  .object({
+    leaveTypeId: z.string().min(1, 'Leave type is required'),
+    startDate: z.string().min(1, 'Start date is required'),
+    endDate: z.string().min(1, 'End date is required'),
+    isHalfDay: z.string().optional(),
+    halfDayPeriod: z.string().optional(),
+    reason: z.string().min(1, 'Reason is required'),
+  })
+  .refine(
+    (d) => d.isHalfDay !== 'true' || d.startDate === d.endDate,
+    { message: 'Half-day leave must start and end on the same day', path: ['endDate'] },
+  )
 
 export const approveLeaveSchema = z.object({
   id: z.string().min(1),

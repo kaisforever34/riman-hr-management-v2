@@ -13,6 +13,8 @@ export type ErrorKey =
   | 'startDatePast'
   | 'endDateBeforeStart'
   | 'durationExceeds365'
+  | 'noWorkingDays'
+  | 'halfDayMustBeSingleDay'
   | 'invalidLeaveType'
   | 'sickRequiresAttachment'
   | 'overlappingRequest'

@@ -16,6 +16,7 @@ const { mockSession, mockRevalidatePath, mockRedirect, mockDb } = vi.hoisted(() 
     payslip: { findMany: vi.fn(), update: vi.fn() },
     attendanceRecord: { groupBy: vi.fn() },
     appSetting: { findUnique: vi.fn() },
+    holiday: { findMany: vi.fn().mockResolvedValue([]) },
   }
   return { mockSession: session, mockRevalidatePath: revalidate, mockRedirect: redirect, mockDb: db }
 })
@@ -26,7 +27,7 @@ vi.mock('next/navigation', () => ({ redirect: (...args: unknown[]) => mockRedire
 vi.mock('@/lib/db', () => ({ db: mockDb }))
 vi.mock('@/lib/upload', () => ({ uploadLeaveAttachment: () => Promise.resolve('/uploads/leaves/x.pdf') }))
 
-import { approveLeave, cancelLeave } from '@/lib/actions/leave'
+import { approveLeave, cancelLeave, submitLeave } from '@/lib/actions/leave'
 
 function makeFormData(data: Record<string, string>): FormData {
   const fd = new FormData()
@@ -153,5 +154,40 @@ describe('cancelLeave', () => {
 
     await cancelLeave(makeFormData({ id: 'req1' }))
     expect(mockDb.$transaction).toHaveBeenCalled()
+  })
+})
+
+describe('submitLeave working days', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockSession.user.role = 'EMPLOYEE'
+    mockSession.user.id = 'u1'
+  })
+
+  it('rejects half-day spanning multiple days', async () => {
+    mockDb.employee.findUnique.mockResolvedValueOnce({
+      id: 'emp1', userId: 'u1', hireDate: new Date('2020-01-01'), workWeek: [0, 1, 2, 3, 4],
+    })
+    const form = makeFormData({
+      leaveTypeId: 'lt1', startDate: '2026-09-01', endDate: '2026-09-05',
+      isHalfDay: 'true', reason: 'x',
+    })
+    const result = await submitLeave(form)
+    expect(result?.error).toBeDefined()
+  })
+
+  it('rejects when range has no working days', async () => {
+    mockDb.employee.findUnique.mockResolvedValueOnce({
+      id: 'emp1', userId: 'u1', hireDate: new Date('2020-01-01'), workWeek: [0, 1, 2, 3, 4],
+    })
+    mockDb.leaveType.findUnique.mockResolvedValue({ id: 'lt1', isActive: true, requiresAttachment: false })
+    mockDb.holiday.findMany.mockResolvedValue([])
+    // 2026-09-04 (Fri) .. 2026-09-05 (Sat) — non-working for Sun-Thu pattern
+    const form = makeFormData({
+      leaveTypeId: 'lt1', startDate: '2026-09-04', endDate: '2026-09-05',
+      isHalfDay: 'false', halfDayPeriod: '', reason: 'x',
+    })
+    const result = await submitLeave(form)
+    expect(result?.error).toContain('no working days')
   })
 })

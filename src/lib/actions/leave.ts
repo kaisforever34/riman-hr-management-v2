@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createNotifications, createNotification, getApproverUserIds } from './notifications'
 import { serverError } from '@/lib/errors'
+import { countWorkingDays, toUaeDateKey } from '@/lib/working-days'
 
 export async function submitLeave(formData: FormData) {
   const session = await auth()
@@ -39,10 +40,16 @@ export async function submitLeave(formData: FormData) {
   if (start < today) return { error: await serverError('startDatePast') }
   if (end < start) return { error: await serverError('endDateBeforeStart') }
 
-  const diffTime = end.getTime() - start.getTime()
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1
-  const durationDays = isHalfDay ? 0.5 : diffDays
+  const holidays = await db.holiday.findMany({
+    where: { date: { gte: start, lte: end } },
+    select: { date: true },
+  })
+  const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
+  const durationDays = isHalfDay
+    ? 0.5
+    : countWorkingDays(toUaeDateKey(start), toUaeDateKey(end), employee.workWeek, holidayKeys)
 
+  if (!isHalfDay && durationDays === 0) return { error: await serverError('noWorkingDays') }
   if (!isHalfDay && durationDays > 365) return { error: await serverError('durationExceeds365') }
 
   const leaveType = await db.leaveType.findUnique({ where: { id: data.leaveTypeId } })
