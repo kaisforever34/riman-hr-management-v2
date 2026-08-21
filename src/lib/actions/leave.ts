@@ -8,13 +8,14 @@ import { getOrCreateLeaveBalance } from '@/lib/queries/leave'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createNotifications, createNotification, getApproverUserIds } from './notifications'
+import { serverError } from '@/lib/errors'
 
 export async function submitLeave(formData: FormData) {
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Unauthorized' }
+  if (!session?.user?.id) return { error: await serverError('unauthorized') }
 
   const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
-  if (!employee) return { error: 'Employee record not found' }
+  if (!employee) return { error: await serverError('employeeRecordNotFound') }
 
   const raw = {
     leaveTypeId: formData.get('leaveTypeId') as string,
@@ -26,7 +27,7 @@ export async function submitLeave(formData: FormData) {
   }
 
   const parsed = submitLeaveSchema.safeParse(raw)
-  if (!parsed.success) return { error: 'Validation failed', fieldErrors: parsed.error.flatten().fieldErrors }
+  if (!parsed.success) return { error: await serverError('validationFailed'), fieldErrors: parsed.error.flatten().fieldErrors }
 
   const data = parsed.data
   const start = new Date(data.startDate)
@@ -35,21 +36,21 @@ export async function submitLeave(formData: FormData) {
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  if (start < today) return { error: 'Start date cannot be in the past' }
-  if (end < start) return { error: 'End date must be on or after start date' }
+  if (start < today) return { error: await serverError('startDatePast') }
+  if (end < start) return { error: await serverError('endDateBeforeStart') }
 
   const diffTime = end.getTime() - start.getTime()
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1
   const durationDays = isHalfDay ? 0.5 : diffDays
 
-  if (!isHalfDay && durationDays > 365) return { error: 'Duration cannot exceed 365 days' }
+  if (!isHalfDay && durationDays > 365) return { error: await serverError('durationExceeds365') }
 
   const leaveType = await db.leaveType.findUnique({ where: { id: data.leaveTypeId } })
-  if (!leaveType || !leaveType.isActive) return { error: 'Invalid leave type' }
+  if (!leaveType || !leaveType.isActive) return { error: await serverError('invalidLeaveType') }
 
   if (leaveType.requiresAttachment) {
     const file = formData.get('attachment') as File
-    if (!file || file.size === 0) return { error: 'Sick leave requires a medical report attachment' }
+    if (!file || file.size === 0) return { error: await serverError('sickRequiresAttachment') }
   }
 
   const overlapping = await db.leaveRequest.findFirst({
@@ -60,13 +61,13 @@ export async function submitLeave(formData: FormData) {
       endDate: { gte: start },
     },
   })
-  if (overlapping) return { error: 'You already have a pending or approved request overlapping these dates' }
+  if (overlapping) return { error: await serverError('overlappingRequest') }
 
   let attachmentFile: string | null = null
   const file = formData.get('attachment') as File
   if (file && file.size > 0) {
     attachmentFile = await uploadLeaveAttachment(file)
-    if (!attachmentFile) return { error: 'Invalid attachment file (max 5MB, PDF/JPG/PNG only)' }
+    if (!attachmentFile) return { error: await serverError('invalidAttachment') }
   }
 
   const created = await db.leaveRequest.create({
@@ -99,17 +100,17 @@ export async function submitLeave(formData: FormData) {
 
 export async function approveLeave(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const raw = { id: formData.get('id') as string }
   const parsed = approveLeaveSchema.safeParse(raw)
-  if (!parsed.success) return { error: 'Invalid request' }
+  if (!parsed.success) return { error: await serverError('invalidRequest') }
 
   const request = await db.leaveRequest.findUnique({
     where: { id: parsed.data.id },
     include: { employee: true, leaveType: true },
   })
-  if (!request || request.status !== 'PENDING') return { error: 'Request not found or already processed' }
+  if (!request || request.status !== 'PENDING') return { error: await serverError('requestNotFoundOrProcessed') }
 
   const now = new Date()
 
@@ -135,10 +136,10 @@ export async function approveLeave(formData: FormData) {
     })
   } catch (e) {
     if (e instanceof Error && e.message === 'INSUFFICIENT_BALANCE') {
-      return { error: 'Employee does not have enough leave balance for this request' }
+      return { error: await serverError('insufficientBalance') }
     }
     if (e instanceof Error && e.message === 'ALREADY_PROCESSED') {
-      return { error: 'Request not found or already processed' }
+      return { error: await serverError('requestNotFoundOrProcessed') }
     }
     throw e
   }
@@ -163,20 +164,20 @@ export async function approveLeave(formData: FormData) {
 
 export async function rejectLeave(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const raw = {
     id: formData.get('id') as string,
     rejectReason: formData.get('rejectReason') as string,
   }
   const parsed = rejectLeaveSchema.safeParse(raw)
-  if (!parsed.success) return { error: 'Rejection reason is required' }
+  if (!parsed.success) return { error: await serverError('rejectReasonRequired') }
 
   const updated = await db.leaveRequest.updateMany({
     where: { id: parsed.data.id, status: 'PENDING' },
     data: { status: 'REJECTED', rejectReason: parsed.data.rejectReason, approvedById: session.user.id },
   })
-  if (updated.count === 0) return { error: 'Request not found or already processed' }
+  if (updated.count === 0) return { error: await serverError('requestNotFoundOrProcessed') }
 
   const rejectRequest = await db.leaveRequest.findUnique({
     where: { id: parsed.data.id },
@@ -198,23 +199,23 @@ export async function rejectLeave(formData: FormData) {
 
 export async function cancelLeave(formData: FormData) {
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Unauthorized' }
+  if (!session?.user?.id) return { error: await serverError('unauthorized') }
 
   const raw = { id: formData.get('id') as string }
   const parsed = cancelLeaveSchema.safeParse(raw)
-  if (!parsed.success) return { error: 'Invalid request' }
+  if (!parsed.success) return { error: await serverError('invalidRequest') }
 
   const request = await db.leaveRequest.findUnique({
     where: { id: parsed.data.id },
     include: { employee: true },
   })
-  if (!request) return { error: 'Request not found' }
-  if (request.status === 'CANCELLED') return { error: 'Request already cancelled' }
+  if (!request) return { error: await serverError('requestNotFound') }
+  if (request.status === 'CANCELLED') return { error: await serverError('requestAlreadyCancelled') }
 
   const isOwner = request.employee.userId === session.user.id
   const isManager = session.user.role === 'MANAGER' || session.user.role === 'HR_ADMIN'
-  if (!isOwner && !isManager) return { error: 'Unauthorized' }
-  if (isOwner && !isManager && request.status !== 'PENDING') return { error: 'Cannot cancel a processed request' }
+  if (!isOwner && !isManager) return { error: await serverError('unauthorized') }
+  if (isOwner && !isManager && request.status !== 'PENDING') return { error: await serverError('cannotCancelProcessed') }
 
   await db.$transaction(async (tx) => {
     const updated = await tx.leaveRequest.updateMany({
@@ -247,7 +248,7 @@ export async function cancelLeave(formData: FormData) {
 
 export async function setAllocation(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const raw = {
     employeeId: formData.get('employeeId') as string,
@@ -255,10 +256,10 @@ export async function setAllocation(formData: FormData) {
     allocated: formData.get('allocated') as string,
   }
   const parsed = setAllocationSchema.safeParse(raw)
-  if (!parsed.success) return { error: 'Invalid allocation data' }
+  if (!parsed.success) return { error: await serverError('invalidAllocation') }
 
   const employee = await db.employee.findUnique({ where: { id: parsed.data.employeeId } })
-  if (!employee) return { error: 'Employee not found' }
+  if (!employee) return { error: await serverError('employeeNotFound') }
 
   const now = new Date()
   const yearStart = new Date(Date.UTC(now.getFullYear(), employee.hireDate.getMonth(), employee.hireDate.getDate()))

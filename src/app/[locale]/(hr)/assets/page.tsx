@@ -11,5 +11,5 @@ export default async function EmployeeAssetsPage({ params }: { params: Promise<{
   if (!session?.user) redirect(`/${locale}/auth/signin`)
 
   const assignments = await getMyAssets()
-  return <EmployeeAssetsClient assignments={JSON.parse(JSON.stringify(assignments))} locale={locale} />
+  return <EmployeeAssetsClient assignments={JSON.parse(JSON.stringify(assignments))} />
 }

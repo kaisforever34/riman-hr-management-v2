@@ -5,7 +5,7 @@ import {
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 import { Users, UserCheck, Calendar, CreditCard, ChevronRight } from 'lucide-react'
-import { KPICard, Badge, type BadgeVariant } from '@/components/shared'
+import { KPICard, Badge } from '@/components/shared'
 import { buttonVariants } from '@/components/ui/button'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'

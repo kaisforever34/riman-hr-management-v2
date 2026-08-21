@@ -1,5 +1,6 @@
 'use server'
 
+import { serverError } from '@/lib/errors'
 import { db } from '@/lib/db'
 import { createReviewSchema, deleteReviewSchema } from '@/lib/validations/performance'
 import { auth } from '@/lib/auth'
@@ -15,7 +16,7 @@ function computeOverallRating(ratings: { rating: string }[]): string {
 
 export async function createReview(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const raw = {
     employeeId: formData.get('employeeId') as string,
@@ -30,7 +31,7 @@ export async function createReview(formData: FormData) {
   }
 
   const parsed = createReviewSchema.safeParse(raw)
-  if (!parsed.success) return { error: 'Invalid input', fieldErrors: parsed.error.flatten().fieldErrors }
+  if (!parsed.success) return { error: await serverError('invalidInput'), fieldErrors: parsed.error.flatten().fieldErrors }
 
   const existing = await db.performanceReview.findFirst({
     where: {
@@ -39,7 +40,7 @@ export async function createReview(formData: FormData) {
       quarter: parsed.data.quarter,
     },
   })
-  if (existing) return { error: 'A review already exists for this employee in this period' }
+  if (existing) return { error: await serverError('reviewExists') }
 
   const overallRating = computeOverallRating(parsed.data.ratings)
 
@@ -75,13 +76,13 @@ export async function createReview(formData: FormData) {
 
 export async function deleteReview(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const parsed = deleteReviewSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: 'Invalid request' }
+  if (!parsed.success) return { error: await serverError('invalidRequest') }
 
   const review = await db.performanceReview.findUnique({ where: { id: parsed.data.id } })
-  if (!review) return { error: 'Review not found' }
+  if (!review) return { error: await serverError('reviewNotFound') }
 
   await db.performanceReview.delete({ where: { id: parsed.data.id } })
 

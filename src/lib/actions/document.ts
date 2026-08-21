@@ -1,5 +1,6 @@
 'use server'
 
+import { serverError } from '@/lib/errors'
 import { db } from '@/lib/db'
 import { uploadEmployeeDocumentSchema, uploadCompanyDocumentSchema, deleteDocumentSchema } from '@/lib/validations/document'
 import { uploadDocument } from '@/lib/document-upload'
@@ -10,16 +11,16 @@ import { join } from 'path'
 
 export async function uploadEmployeeDoc(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const parsed = uploadEmployeeDocumentSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: 'Invalid input', fieldErrors: parsed.error.flatten().fieldErrors }
+  if (!parsed.success) return { error: await serverError('invalidInput'), fieldErrors: parsed.error.flatten().fieldErrors }
 
   const file = formData.get('file') as File
-  if (!file || file.size === 0) return { error: 'File is required' }
+  if (!file || file.size === 0) return { error: await serverError('fileRequired') }
 
   const filePath = await uploadDocument(file, 'employees')
-  if (!filePath) return { error: 'Invalid file (max 10MB, PDF/JPG/PNG/DOC/DOCX only)' }
+  if (!filePath) return { error: await serverError('invalidDocumentFile') }
 
   await db.employeeDocument.create({
     data: {
@@ -39,16 +40,16 @@ export async function uploadEmployeeDoc(formData: FormData) {
 
 export async function uploadCompanyDoc(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const parsed = uploadCompanyDocumentSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: 'Invalid input', fieldErrors: parsed.error.flatten().fieldErrors }
+  if (!parsed.success) return { error: await serverError('invalidInput'), fieldErrors: parsed.error.flatten().fieldErrors }
 
   const file = formData.get('file') as File
-  if (!file || file.size === 0) return { error: 'File is required' }
+  if (!file || file.size === 0) return { error: await serverError('fileRequired') }
 
   const filePath = await uploadDocument(file, 'company')
-  if (!filePath) return { error: 'Invalid file (max 10MB, PDF/JPG/PNG/DOC/DOCX only)' }
+  if (!filePath) return { error: await serverError('invalidDocumentFile') }
 
   await db.companyDocument.create({
     data: {
@@ -68,17 +69,17 @@ export async function uploadCompanyDoc(formData: FormData) {
 
 export async function deleteDocument(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const parsed = deleteDocumentSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: 'Invalid request' }
+  if (!parsed.success) return { error: await serverError('invalidRequest') }
 
   const { id, type } = parsed.data
   const doc = type === 'employee'
     ? await db.employeeDocument.findUnique({ where: { id } })
     : await db.companyDocument.findUnique({ where: { id } })
 
-  if (!doc) return { error: 'Document not found' }
+  if (!doc) return { error: await serverError('documentNotFound') }
 
   try {
     const fullPath = join(process.cwd(), 'public', doc.filePath)

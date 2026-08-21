@@ -1,5 +1,6 @@
 'use server'
 
+import { serverError } from '@/lib/errors'
 import type { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
@@ -9,7 +10,7 @@ import { createNotification, createNotifications, getApproverUserIds } from './n
 export async function startOnboarding(employeeId: string, type: 'ONBOARDING' | 'OFFBOARDING', reason?: string) {
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
-    return { error: 'Unauthorized' }
+    return { error: await serverError('unauthorized') }
   }
 
   const templates = await db.onboardingTask.findMany({
@@ -55,7 +56,7 @@ export async function startOnboarding(employeeId: string, type: 'ONBOARDING' | '
 
 export async function completeOnboardingTask(taskId: string, formData?: Record<string, unknown>) {
   const session = await auth()
-  if (!session?.user) return { error: 'Unauthorized' }
+  if (!session?.user) return { error: await serverError('unauthorized') }
 
   const task = await db.employeeOnboardingTask.findUnique({
     where: { id: taskId },
@@ -65,14 +66,14 @@ export async function completeOnboardingTask(taskId: string, formData?: Record<s
     },
   })
 
-  if (!task) return { error: 'Task not found' }
-  if (task.status === 'COMPLETED') return { error: 'Task already completed' }
+  if (!task) return { error: await serverError('taskNotFound') }
+  if (task.status === 'COMPLETED') return { error: await serverError('taskAlreadyCompleted') }
 
   if (task.assignedTo === 'EMPLOYEE') {
     const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
-    if (!employee || employee.id !== task.onboarding.employeeId) return { error: 'Not your task' }
+    if (!employee || employee.id !== task.onboarding.employeeId) return { error: await serverError('notYourTask') }
   } else {
-    if (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER') return { error: 'Unauthorized' }
+    if (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER') return { error: await serverError('unauthorized') }
   }
 
   await db.$transaction(async (tx) => {

@@ -1,5 +1,6 @@
 'use server'
 
+import { serverError } from '@/lib/errors'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
@@ -15,7 +16,7 @@ export async function createAsset(raw: Record<string, unknown>) {
 
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
-    return { error: 'Unauthorized' }
+    return { error: await serverError('unauthorized') }
   }
 
   const asset = await db.asset.create({
@@ -43,7 +44,7 @@ export async function updateAsset(id: string, raw: Record<string, unknown>) {
 
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
-    return { error: 'Unauthorized' }
+    return { error: await serverError('unauthorized') }
   }
 
   await db.asset.update({
@@ -114,7 +115,7 @@ export async function assignAsset(assetId: string, employeeId: string, note?: st
 
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
-    return { error: 'Unauthorized' }
+    return { error: await serverError('unauthorized') }
   }
 
   await db.assetAssignment.create({
@@ -130,7 +131,7 @@ export async function assignAsset(assetId: string, employeeId: string, note?: st
 export async function returnAsset(assignmentId: string, assetId: string) {
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
-    return { error: 'Unauthorized' }
+    return { error: await serverError('unauthorized') }
   }
 
   await db.assetAssignment.update({

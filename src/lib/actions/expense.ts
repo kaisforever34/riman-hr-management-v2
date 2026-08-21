@@ -1,5 +1,6 @@
 'use server'
 
+import { serverError } from '@/lib/errors'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
@@ -14,10 +15,10 @@ export async function createExpense(raw: Record<string, unknown>) {
   }
 
   const session = await auth()
-  if (!session?.user) return { error: 'Unauthorized' }
+  if (!session?.user) return { error: await serverError('unauthorized') }
 
   const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
-  if (!employee) return { error: 'Employee not found' }
+  if (!employee) return { error: await serverError('employeeNotFound') }
 
   const expense = await db.expense.create({
     data: {
@@ -93,7 +94,7 @@ export async function reviewExpense(id: string, status: 'APPROVED' | 'REJECTED',
 
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
-    return { error: 'Unauthorized' }
+    return { error: await serverError('unauthorized') }
   }
 
   await db.expense.update({

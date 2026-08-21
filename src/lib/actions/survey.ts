@@ -1,5 +1,6 @@
 'use server'
 
+import { serverError } from '@/lib/errors'
 import type { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
@@ -17,7 +18,7 @@ export async function createSurvey(
 ) {
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
-    return { error: 'Unauthorized' }
+    return { error: await serverError('unauthorized') }
   }
 
   const survey = await db.survey.create({
@@ -110,15 +111,15 @@ export async function getMySurveys() {
 
 export async function submitSurveyResponses(assignmentId: string, responses: { questionId: string; value: unknown }[]) {
   const session = await auth()
-  if (!session?.user) return { error: 'Unauthorized' }
+  if (!session?.user) return { error: await serverError('unauthorized') }
 
   const assignment = await db.surveyAssignment.findUnique({
     where: { id: assignmentId },
     include: { employee: true },
   })
-  if (!assignment) return { error: 'Assignment not found' }
-  if (assignment.employee.userId !== session.user.id) return { error: 'Not your survey' }
-  if (assignment.status === 'COMPLETED') return { error: 'Already completed' }
+  if (!assignment) return { error: await serverError('assignmentNotFound') }
+  if (assignment.employee.userId !== session.user.id) return { error: await serverError('notYourSurvey') }
+  if (assignment.status === 'COMPLETED') return { error: await serverError('alreadyCompleted') }
 
   await db.$transaction(async (tx) => {
     await tx.surveyResponse.createMany({

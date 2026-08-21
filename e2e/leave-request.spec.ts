@@ -4,7 +4,7 @@ test.describe('Employee Leave Request', () => {
   test('Employee can submit a leave request', async ({ page }) => {
     // Login as EMPLOYEE
     await page.goto('/en/auth/signin');
-    await page.fill('#email', 'ahmed@riman.com');
+    await page.fill('#email', 'fatima@riman.com');
     await page.fill('#password', 'employee123');
     await page.click('button[type="submit"]');
 
@@ -18,9 +18,36 @@ test.describe('Employee Leave Request', () => {
     await page.click('text=Submit Leave Request');
 
     // Fill the form
-    // Open the leave type select
-    await page.getByRole('combobox').first().click();
-    // Select the first option in the dropdown (usually Annual)
+    // Open the leave type select and choose the first option (usually Annual)
+    const consoleMsgs: string[] = [];
+    const pageErrors: string[] = [];
+    page.on('console', (m) => {
+      if (m.type() === 'error') consoleMsgs.push(`[console.error] ${m.text().slice(0, 200)}`);
+    });
+    page.on('pageerror', (e) => pageErrors.push(`[pageerror] ${String(e).slice(0, 200)}`));
+
+    const trigger = page.getByRole('combobox').first();
+    await trigger.click();
+
+    // Poll aria-expanded for 4s to detect open->close flash
+    const seen: string[] = [];
+    for (let i = 0; i < 40; i++) {
+      seen.push((await trigger.getAttribute('aria-expanded')) ?? 'null');
+      await page.waitForTimeout(100);
+    }
+    console.log('aria-expanded timeline:', seen.join(','));
+    console.log('console errors:', consoleMsgs.length ? consoleMsgs.join(' | ') : '(none)');
+    console.log('page errors:', pageErrors.length ? pageErrors.join(' | ') : '(none)');
+    await page.screenshot({ path: 'test-results/failing-after-combo-click.png' });
+
+    if ((await page.getByRole('option').count()) === 0) {
+      console.log('-- no options; retrying combobox click --');
+      await trigger.click();
+      await page.waitForTimeout(1000);
+      console.log('after retry aria-expanded:', await trigger.getAttribute('aria-expanded'));
+      console.log('after retry option count:', await page.getByRole('option').count());
+    }
+
     await page.getByRole('option').first().click();
     
     const today = new Date();

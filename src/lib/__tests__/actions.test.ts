@@ -42,7 +42,7 @@ describe('document actions', () => {
       const original = mockSession.user.role
       mockSession.user.role = 'EMPLOYEE'
       const result = await uploadEmployeeDoc(new FormData())
-      expect(result?.error).toBe('Unauthorized')
+      expect(result?.error).toBe('You are not authorized to perform this action.')
       mockSession.user.role = original
     })
 

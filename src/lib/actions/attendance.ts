@@ -1,5 +1,6 @@
 'use server'
 
+import { serverError } from '@/lib/errors'
 import { db } from '@/lib/db'
 import { manualCheckInSchema, managerOverrideSchema } from '@/lib/validations/attendance'
 import { auth } from '@/lib/auth'
@@ -9,10 +10,10 @@ import type { AttendanceStatus } from '@prisma/client'
 
 export async function checkIn() {
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Unauthorized' }
+  if (!session?.user?.id) return { error: await serverError('unauthorized') }
 
   const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
-  if (!employee) return { error: 'Employee record not found' }
+  if (!employee) return { error: await serverError('employeeRecordNotFound') }
 
   const today = getTodayUaeDate()
   const now = new Date()
@@ -36,7 +37,7 @@ export async function checkIn() {
       where: { employeeId: employee.id, date: today, checkIn: null },
       data,
     })
-    if (updated.count === 0) return { error: 'Already checked in today' }
+    if (updated.count === 0) return { error: await serverError('alreadyCheckedIn') }
   }
 
   revalidatePath('/attendance')
@@ -44,17 +45,17 @@ export async function checkIn() {
 
 export async function manualCheckIn(formData: FormData) {
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Unauthorized' }
+  if (!session?.user?.id) return { error: await serverError('unauthorized') }
 
   const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
-  if (!employee) return { error: 'Employee record not found' }
+  if (!employee) return { error: await serverError('employeeRecordNotFound') }
 
   const parsed = manualCheckInSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: 'Invalid input', fieldErrors: parsed.error.flatten().fieldErrors }
+  if (!parsed.success) return { error: await serverError('invalidInput'), fieldErrors: parsed.error.flatten().fieldErrors }
 
   const now = new Date()
   const checkInTime = new Date(parsed.data.checkIn)
-  if (checkInTime > now) return { error: 'Check-in time cannot be in the future' }
+  if (checkInTime > now) return { error: await serverError('checkInFuture') }
 
   const today = getTodayUaeDate()
   const { isLate, lateMinutes } = isWithinSchedule(checkInTime)
@@ -78,7 +79,7 @@ export async function manualCheckIn(formData: FormData) {
       where: { employeeId: employee.id, date: today, checkIn: null },
       data,
     })
-    if (updated.count === 0) return { error: 'Already checked in today' }
+    if (updated.count === 0) return { error: await serverError('alreadyCheckedIn') }
   }
 
   revalidatePath('/attendance')
@@ -86,17 +87,17 @@ export async function manualCheckIn(formData: FormData) {
 
 export async function checkOut() {
   const session = await auth()
-  if (!session?.user?.id) return { error: 'Unauthorized' }
+  if (!session?.user?.id) return { error: await serverError('unauthorized') }
 
   const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
-  if (!employee) return { error: 'Employee record not found' }
+  if (!employee) return { error: await serverError('employeeRecordNotFound') }
 
   const today = getTodayUaeDate()
   const record = await db.attendanceRecord.findUnique({
     where: { employeeId_date: { employeeId: employee.id, date: today } },
   })
-  if (!record?.checkIn) return { error: 'Not checked in yet' }
-  if (record?.checkOut) return { error: 'Already checked out today' }
+  if (!record?.checkIn) return { error: await serverError('notCheckedIn') }
+  if (record?.checkOut) return { error: await serverError('alreadyCheckedOut') }
 
   const now = new Date()
   const earlyLeaveMinutes = getEarlyLeaveMinutes(now)
@@ -109,22 +110,22 @@ export async function checkOut() {
       earlyLeaveMinutes,
     },
   })
-  if (updated.count === 0) return { error: 'Already checked out today' }
+  if (updated.count === 0) return { error: await serverError('alreadyCheckedOut') }
 
   revalidatePath('/attendance')
 }
 
 export async function managerOverrideAttendance(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const parsed = managerOverrideSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: 'Invalid input', fieldErrors: parsed.error.flatten().fieldErrors }
+  if (!parsed.success) return { error: await serverError('invalidInput'), fieldErrors: parsed.error.flatten().fieldErrors }
 
   const data = parsed.data
   const date = new Date(data.date)
   const employee = await db.employee.findUnique({ where: { id: data.employeeId } })
-  if (!employee) return { error: 'Employee not found' }
+  if (!employee) return { error: await serverError('employeeNotFound') }
 
   const updateData: Record<string, unknown> = {
     adjustedById: session.user.id,

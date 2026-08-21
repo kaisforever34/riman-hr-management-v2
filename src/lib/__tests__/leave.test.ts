@@ -56,14 +56,14 @@ describe('approveLeave', () => {
     const original = mockSession.user
     ;(mockSession as unknown as { user: null }).user = null
     const result = await approveLeave(makeFormData({ id: 'req1' }))
-    expect(result?.error).toBe('Unauthorized')
+    expect(result?.error).toBe('You are not authorized to perform this action.')
     mockSession.user = original
   })
 
   it('rejects non-manager role', async () => {
     mockSession.user.role = 'EMPLOYEE'
     const result = await approveLeave(makeFormData({ id: 'req1' }))
-    expect(result?.error).toBe('Unauthorized')
+    expect(result?.error).toBe('You are not authorized to perform this action.')
   })
 
   it('rejects already processed request', async () => {

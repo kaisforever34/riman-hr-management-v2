@@ -16,7 +16,7 @@ type AssetItem = {
   }
 }
 
-export default function EmployeeAssetsClient({ assignments, locale }: { assignments: AssetItem[]; locale: string }) {
+export default function EmployeeAssetsClient({ assignments }: { assignments: AssetItem[] }) {
   const t = useTranslations('assets')
 
   return (

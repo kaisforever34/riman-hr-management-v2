@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { BarChart3, Users, Clock, CalendarCheck, Banknote, Star } from 'lucide-react'
+import { Users, Clock, CalendarCheck, Banknote, Star } from 'lucide-react'
 
 type AnalyticsData = {
   totalEmployees: number
@@ -16,7 +16,6 @@ type AnalyticsData = {
 export default function AnalyticsClient({ data }: { data: AnalyticsData; locale: string }) {
   const t = useTranslations('analytics')
   const totalAttendance = data.attendance.todayPresent + data.attendance.todayLate + data.attendance.todayAbsent
-  const monthTotal = data.attendance.monthPresent + data.attendance.monthLate + data.attendance.monthAbsent
   const totalPayroll = data.payrollByDepartment.reduce((sum, d) => sum + d.total, 0)
   const maxDept = Math.max(...data.departmentDistribution.map((d) => d.count), 1)
 

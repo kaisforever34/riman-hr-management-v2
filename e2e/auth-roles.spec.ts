@@ -16,7 +16,7 @@ test.describe('Role-based Access Control', () => {
     
     // Check if we are on the manager leaves page and NOT redirected to signin
     await expect(page).toHaveURL(/\/manager\/leaves/);
-    await expect(page.locator('h1')).toContainText(['Leave Requests', 'طلبات الإجازات']);
+    await expect(page.locator('h1')).toContainText(/Leave Requests|طلبات الإجازات/);
   });
 
   test('HR_ADMIN can access all manager pages', async ({ page }) => {
@@ -25,6 +25,8 @@ test.describe('Role-based Access Control', () => {
     await page.fill('#email', 'admin@riman.com');
     await page.fill('#password', 'admin123');
     await page.click('button[type="submit"]');
+
+    await expect(page).toHaveURL(/\/dashboard/);
 
     const pages = [
       { url: '/en/manager/attendance', title: 'Attendance' },
@@ -44,7 +46,7 @@ test.describe('Role-based Access Control', () => {
   test('EMPLOYEE cannot access manager leaves page', async ({ page }) => {
     // Login as EMPLOYEE
     await page.goto('/en/auth/signin');
-    await page.fill('#email', 'ahmed@riman.com');
+    await page.fill('#email', 'fatima@riman.com');
     await page.fill('#password', 'employee123');
     await page.click('button[type="submit"]');
 
@@ -53,10 +55,7 @@ test.describe('Role-based Access Control', () => {
     // Try to navigate directly to manager leaves
     await page.goto('/en/manager/leaves');
 
-    // Should be redirected to dashboard or see nothing (based on middleware/layout)
-    // Actually HR layout redirects to /auth/signin if !session.user, but ManagerLeavesPage
-    // redirects to /auth/signin if not MANAGER (now MANAGER or HR_ADMIN).
-    // So for an employee, it should redirect to signin.
-    await expect(page).toHaveURL(/\/auth\/signin/);
+    // Middleware redirects employees away from /manager/* to their dashboard
+    await expect(page).toHaveURL(/\/dashboard/);
   });
 });

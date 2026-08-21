@@ -1,5 +1,6 @@
 'use server'
 
+import { serverError } from '@/lib/errors'
 import { db } from '@/lib/db'
 import { employeeFormSchema } from '@/lib/validations/employee'
 import { auth } from '@/lib/auth'
@@ -11,7 +12,7 @@ import type { Role } from '@prisma/client'
 export async function createEmployee(formData: FormData) {
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
-    return { error: 'Unauthorized' }
+    return { error: await serverError('unauthorized') }
   }
 
   const raw = Object.fromEntries(formData.entries())
@@ -19,7 +20,7 @@ export async function createEmployee(formData: FormData) {
   const parsed = employeeFormSchema.safeParse(raw)
   if (!parsed.success) {
     return {
-      error: 'Validation failed',
+      error: await serverError('validationFailed'),
       fieldErrors: parsed.error.flatten().fieldErrors,
     }
   }
@@ -28,12 +29,12 @@ export async function createEmployee(formData: FormData) {
 
   const existingEmail = await db.user.findUnique({ where: { email: data.email } })
   if (existingEmail) {
-    return { error: 'An employee with this email already exists.', fieldErrors: {} }
+    return { error: await serverError('emailExists'), fieldErrors: {} }
   }
 
   const existingCode = await db.employee.findUnique({ where: { employeeCode: data.employeeCode } })
   if (existingCode) {
-    return { error: 'An employee with this code already exists.', fieldErrors: {} }
+    return { error: await serverError('codeExists'), fieldErrors: {} }
   }
 
   const passwordHash = await bcrypt.hash(data.password, 10)
@@ -69,7 +70,7 @@ export async function createEmployee(formData: FormData) {
   } catch (e) {
     const isUniqueViolation = typeof e === 'object' && e !== null && 'code' in e && (e as { code: string }).code === 'P2002'
     if (isUniqueViolation) {
-      return { error: 'An employee with this email or code already exists.', fieldErrors: {} }
+      return { error: await serverError('emailOrCodeExists'), fieldErrors: {} }
     }
     throw e
   }

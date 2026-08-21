@@ -13,10 +13,6 @@ function getUaeToday(): Date {
   return uaeDate(uae.getUTCFullYear(), uae.getUTCMonth() + 1, uae.getUTCDate())
 }
 
-function formatDate(d: Date): string {
-  return d.toISOString().split('T')[0]
-}
-
 function isWeekend(d: Date): boolean {
   const uae = new Date(d.getTime() + 4 * 60 * 60 * 1000)
   const day = uae.getUTCDay()
@@ -188,7 +184,6 @@ async function main() {
 
   // ── Attendance Records (last 30 days, weekdays only) ──
   const workStart = { hour: 11, minute: 30 }
-  const workEnd = { hour: 20, minute: 30 }
 
   for (let i = 30; i >= 0; i--) {
     const d = new Date(today.getTime() - i * 24 * 60 * 60 * 1000)
@@ -243,9 +238,6 @@ async function main() {
   // ── Payroll Period - Last Month ──
   const lastMonth = today.getUTCMonth() === 0 ? 12 : today.getUTCMonth()
   const lastMonthYear = today.getUTCMonth() === 0 ? currentYear - 1 : currentYear
-  const lastMonthName = lastMonth === 1 ? 'January' : lastMonth === 2 ? 'February' : lastMonth === 3 ? 'March' : lastMonth === 4 ? 'April' : lastMonth === 5 ? 'May' : lastMonth === 6 ? 'June' : lastMonth === 7 ? 'July' : lastMonth === 8 ? 'August' : lastMonth === 9 ? 'September' : lastMonth === 10 ? 'October' : lastMonth === 11 ? 'November' : 'December'
-
-  const adminUser = await prisma.user.findUnique({ where: { email: 'admin@riman.com' } })
 
   const existingPeriod = await prisma.payrollPeriod.findUnique({
     where: { month_year: { month: lastMonth, year: lastMonthYear } },
@@ -291,16 +283,12 @@ async function main() {
       const transportDeduction = transportAmount
       const netPay = basicSalary - absenceDeduction - lateDeduction - transportDeduction
 
-      // Count working days for transport deduction
-      const workingDays = attendanceRecords.length
-      const transportDeductionActual = absentDays > 3 ? transportAmount : transportAmount // simplified
-
       await prisma.payslip.create({
         data: {
           payrollPeriodId: period.id,
           employeeId: emp.id,
           basicSalary,
-          transportationDeduction: transportDeductionActual,
+          transportationDeduction: transportDeduction,
           absenceDeduction,
           lateDeduction,
           netPay: Math.max(netPay, 0),

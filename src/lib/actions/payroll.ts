@@ -1,5 +1,6 @@
 'use server'
 
+import { serverError } from '@/lib/errors'
 import { db } from '@/lib/db'
 import { createPayrollPeriodSchema, updateLateDeductionSchema } from '@/lib/validations/payroll'
 import { auth } from '@/lib/auth'
@@ -81,23 +82,23 @@ async function computeDeductions(
 
 export async function createPayrollPeriod(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const parsed = createPayrollPeriodSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: 'Invalid month or year' }
+  if (!parsed.success) return { error: await serverError('invalidMonthYear') }
 
   const { month, year } = parsed.data
 
   const existing = await db.payrollPeriod.findUnique({
     where: { month_year: { month, year } },
   })
-  if (existing) return { error: 'Payroll period already exists for this month' }
+  if (existing) return { error: await serverError('periodExists') }
 
   const periodStart = startOfMonth(new Date(year, month - 1))
   const periodEnd = endOfMonth(periodStart)
   const employees = await getActiveEmployeesForPayroll()
 
-  if (employees.length === 0) return { error: 'No active employees with salary' }
+  if (employees.length === 0) return { error: await serverError('noActiveEmployees') }
 
   const transportationAmount = await getTransportationAmount()
   const deductions = await computeDeductions(employees.map((e) => e.id), periodStart, periodEnd)
@@ -135,11 +136,11 @@ export async function createPayrollPeriod(formData: FormData) {
 
 export async function recalculatePayslips(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const periodId = formData.get('periodId') as string
   const period = await db.payrollPeriod.findUnique({ where: { id: periodId } })
-  if (!period || period.status !== 'DRAFT') return { error: 'Period not found or already finalized' }
+  if (!period || period.status !== 'DRAFT') return { error: await serverError('periodNotFoundOrFinalized') }
 
   const periodStart = startOfMonth(new Date(period.year, period.month - 1))
   const periodEnd = endOfMonth(periodStart)
@@ -171,20 +172,20 @@ export async function recalculatePayslips(formData: FormData) {
 
 export async function updateLateDeduction(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const parsed = updateLateDeductionSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: 'Invalid deduction amount' }
+  if (!parsed.success) return { error: await serverError('invalidDeduction') }
 
   const slip = await db.payslip.findUnique({
     where: { id: parsed.data.payslipId },
     include: { payrollPeriod: true },
   })
-  if (!slip || slip.payrollPeriod.status !== 'DRAFT') return { error: 'Cannot modify finalized payslip' }
+  if (!slip || slip.payrollPeriod.status !== 'DRAFT') return { error: await serverError('cannotModifyFinalized') }
 
   const lateDeduction = parsed.data.lateDeduction
   const basicSalary = Number(slip.basicSalary)
-  if (lateDeduction > basicSalary) return { error: 'Late deduction cannot exceed basic salary' }
+  if (lateDeduction > basicSalary) return { error: await serverError('deductionExceedsSalary') }
 
   const netPay = basicSalary - Number(slip.transportationDeduction) - Number(slip.absenceDeduction) - lateDeduction
 
@@ -198,11 +199,11 @@ export async function updateLateDeduction(formData: FormData) {
 
 export async function finalizePayroll(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: 'Unauthorized' }
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
 
   const periodId = formData.get('periodId') as string
   const period = await db.payrollPeriod.findUnique({ where: { id: periodId } })
-  if (!period || period.status !== 'DRAFT') return { error: 'Period not found or already finalized' }
+  if (!period || period.status !== 'DRAFT') return { error: await serverError('periodNotFoundOrFinalized') }
 
   await db.payrollPeriod.update({
     where: { id: periodId },
