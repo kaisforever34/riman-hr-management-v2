@@ -2,6 +2,12 @@ import { Suspense } from 'react'
 import { db } from '@/lib/db'
 import DashboardContent from '@/components/dashboard/content'
 import { getTodayUaeDate } from '@/lib/schedule'
+import {
+  getPayrollTrend,
+  getWeeklyAttendance,
+  getLeaveDistribution,
+  getPayrollKpi,
+} from '@/lib/queries/dashboard'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,6 +43,13 @@ async function DashboardData() {
     db.leaveRequest.count({ where: { status: 'PENDING' } }),
   ])
 
+  const [payrollTrend, weeklyAttendance, leaveDistribution, payrollKpi] = await Promise.all([
+    getPayrollTrend(),
+    getWeeklyAttendance(totalEmployees),
+    getLeaveDistribution(new Date().getFullYear()),
+    getPayrollKpi(),
+  ])
+
   const presentCount = todayRecords.length
 
   return (
@@ -44,6 +57,10 @@ async function DashboardData() {
       totalEmployees={totalEmployees}
       presentCount={presentCount}
       pendingLeaves={pendingLeavesCount}
+      payrollTrend={payrollTrend}
+      weeklyAttendance={weeklyAttendance}
+      leaveDistribution={leaveDistribution}
+      payrollKpi={payrollKpi}
     />
   )
 }

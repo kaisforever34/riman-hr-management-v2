@@ -72,13 +72,20 @@
       "late": "Late",
       "absent": "Absent"
     },
-    "leaveTypes": {
-      "Annual": "Annual",
-      "Sick": "Sick",
-      "Maternity": "Maternity",
-      "Study": "Study",
-      "Other": "Other"
-    },
+ "leaveTypes": {
+  "Annual": "Annual",
+  "Sick": "Sick",
+  "Personal": "Personal",
+  "Maternity": "Maternity",
+  "Paternity": "Paternity",
+  "HajjUmrah": "Hajj/Umrah",
+  "Compassionate": "Compassionate",
+  "Unpaid": "Unpaid",
+  "Study": "Study",
+  "Other": "Other"
+ },
+ "noData": "No data yet",
+ "payrollEstimateNote": "estimated from salaries",
     "months": {
       "Dec": "Dec",
       "Jan": "Jan",

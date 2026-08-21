@@ -75,10 +75,17 @@
     "leaveTypes": {
       "Annual": "سنوية",
       "Sick": "مرضية",
+      "Personal": "شخصية",
       "Maternity": "أمومة",
+      "Paternity": "أبوة",
+      "HajjUmrah": "حج/عمرة",
+      "Compassionate": "رحمة",
+      "Unpaid": "بدون راتب",
       "Study": "دراسية",
       "Other": "أخرى"
     },
+    "noData": "لا توجد بيانات بعد",
+    "payrollEstimateNote": "تقدير مبني على الرواتب",
     "months": {
       "Dec": "ديسمبر",
       "Jan": "يناير",

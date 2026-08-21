@@ -28,30 +28,7 @@ const C = {
   teal: '#0FC8BA',
 }
 
-const PAYROLL_TREND = [
-  { month: 'Dec', total: 312000 },
-  { month: 'Jan', total: 318500 },
-  { month: 'Feb', total: 335000 },
-  { month: 'Mar', total: 328000 },
-  { month: 'Apr', total: 342000 },
-  { month: 'May', total: 358000 },
-]
 
-const ATT_WEEK = [
-  { day: 'Sun', present: 6, late: 0, absent: 2 },
-  { day: 'Mon', present: 7, late: 2, absent: 1 },
-  { day: 'Tue', present: 8, late: 0, absent: 0 },
-  { day: 'Wed', present: 7, late: 1, absent: 1 },
-  { day: 'Thu', present: 6, late: 1, absent: 2 },
-]
-
-const LEAVE_DIST = [
-  { name: 'Annual', value: 45, color: C.green },
-  { name: 'Sick', value: 22, color: C.red },
-  { name: 'Maternity', value: 15, color: C.purple },
-  { name: 'Study', value: 10, color: C.blue },
-  { name: 'Other', value: 8, color: C.amber },
-]
 
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { name: string; dataKey?: string; value: number; color?: string }[]; label?: string }) {
   if (!active || !payload?.length) return null
@@ -71,16 +48,29 @@ export default function DashboardContent({
   totalEmployees,
   presentCount,
   pendingLeaves,
+  payrollTrend,
+  weeklyAttendance,
+  leaveDistribution,
+  payrollKpi,
 }: {
   totalEmployees: number
   presentCount: number
   pendingLeaves: number
+  payrollTrend: { monthKey: string; total: number }[]
+  weeklyAttendance: { day: string; present: number; late: number; absent: number }[]
+  leaveDistribution: { name: string; value: number }[]
+  payrollKpi: { total: number; source: 'period' | 'salaries' }
 }) {
   const params = useParams()
   const locale = params.locale as string
   const t = useTranslations('dashboard')
   const dateLocale = locale === 'ar' ? 'ar-AE' : 'en-GB'
   const presentRate = totalEmployees > 0 ? Math.round((presentCount / totalEmployees) * 100) : 0
+  const ltLabel = (name: string) =>
+    ['Annual', 'Sick', 'Personal', 'Maternity', 'Paternity', 'Hajj/Umrah', 'Compassionate', 'Unpaid', 'Other'].includes(name)
+      ? t(`leaveTypes.${name === 'Hajj/Umrah' ? 'HajjUmrah' : name}`)
+      : name
+  const pieColors = [C.green, C.red, C.purple, C.blue, C.amber]
 
   return (
     <div className="fi">
@@ -95,7 +85,7 @@ export default function DashboardContent({
         <KPICard icon={Users} col={C.gold} label={t('totalEmployees')} value={String(totalEmployees)} sub={t('kpiTotalSub')} />
         <KPICard icon={UserCheck} col={C.green} label={t('todayAttendance')} value={`${presentCount} / ${totalEmployees}`} sub={t('kpiPresentSub')} trend={`${presentRate}%`} up={presentRate > 50} />
         <KPICard icon={Calendar} col={C.blue} label={t('kpiLeavesLabel')} value={String(pendingLeaves)} sub={t('kpiLeavesSub')} />
-        <KPICard icon={CreditCard} col={C.teal} label={t('kpiPayrollLabel')} value={`AED ${(totalEmployees * 5000).toLocaleString()}`} sub={t('kpiPayrollSub')} />
+          <KPICard icon={CreditCard} col={C.teal} label={t('kpiPayrollLabel')} value={`AED ${payrollKpi.total.toLocaleString()}`} sub={payrollKpi.source === 'salaries' ? `${t('kpiPayrollSub')} · ${t('payrollEstimateNote')}` : t('kpiPayrollSub')} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
@@ -107,8 +97,11 @@ export default function DashboardContent({
             </div>
             <Badge variant="gold">{t('aedPerMonth')}</Badge>
           </div>
+          {payrollTrend.length === 0 ? (
+            <div className="py-12 text-center text-[13px] text-[#8B93A8]">{t('noData')}</div>
+          ) : (
           <ResponsiveContainer width="100%" height={175}>
-            <AreaChart data={PAYROLL_TREND}>
+            <AreaChart data={payrollTrend}>
               <defs>
                 <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={C.gold} stopOpacity={0.28} />
@@ -116,12 +109,13 @@ export default function DashboardContent({
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="month" tickFormatter={(m: string) => t(`months.${m}`)} tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="monthKey" tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v / 1000}K`} />
               <Tooltip content={<ChartTooltip />} />
               <Area type="monotone" dataKey="total" name={t('series.total')} stroke={C.gold} strokeWidth={2} fill="url(#pg)" />
             </AreaChart>
           </ResponsiveContainer>
+          )}
         </div>
 
         <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5">
@@ -132,9 +126,9 @@ export default function DashboardContent({
             </div>
           </div>
           <ResponsiveContainer width="100%" height={175}>
-            <BarChart data={ATT_WEEK} barGap={2}>
+            <BarChart data={weeklyAttendance} barGap={2}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="day" tickFormatter={(d: string) => t(`days.${d}`)} tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="day" tickFormatter={(d: string) => t(`days.${d.charAt(0)}${d.slice(1).toLowerCase()}`)} tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTooltip />} />
               <Bar dataKey="present" name={t('present')} fill={C.green} radius={[4, 4, 0, 0]} />
@@ -148,24 +142,28 @@ export default function DashboardContent({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5">
           <div className="font-syne text-[15px] font-bold text-[#E0E6F4] mb-5">{t('leaveDistribution')}</div>
+          {leaveDistribution.length === 0 ? (
+            <div className="py-12 text-center text-[13px] text-[#8B93A8]">{t('noData')}</div>
+          ) : (
           <div className="flex items-center gap-5">
             <PieChart width={140} height={140}>
-              <Pie data={LEAVE_DIST} cx={65} cy={65} innerRadius={40} outerRadius={64} paddingAngle={3} dataKey="value">
-                {LEAVE_DIST.map((e, i) => <Cell key={i} fill={e.color} />)}
+              <Pie data={leaveDistribution} cx={65} cy={65} innerRadius={40} outerRadius={64} paddingAngle={3} dataKey="value">
+                {leaveDistribution.map((_, i) => <Cell key={i} fill={pieColors[i % pieColors.length]} />)}
               </Pie>
             </PieChart>
             <div className="flex-1">
-              {LEAVE_DIST.map((d, i) => (
+              {leaveDistribution.map((d, i) => (
                 <div key={i} className="flex justify-between items-center mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-[7px] h-[7px] rounded-full" style={{ background: d.color }} />
-                    <span className="text-[12.5px] text-[#8B93A8]">{t(`leaveTypes.${d.name}`)}</span>
+                    <div className="w-[7px] h-[7px] rounded-full" style={{ background: pieColors[i % pieColors.length] }} />
+                    <span className="text-[12.5px] text-[#8B93A8]">{ltLabel(d.name)}</span>
                   </div>
-                  <span className="text-[12.5px] font-semibold text-[#E0E6F4]">{d.value}%</span>
+                  <span className="text-[12.5px] font-semibold text-[#E0E6F4]">{d.value}</span>
                 </div>
               ))}
             </div>
           </div>
+          )}
         </div>
 
         <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5">

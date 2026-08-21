@@ -18,6 +18,7 @@ import {
   getPayrollKpi,
 } from '@/lib/queries/dashboard'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const db = (await import('@/lib/db')).db as unknown as {
   payrollPeriod: any
   attendanceRecord: any
