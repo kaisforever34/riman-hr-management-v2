@@ -176,6 +176,9 @@ model LeaveRequest {
   employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   leaveType      LeaveType @relation(fields: [leaveTypeId], references: [id])
   approvedBy     User?     @relation("ApprovedLeaveRequests", fields: [approvedById], references: [id])
+
+  @@index([employeeId, status])
+  @@index([status, startDate, endDate])
 }
 
 model AttendanceRecord {
@@ -199,6 +202,7 @@ model AttendanceRecord {
   adjustedBy User?    @relation(fields: [adjustedById], references: [id])
 
   @@unique([employeeId, date])
+  @@index([date])
 }
 
 model EmployeeDocument {
@@ -272,6 +276,8 @@ model Payslip {
   employee      Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([payrollPeriodId, employeeId])
+
+  @@index([employeeId])
 }
 
 model ReviewCriteria {
@@ -422,6 +428,8 @@ model Notification {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
 }
 
 model Survey {
