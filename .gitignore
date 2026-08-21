@@ -64,3 +64,6 @@ graphify-out/
 
 # superpowers scratch
 .superpowers/
+
+# local credentials file
+CREDENTIALS.txt
