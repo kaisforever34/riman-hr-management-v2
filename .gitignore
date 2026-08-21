@@ -61,3 +61,6 @@ graphify-out/
 
 # uploaded files
 /public/uploads
+
+# superpowers scratch
+.superpowers/
