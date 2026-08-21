@@ -1,6 +1,8 @@
 import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
 import { db } from '@/lib/db'
+import { auth } from '@/lib/auth'
+import { DeactivateButton } from './deactivate-button'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
@@ -47,6 +49,8 @@ async function EmployeesData(props: {
 }) {
   const t = await getTranslations('employees')
   const te = await getTranslations('empty')
+  const session = await auth()
+  const isHrAdmin = session?.user.role === 'HR_ADMIN'
   const { q, page: pageStr } = await props.searchParams
   const page = parseInt(pageStr || '1', 10)
   const perPage = 20
@@ -65,7 +69,7 @@ async function EmployeesData(props: {
   const [employees, totalCount] = await Promise.all([
     db.employee.findMany({
       where,
-      include: { user: { select: { email: true, isActive: true } } },
+      include: { user: { select: { email: true, isActive: true, id: true } } },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * perPage,
       take: perPage,
@@ -129,6 +133,7 @@ async function EmployeesData(props: {
                 <TableHead className="hidden md:table-cell">{t('department')}</TableHead>
                 <TableHead className="hidden md:table-cell">{t('jobTitle')}</TableHead>
                 <TableHead>{t('status')}</TableHead>
+                {isHrAdmin && <TableHead>{t('actions')}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -153,6 +158,13 @@ async function EmployeesData(props: {
                       {emp.user.isActive ? t('active') : t('inactive')}
                     </Badge>
                   </TableCell>
+                  {isHrAdmin && (
+                    <TableCell>
+                      {emp.user.isActive && emp.user.id !== session?.user.id && (
+                        <DeactivateButton userId={emp.user.id} />
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

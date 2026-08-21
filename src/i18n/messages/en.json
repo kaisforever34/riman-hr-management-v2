@@ -113,7 +113,9 @@
     "of": "of",
     "noSearchResults": "No employees match your search.",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "deactivate": "Deactivate",
+    "deactivateConfirm": "Are you sure you want to deactivate this employee? Their sessions will be signed out immediately."
   },
   "employeesAdd": {
     "title": "Add Employee",

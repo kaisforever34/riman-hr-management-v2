@@ -91,6 +91,33 @@ export async function createEmployee(formData: FormData) {
   redirect('/employees')
 }
 
+export async function deactivateEmployee(formData: FormData) {
+  const session = await auth()
+  if (session?.user.role !== 'HR_ADMIN') return { error: await serverError('unauthorized') }
+
+  const employeeUserId = formData.get('userId') as string
+  if (!employeeUserId) return { error: await serverError('invalidRequest') }
+  if (employeeUserId === session.user.id) return { error: await serverError('invalidRequest') }
+
+  const user = await db.user.findUnique({ where: { id: employeeUserId }, include: { employee: true } })
+  if (!user) return { error: await serverError('employeeNotFound') }
+
+  await db.$transaction([
+    db.user.update({ where: { id: employeeUserId }, data: { isActive: false, tokenVersion: { increment: 1 } } }),
+    ...(user.employee ? [db.employee.update({ where: { id: user.employee.id }, data: { isActive: false } })] : []),
+  ])
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'EMPLOYEE_DEACTIVATED',
+    entityType: 'User',
+    entityId: employeeUserId,
+  })
+
+  revalidatePath('/employees')
+}
+
 export async function updateEmployeeWorkWeek(formData: FormData) {
   const session = await auth()
   if (session?.user.role !== 'HR_ADMIN') return { error: await serverError('unauthorized') }
