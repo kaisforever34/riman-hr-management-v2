@@ -29,6 +29,7 @@
     "expenses": "Expenses",
     "myExpenses": "My Expenses",
     "analytics": "Analytics",
+    "holidays": "Holidays",
     "signOut": "Sign Out",
     "collapse": "Collapse"
   },
@@ -189,6 +190,16 @@
     "setAllocation": "Set Annual Allocation",
     "save": "Save Allocation",
     "saving": "Saving..."
+  },
+  "holidays": {
+    "title": "Holidays",
+    "addTitle": "Add holiday",
+    "name": "Name",
+    "nameAr": "Name (Arabic)",
+    "date": "Date",
+    "add": "Add",
+    "delete": "Delete",
+    "empty": "No holidays defined"
   },
   "attendance": {
     "title": "Attendance",
