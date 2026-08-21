@@ -26,6 +26,18 @@ A full-featured HR management system for UAE-based retail operations, built with
 - PostgreSQL 14+
 - Docker (optional, for containerized deployment)
 
+## Quick Launch (one command)
+
+Requires Docker. Starts PostgreSQL + the app, runs migrations, seeds on first boot:
+
+```bash
+docker compose up --build
+```
+
+Then open http://localhost:3000 — done.
+
+> Change `AUTH_SECRET` before any real deployment (set it in your shell or `.env`).
+
 ## Local Setup
 
 ```bash
