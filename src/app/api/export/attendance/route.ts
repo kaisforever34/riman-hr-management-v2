@@ -28,6 +28,10 @@ export async function GET(req: NextRequest) {
 
   const fromParam = req.nextUrl.searchParams.get('from')
   const toParam = req.nextUrl.searchParams.get('to')
+  if (fromParam && Number.isNaN(Date.parse(fromParam)))
+    return NextResponse.json({ error: 'Invalid from date' }, { status: 400 })
+  if (toParam && Number.isNaN(Date.parse(toParam)))
+    return NextResponse.json({ error: 'Invalid to date' }, { status: 400 })
   const from = fromParam ? new Date(fromParam) : defaultFrom
   const to = toParam ? new Date(toParam) : defaultTo
 
