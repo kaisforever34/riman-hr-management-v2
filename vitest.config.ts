@@ -10,7 +10,7 @@ export default defineConfig({
     setupFiles: ['./src/lib/__tests__/setup.ts'],
     exclude: ['e2e/**', 'node_modules/**'],
     pool: 'forks',
-    poolOptions: { forks: { singleFork: true } },
+    fileParallelism: false,
     testTimeout: 20000,
     hookTimeout: 20000,
   },
