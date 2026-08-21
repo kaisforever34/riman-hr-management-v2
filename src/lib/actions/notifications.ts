@@ -23,7 +23,7 @@ export async function createNotification(
   await db.notification.create({
     data: { userId, type, title, message: message ?? null, link: link ?? null },
   })
-  void emailUsers([userId], type, title, message)
+  void emailUsers([userId], type, title, message).catch(() => {})
 }
 
 export async function createNotifications(
@@ -43,7 +43,7 @@ export async function createNotifications(
       link: link ?? null,
     })),
   })
-  void emailUsers(userIds, type, title, message)
+  void emailUsers(userIds, type, title, message).catch(() => {})
 }
 
 export async function getApproverUserIds(employeeId: string): Promise<string[]> {
