@@ -6,15 +6,19 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { isWorkingDay, toUaeDateKey } from '@/lib/working-days'
 
 interface CalendarClientProps {
   requests: any[]
+  holidays: any[]
   locale: string
 }
 
-export default function CalendarClient({ requests }: CalendarClientProps) {
+export default function CalendarClient({ requests, holidays }: CalendarClientProps) {
   const t = useTranslations('managerLeaves')
   const [currentDate, setCurrentDate] = useState(new Date())
+
+  const holidaySet = new Set(holidays.map((h: any) => toUaeDateKey(new Date(h.date))))
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -60,8 +64,20 @@ export default function CalendarClient({ requests }: CalendarClientProps) {
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1
             const dayRequests = getRequestsForDay(day)
+            const dateKey = toUaeDateKey(new Date(year, month, day))
+            const relevantWeeks = new Set<string>(
+              (dayRequests.length > 0
+                ? dayRequests.map((r: any) => r.employee.workWeek)
+                : requests.map((r: any) => r.employee.workWeek))
+            )
+            const isNonWorking = [...relevantWeeks].every(
+              (ww) => !isWorkingDay(dateKey, ww as any, holidaySet)
+            )
             return (
-              <div key={day} className="min-h-24 border-b border-r p-1">
+              <div
+                key={day}
+                className={`min-h-24 border-b border-r p-1${isNonWorking ? ' opacity-40 bg-muted' : ''}`}
+              >
                 <p className="text-xs font-medium">{day}</p>
                 <div className="mt-1 space-y-0.5">
                   {dayRequests.map((r: any) => (
