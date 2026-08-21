@@ -84,7 +84,7 @@ export default function LeaveDetailClient({ request, role, locale }: LeaveDetail
         {request.attachmentFile && (
           <div>
             <p className="text-sm text-[#8B93A8]">{t('attachment')}</p>
-            <a href={request.attachmentFile} target="_blank" rel="noopener noreferrer" className="text-sm text-[#4B8BF0] hover:underline">
+            <a href={`/api/documents/leave/${request.id}`} target="_blank" rel="noopener noreferrer" className="text-sm text-[#4B8BF0] hover:underline">
               {tc('view')}
             </a>
           </div>

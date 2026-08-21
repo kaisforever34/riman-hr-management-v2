@@ -213,7 +213,7 @@ export function DocumentsClient({ employeeDocs, companyDocs, employees }: Props)
                     <td className="px-4 py-3">{new Date(doc.createdAt).toLocaleDateString()}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
-                        <a href={doc.filePath} target="_blank" download>
+                        <a href={`/api/documents/${doc.id}?type=${tab === 'employee' ? 'employee' : 'company'}`} target="_blank" download>
                           <Button variant="ghost" size="sm"><Download className="h-3 w-3" /></Button>
                         </a>
                         <Button variant="ghost" size="sm" onClick={() => handleDelete(doc.id)}>

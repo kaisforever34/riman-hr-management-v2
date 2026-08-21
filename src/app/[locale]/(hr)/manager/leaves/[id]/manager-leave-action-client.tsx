@@ -107,7 +107,7 @@ export default function ManagerLeaveActionClient({ request, locale }: ManagerLea
           {request.attachmentFile && (
             <div>
               <p className="text-sm text-[#8B93A8]">{tl('attachment')}</p>
-              <a href={request.attachmentFile} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+              <a href={`/api/documents/leave/${request.id}`} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
                 {tc('view')}
               </a>
             </div>
