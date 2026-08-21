@@ -256,7 +256,16 @@
     "noRequests": "لا توجد طلبات إجازة",
     "previous": "السابق",
     "next": "التالي",
-    "month": "الشهر"
+    "month": "الشهر",
+    "bulk": {
+      "selectPendingOnly": "حدد الطلبات المعلقة فقط",
+      "selected": "{count} محددة",
+      "approveSelected": "موافقة ({count})",
+      "rejectSelected": "رفض",
+      "clear": "مسح",
+      "result": "{approved} تمت الموافقة، {failed} فشلت",
+      "rejectResult": "{rejected} تم الرفض، {failed} فشلت"
+    }
   },
   "leaveTypes": {
     "title": "أنواع الإجازات",

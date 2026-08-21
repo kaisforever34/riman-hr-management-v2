@@ -10,7 +10,7 @@ const { mockSession, mockRevalidatePath, mockRedirect, mockDb } = vi.hoisted(() 
     leaveBalance: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), upsert: vi.fn() },
     leaveType: { findUnique: vi.fn(), findUniqueOrThrow: vi.fn() },
     employee: { findUnique: vi.fn() },
-    user: { findMany: vi.fn() },
+    user: { findMany: vi.fn().mockResolvedValue([]) },
     notification: { createMany: vi.fn(), create: vi.fn() },
     payrollPeriod: { findUnique: vi.fn() },
     payslip: { findMany: vi.fn(), update: vi.fn() },
@@ -28,7 +28,7 @@ vi.mock('next/navigation', () => ({ redirect: (...args: unknown[]) => mockRedire
 vi.mock('@/lib/db', () => ({ db: mockDb }))
 vi.mock('@/lib/upload', () => ({ uploadLeaveAttachment: () => Promise.resolve('/uploads/leaves/x.pdf') }))
 
-import { approveLeave, cancelLeave, submitLeave } from '@/lib/actions/leave'
+import { approveLeave, bulkApproveLeaves, bulkRejectLeaves, cancelLeave, submitLeave } from '@/lib/actions/leave'
 
 function makeFormData(data: Record<string, string>): FormData {
   const fd = new FormData()
@@ -116,6 +116,85 @@ describe('approveLeave', () => {
 
     await approveLeave(makeFormData({ id: 'req1' }))
     expect(mockDb.$transaction).toHaveBeenCalled()
+  })
+})
+
+describe('bulkApproveLeaves', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockSession.user.role = 'MANAGER'
+  })
+
+  it('approves 2 valid pending ids', async () => {
+    mockDb.leaveRequest.findUnique.mockResolvedValue(pendingRequest)
+    mockDb.employee.findUnique.mockResolvedValue({ id: 'emp1', user: { id: 'u1' } })
+    mockDb.notification.create.mockResolvedValue({})
+    mockDb.$transaction.mockImplementation(async (fn: (t: unknown) => Promise<unknown>) => {
+      const t = {
+        leaveRequest: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+        leaveBalance: {
+          findUnique: vi.fn().mockResolvedValue({ id: 'bal1', allocated: 30, carriedOver: 0, used: 5 }),
+          update: vi.fn().mockResolvedValue({}),
+        },
+      }
+      await fn(t)
+    })
+
+    const fd = new FormData()
+    fd.append('ids', 'req1')
+    fd.append('ids', 'req2')
+    const result = await bulkApproveLeaves(fd)
+    expect(result).toEqual({ approved: 2, failed: [] })
+  })
+
+  it('rejects non-manager', async () => {
+    mockSession.user.role = 'EMPLOYEE'
+    const fd = new FormData()
+    fd.append('ids', 'req1')
+    const result = await bulkApproveLeaves(fd)
+    expect(result).toHaveProperty('error')
+  })
+
+  it('returns invalid id in failed without throwing', async () => {
+    mockDb.leaveRequest.findUnique.mockResolvedValue(null)
+    const fd = new FormData()
+    fd.append('ids', 'bad')
+    const result = await bulkApproveLeaves(fd)
+    expect(result).toEqual({
+      approved: 0,
+      failed: [{ id: 'bad', error: 'Request not found or already processed' }],
+    })
+  })
+})
+
+describe('bulkRejectLeaves', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockSession.user.role = 'MANAGER'
+  })
+
+  it('requires a reason', async () => {
+    const fd = new FormData()
+    fd.append('ids', 'req1')
+    const result = await bulkRejectLeaves(fd)
+    expect(result).toHaveProperty('error')
+  })
+
+  it('rejects 2 valid pending ids with a reason', async () => {
+    mockDb.leaveRequest.updateMany.mockResolvedValue({ count: 1 })
+    mockDb.leaveRequest.findUnique.mockResolvedValue({
+      ...pendingRequest,
+      employee: { ...pendingRequest.employee, user: { id: 'u1' } },
+      leaveType: { id: 'lt1', name: 'Annual' },
+    })
+    mockDb.notification.create.mockResolvedValue({})
+
+    const fd = new FormData()
+    fd.append('ids', 'req1')
+    fd.append('ids', 'req2')
+    fd.append('rejectReason', 'Not needed')
+    const result = await bulkRejectLeaves(fd)
+    expect(result).toEqual({ rejected: 2, failed: [] })
   })
 })
 

@@ -2,9 +2,12 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -14,7 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import Link from 'next/link'
-import { Calendar } from 'lucide-react'
+import { Calendar, Check, X } from 'lucide-react'
+import { bulkApproveLeaves, bulkRejectLeaves } from '@/lib/actions/leave'
 
 interface ManagerLeavesClientProps {
   requests: any[]
@@ -32,9 +36,19 @@ export default function ManagerLeavesClient({
   currentFilters,
 }: ManagerLeavesClientProps) {
   const t = useTranslations('managerLeaves')
+  const tb = useTranslations('managerLeaves.bulk')
   const tc = useTranslations('common')
   const tl = useTranslations('leave')
   const router = useRouter()
+
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [busy, setBusy] = useState<string | null>(null)
+  const [showReject, setShowReject] = useState(false)
+  const [rejectReason, setRejectReason] = useState('')
+
+  const pendingRequests = requests.filter((r) => r.status === 'PENDING')
+  const allPendingSelected =
+    pendingRequests.length > 0 && pendingRequests.every((r) => selected.has(r.id))
 
   function applyFilter(key: string, value: string) {
     const params = new URLSearchParams()
@@ -44,6 +58,78 @@ export default function ManagerLeavesClient({
     if (value) params.set(key, value)
     else params.delete(key)
     router.push(`/${locale}/manager/leaves?${params.toString()}`)
+  }
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleAllPending() {
+    setSelected(() => {
+      if (allPendingSelected) return new Set()
+      return new Set(pendingRequests.map((r) => r.id))
+    })
+  }
+
+  function clearSelection() {
+    setSelected(new Set())
+    setShowReject(false)
+    setRejectReason('')
+  }
+
+  function buildFormData(): FormData {
+    const fd = new FormData()
+    selected.forEach((id) => fd.append('ids', id))
+    return fd
+  }
+
+  async function handleBulkApprove() {
+    if (selected.size === 0) return
+    setBusy('approve')
+    const res = await bulkApproveLeaves(buildFormData())
+    setBusy(null)
+    if ('error' in res) {
+      toast.error(res.error)
+      return
+    }
+    toast.success(tb('result', { approved: res.approved, failed: res.failed.length }))
+    if (res.failed.length > 0) {
+      toast.error(
+        res.failed
+          .map((f) => `${f.id}: ${f.error}`)
+          .join('\n'),
+      )
+    }
+    clearSelection()
+    router.refresh()
+  }
+
+  async function handleBulkReject() {
+    if (selected.size === 0 || !rejectReason) return
+    setBusy('reject')
+    const fd = buildFormData()
+    fd.append('rejectReason', rejectReason)
+    const res = await bulkRejectLeaves(fd)
+    setBusy(null)
+    if ('error' in res) {
+      toast.error(res.error)
+      return
+    }
+    toast.success(tb('rejectResult', { rejected: res.rejected, failed: res.failed.length }))
+    if (res.failed.length > 0) {
+      toast.error(
+        res.failed
+          .map((f) => `${f.id}: ${f.error}`)
+          .join('\n'),
+      )
+    }
+    clearSelection()
+    router.refresh()
   }
 
   return (
@@ -102,6 +188,16 @@ export default function ManagerLeavesClient({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-[rgba(255,255,255,0.03)] text-left">
+                <th className="w-10 p-3">
+                  <input
+                    type="checkbox"
+                    aria-label={tb('selectPendingOnly')}
+                    checked={allPendingSelected}
+                    disabled={pendingRequests.length === 0}
+                    onChange={toggleAllPending}
+                    className="h-4 w-4 cursor-pointer accent-[#22C55E]"
+                  />
+                </th>
                 <th className="p-3 font-medium">{t('employee')}</th>
                 <th className="p-3 font-medium">{tl('type')}</th>
                 <th className="p-3 font-medium">{tl('startDate')}</th>
@@ -114,6 +210,17 @@ export default function ManagerLeavesClient({
             <tbody>
               {requests.map((r: any) => (
                 <tr key={r.id} className="border-b last:border-0 hover:bg-[rgba(255,255,255,0.03)]">
+                  <td className="p-3">
+                    {r.status === 'PENDING' && (
+                      <input
+                        type="checkbox"
+                        aria-label={`${tb('selectPendingOnly')} ${r.id}`}
+                        checked={selected.has(r.id)}
+                        onChange={() => toggle(r.id)}
+                        className="h-4 w-4 cursor-pointer accent-[#22C55E]"
+                      />
+                    )}
+                  </td>
                   <td className="p-3">{r.employee.firstName} {r.employee.lastName}</td>
                   <td className="p-3">{r.leaveType.name}</td>
                   <td className="p-3">{new Date(r.startDate).toLocaleDateString()}</td>
@@ -138,6 +245,62 @@ export default function ManagerLeavesClient({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {selected.size > 0 && (
+        <div className="sticky bottom-4 z-20 mx-auto flex max-w-3xl flex-col gap-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#11152E] p-4 shadow-lg">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="text-sm text-[#8B93A8]">
+              {tb('selected', { count: selected.size })}
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                onClick={handleBulkApprove}
+                disabled={busy !== null}
+                className="bg-[#22C55E] text-white hover:bg-[#1Fb053]"
+              >
+                <Check className="me-2 h-4 w-4" />
+                {tb('approveSelected', { count: selected.size })}
+              </Button>
+              {!showReject && (
+                <Button type="button" variant="outline" onClick={() => setShowReject(true)} disabled={busy !== null}>
+                  <X className="me-2 h-4 w-4" />
+                  {tb('rejectSelected')}
+                </Button>
+              )}
+              <Button type="button" variant="ghost" onClick={clearSelection} disabled={busy !== null}>
+                {tb('clear')}
+              </Button>
+            </div>
+          </div>
+
+          {showReject && (
+            <div className="space-y-2 border-t border-[rgba(255,255,255,0.08)] pt-3">
+              <Label htmlFor="bulkRejectReason">{t('rejectionReasonPlaceholder')} *</Label>
+              <textarea
+                id="bulkRejectReason"
+                className="w-full rounded-lg border border-input bg-transparent p-2 text-sm"
+                rows={3}
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+              />
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="ghost" onClick={() => setShowReject(false)} disabled={busy !== null}>
+                  {tc('cancel')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleBulkReject}
+                  disabled={!rejectReason || busy !== null}
+                >
+                  {busy === 'reject' ? tc('loading') : tb('rejectSelected')}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

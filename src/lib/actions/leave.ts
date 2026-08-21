@@ -3,6 +3,7 @@
 import { db } from '@/lib/db'
 import { submitLeaveSchema, approveLeaveSchema, rejectLeaveSchema, cancelLeaveSchema, setAllocationSchema } from '@/lib/validations/leave'
 import { auth } from '@/lib/auth'
+import type { Session } from 'next-auth'
 import { uploadLeaveAttachment } from '@/lib/upload'
 import { getOrCreateLeaveBalance } from '@/lib/queries/leave'
 import { revalidatePath } from 'next/cache'
@@ -110,19 +111,14 @@ export async function submitLeave(formData: FormData) {
   redirect('/leave')
 }
 
-export async function approveLeave(formData: FormData) {
-  const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
-
-  const raw = { id: formData.get('id') as string }
-  const parsed = approveLeaveSchema.safeParse(raw)
-  if (!parsed.success) return { error: await serverError('invalidRequest') }
-
+async function approveOne(requestId: string, session: Session): Promise<{ ok: true } | { ok: false; error: string }> {
   const request = await db.leaveRequest.findUnique({
-    where: { id: parsed.data.id },
+    where: { id: requestId },
     include: { employee: true, leaveType: true },
   })
-  if (!request || request.status !== 'PENDING') return { error: await serverError('requestNotFoundOrProcessed') }
+  if (!request || request.status !== 'PENDING') {
+    return { ok: false, error: await serverError('requestNotFoundOrProcessed') }
+  }
 
   const now = new Date()
 
@@ -148,10 +144,10 @@ export async function approveLeave(formData: FormData) {
     })
   } catch (e) {
     if (e instanceof Error && e.message === 'INSUFFICIENT_BALANCE') {
-      return { error: await serverError('insufficientBalance') }
+      return { ok: false, error: await serverError('insufficientBalance') }
     }
     if (e instanceof Error && e.message === 'ALREADY_PROCESSED') {
-      return { error: await serverError('requestNotFoundOrProcessed') }
+      return { ok: false, error: await serverError('requestNotFoundOrProcessed') }
     }
     throw e
   }
@@ -179,6 +175,55 @@ export async function approveLeave(formData: FormData) {
     detail: { employeeId: request.employeeId, durationDays: request.durationDays },
   })
 
+  return { ok: true }
+}
+
+async function rejectOne(requestId: string, rejectReason: string, session: Session): Promise<{ ok: true } | { ok: false; error: string }> {
+  const updated = await db.leaveRequest.updateMany({
+    where: { id: requestId, status: 'PENDING' },
+    data: { status: 'REJECTED', rejectReason, approvedById: session.user.id },
+  })
+  if (updated.count === 0) {
+    return { ok: false, error: await serverError('requestNotFoundOrProcessed') }
+  }
+
+  const rejectRequest = await db.leaveRequest.findUnique({
+    where: { id: requestId },
+    include: { employee: { include: { user: true } }, leaveType: true },
+  })
+  if (rejectRequest) {
+    await createNotification(
+      rejectRequest.employee.user.id,
+      'LEAVE_REJECTED',
+      'Leave Rejected',
+      `Your ${rejectRequest.leaveType?.name ?? ''} leave request has been rejected. Reason: ${rejectReason}`,
+      `/leave/${requestId}`,
+    )
+  }
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'LEAVE_REJECTED',
+    entityType: 'LeaveRequest',
+    entityId: requestId,
+    detail: { rejectReason },
+  })
+
+  return { ok: true }
+}
+
+export async function approveLeave(formData: FormData) {
+  const session = await auth()
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
+
+  const raw = { id: formData.get('id') as string }
+  const parsed = approveLeaveSchema.safeParse(raw)
+  if (!parsed.success) return { error: await serverError('invalidRequest') }
+
+  const result = await approveOne(parsed.data.id, session)
+  if (!result.ok) return { error: result.error }
+
   revalidatePath('/manager/leaves')
   redirect('/manager/leaves')
 }
@@ -194,37 +239,55 @@ export async function rejectLeave(formData: FormData) {
   const parsed = rejectLeaveSchema.safeParse(raw)
   if (!parsed.success) return { error: await serverError('rejectReasonRequired') }
 
-  const updated = await db.leaveRequest.updateMany({
-    where: { id: parsed.data.id, status: 'PENDING' },
-    data: { status: 'REJECTED', rejectReason: parsed.data.rejectReason, approvedById: session.user.id },
-  })
-  if (updated.count === 0) return { error: await serverError('requestNotFoundOrProcessed') }
-
-  const rejectRequest = await db.leaveRequest.findUnique({
-    where: { id: parsed.data.id },
-    include: { employee: { include: { user: true } }, leaveType: true },
-  })
-  if (rejectRequest) {
-    await createNotification(
-      rejectRequest.employee.user.id,
-      'LEAVE_REJECTED',
-      'Leave Rejected',
-      `Your ${rejectRequest.leaveType?.name ?? ''} leave request has been rejected. Reason: ${parsed.data.rejectReason}`,
-      `/leave/${parsed.data.id}`,
-    )
-  }
-
-  await logAudit({
-    actorId: session.user.id,
-    actorEmail: session.user.email ?? null,
-    action: 'LEAVE_REJECTED',
-    entityType: 'LeaveRequest',
-    entityId: parsed.data.id,
-    detail: { rejectReason: parsed.data.rejectReason },
-  })
+  const result = await rejectOne(parsed.data.id, parsed.data.rejectReason, session)
+  if (!result.ok) return { error: result.error }
 
   revalidatePath('/manager/leaves')
   redirect('/manager/leaves')
+}
+
+export async function bulkApproveLeaves(formData: FormData) {
+  const session = await auth()
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN'))
+    return { error: await serverError('unauthorized') }
+
+  const ids = formData.getAll('ids').filter((v): v is string => typeof v === 'string')
+  if (ids.length === 0) return { error: await serverError('invalidRequest') }
+
+  let approved = 0
+  const failed: { id: string; error: string }[] = []
+  for (const id of ids) {
+    const r = await approveOne(id, session)
+    if (r.ok) approved++
+    else failed.push({ id, error: r.error })
+  }
+  revalidatePath('/manager/leaves')
+  return { approved, failed }
+}
+
+export async function bulkRejectLeaves(formData: FormData) {
+  const session = await auth()
+  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN'))
+    return { error: await serverError('unauthorized') }
+
+  const reasonParse = rejectLeaveSchema.pick({ rejectReason: true }).safeParse({
+    rejectReason: formData.get('rejectReason'),
+  })
+  if (!reasonParse.success) return { error: await serverError('rejectReasonRequired') }
+  const rejectReason = reasonParse.data.rejectReason
+
+  const ids = formData.getAll('ids').filter((v): v is string => typeof v === 'string')
+  if (ids.length === 0) return { error: await serverError('invalidRequest') }
+
+  let rejected = 0
+  const failed: { id: string; error: string }[] = []
+  for (const id of ids) {
+    const r = await rejectOne(id, rejectReason, session)
+    if (r.ok) rejected++
+    else failed.push({ id, error: r.error })
+  }
+  revalidatePath('/manager/leaves')
+  return { rejected, failed }
 }
 
 export async function cancelLeave(formData: FormData) {

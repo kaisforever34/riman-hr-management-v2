@@ -256,7 +256,16 @@
     "noRequests": "No leave requests found",
     "previous": "Previous",
     "next": "Next",
-    "month": "Month"
+    "month": "Month",
+    "bulk": {
+      "selectPendingOnly": "Select pending requests only",
+      "selected": "{count} selected",
+      "approveSelected": "Approve ({count})",
+      "rejectSelected": "Reject",
+      "clear": "Clear",
+      "result": "{approved} approved, {failed} failed",
+      "rejectResult": "{rejected} rejected, {failed} failed"
+    }
   },
   "leaveTypes": {
     "title": "Leave Types",
