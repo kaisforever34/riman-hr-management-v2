@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { recalculatePayslips, updateLateDeduction, finalizePayroll } from '@/lib/actions/payroll'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 
 interface PayslipData {
   id: string
@@ -28,6 +29,7 @@ interface Props {
 export function PeriodClient({ period, payslips }: Props) {
   const t = useTranslations('managerPayroll')
   const tp = useTranslations('payroll')
+  const tc = useTranslations('common')
   const [loading, setLoading] = useState('')
   const [message, setMessage] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -88,16 +90,24 @@ export function PeriodClient({ period, payslips }: Props) {
             {isDraft ? tp('draft') : tp('finalized')}
           </span>
         </div>
-        {isDraft && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleRecalculate} disabled={loading === 'recalculate'}>
-              {loading === 'recalculate' ? '...' : t('recalculate')}
-            </Button>
-            <Button onClick={() => setShowFinalize(true)}>
-              {t('finalize')}
-            </Button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          <Link
+            href={`/api/export/payroll?periodId=${period.id}`}
+            className={buttonVariants({ variant: 'outline' })}
+          >
+            {tc('exportCsv')}
+          </Link>
+          {isDraft && (
+            <>
+              <Button variant="outline" onClick={handleRecalculate} disabled={loading === 'recalculate'}>
+                {loading === 'recalculate' ? '...' : t('recalculate')}
+              </Button>
+              <Button onClick={() => setShowFinalize(true)}>
+                {t('finalize')}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {message && (

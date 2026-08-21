@@ -746,7 +746,8 @@
     "cancel": "Cancel",
     "save": "Save",
     "search": "Search...",
-    "back": "Back"
+    "back": "Back",
+    "exportCsv": "Export CSV"
   },
   "errors": {
     "network": "Connection lost. Check your internet and try again.",

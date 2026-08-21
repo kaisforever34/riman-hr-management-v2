@@ -50,6 +50,11 @@ export default function ManagerLeavesClient({
   const allPendingSelected =
     pendingRequests.length > 0 && pendingRequests.every((r) => selected.has(r.id))
 
+  const exportParams = new URLSearchParams()
+  exportParams.set('year', String(new Date().getUTCFullYear()))
+  if (currentFilters.status) exportParams.set('status', currentFilters.status)
+  const exportHref = `/api/export/leaves?${exportParams.toString()}`
+
   function applyFilter(key: string, value: string) {
     const params = new URLSearchParams()
     Object.entries(currentFilters).forEach(([k, v]) => {
@@ -136,10 +141,15 @@ export default function ManagerLeavesClient({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <Link href={`/${locale}/manager/leaves/calendar`} className={buttonVariants({ variant: 'outline' })}>
-          <Calendar className="me-2 h-4 w-4" />
-          {t('calendar')}
-        </Link>
+        <div className="flex gap-2">
+          <Link href={exportHref} className={buttonVariants({ variant: 'outline' })}>
+            {tc('exportCsv')}
+          </Link>
+          <Link href={`/${locale}/manager/leaves/calendar`} className={buttonVariants({ variant: 'outline' })}>
+            <Calendar className="me-2 h-4 w-4" />
+            {t('calendar')}
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-4">
