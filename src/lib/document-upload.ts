@@ -1,7 +1,8 @@
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
+import { PRIVATE_UPLOAD_ROOT } from './upload'
 
-const BASE_DIR = join(process.cwd(), 'public', 'uploads', 'documents')
+const BASE_DIR = join(PRIVATE_UPLOAD_ROOT, 'documents')
 const MAX_SIZE = 10 * 1024 * 1024
 const ALLOWED_TYPES: Record<string, string> = {
   'application/pdf': 'pdf',
@@ -24,5 +25,5 @@ export async function uploadDocument(file: File, subDir: 'employees' | 'company'
   await mkdir(dir, { recursive: true })
   await writeFile(join(dir, filename), buffer)
 
-  return `/uploads/documents/${subDir}/${filename}`
+  return `documents/${subDir}/${filename}`
 }

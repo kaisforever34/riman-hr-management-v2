@@ -1,7 +1,9 @@
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 
-const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads', 'leaves')
+export const PRIVATE_UPLOAD_ROOT = join(process.cwd(), 'private-uploads')
+
+const UPLOAD_DIR = join(PRIVATE_UPLOAD_ROOT, 'leaves')
 const MAX_SIZE = 5 * 1024 * 1024
 const ALLOWED_TYPES: Record<string, string> = {
   'application/pdf': 'pdf',
@@ -21,5 +23,5 @@ export async function uploadLeaveAttachment(file: File): Promise<string | null> 
   await mkdir(UPLOAD_DIR, { recursive: true })
   await writeFile(join(UPLOAD_DIR, filename), buffer)
 
-  return `/uploads/leaves/${filename}`
+  return `leaves/${filename}`
 }

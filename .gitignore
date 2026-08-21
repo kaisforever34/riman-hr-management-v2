@@ -60,7 +60,8 @@ next-env.d.ts
 graphify-out/
 
 # uploaded files
-/public/uploads
+/private-uploads/*
+!private-uploads/.gitkeep
 
 # superpowers scratch
 .superpowers/

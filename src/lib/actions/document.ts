@@ -82,7 +82,8 @@ export async function deleteDocument(formData: FormData) {
   if (!doc) return { error: await serverError('documentNotFound') }
 
   try {
-    const fullPath = join(process.cwd(), 'public', doc.filePath)
+    const key = doc.filePath.replace(/^\/uploads\//, '')
+    const fullPath = join(process.cwd(), 'private-uploads', key)
     await unlink(fullPath)
   } catch {
     // File may not exist on disk — still remove DB record

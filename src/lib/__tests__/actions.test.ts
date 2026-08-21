@@ -14,7 +14,7 @@ const { mockSession, mockRevalidatePath, mockDb } = vi.hoisted(() => {
 vi.mock('@/lib/auth', () => ({ auth: () => Promise.resolve(mockSession) }))
 vi.mock('next/cache', () => ({ revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args) }))
 vi.mock('@/lib/db', () => ({ db: mockDb }))
-vi.mock('@/lib/document-upload', () => ({ uploadDocument: () => Promise.resolve('/uploads/documents/employees/test.pdf') }))
+vi.mock('@/lib/document-upload', () => ({ uploadDocument: () => Promise.resolve('documents/employees/test.pdf') }))
 vi.mock('fs/promises', async () => ({ default: { unlink: () => Promise.resolve() }, unlink: () => Promise.resolve() }))
 
 import { uploadEmployeeDoc, uploadCompanyDoc, deleteDocument } from '@/lib/actions/document'
