@@ -117,7 +117,7 @@ async function EmployeesData(props: {
       ) : employees.length === 0 && q ? (
         <div className="py-16 text-center">
           <Search className="h-8 w-8 text-[#4A5168] mx-auto mb-3" />
-          <p className="text-[13px] text-[#8B93A8]">No employees match your search.</p>
+          <p className="text-[13px] text-[#8B93A8]">{t('noSearchResults')}</p>
         </div>
       ) : (
         <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] overflow-hidden">
@@ -166,7 +166,7 @@ async function EmployeesData(props: {
             <Link
               href={`?page=${page - 1}${q ? `&q=${q}` : ''}`}
               className={buttonVariants({ variant: "outline", size: "sm" })}
-            >Previous</Link>
+            >{t('previous')}</Link>
           )}
           <span className="text-[13px] text-[#8B93A8] px-2">
             {t('page')} {page} {t('of')} {totalPages}
@@ -175,7 +175,7 @@ async function EmployeesData(props: {
             <Link
               href={`?page=${page + 1}${q ? `&q=${q}` : ''}`}
               className={buttonVariants({ variant: "outline", size: "sm" })}
-            >Next</Link>
+            >{t('next')}</Link>
           )}
         </div>
       )}

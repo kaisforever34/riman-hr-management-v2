@@ -1,5 +1,7 @@
 {
-  "app": { "name": "ريمان للموارد البشرية" },
+  "app": {
+    "name": "ريمان للموارد البشرية"
+  },
   "auth": {
     "signIn": "تسجيل الدخول",
     "enterCredentials": "أدخل بيانات اعتمادك للوصول إلى النظام",
@@ -31,7 +33,11 @@
     "analytics": "التحليلات",
     "holidays": "العطلات الرسمية",
     "signOut": "تسجيل الخروج",
-    "collapse": "طي"
+    "collapse": "طي",
+    "openMenu": "فتح قائمة التنقل",
+    "closeMenu": "إغلاق قائمة التنقل",
+    "expandSidebar": "توسيع الشريط الجانبي",
+    "collapseSidebar": "طي الشريط الجانبي"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -40,7 +46,53 @@
     "todayAttendance": "حضور اليوم",
     "present": "حاضر",
     "addEmployee": "إضافة موظف",
-    "viewAll": "عرض الكل"
+    "viewAll": "عرض الكل",
+    "hrTitle": "لوحة الموارد البشرية",
+    "location": "دبي، الإمارات",
+    "kpiTotalSub": "نشط",
+    "kpiPresentSub": "تم تسجيل الحضور",
+    "kpiLeavesLabel": "إجازات معلقة",
+    "kpiLeavesSub": "في انتظار الموافقة",
+    "kpiPayrollLabel": "الرواتب",
+    "kpiPayrollSub": "الشهر الحالي",
+    "payrollTrend": "اتجاه الرواتب",
+    "payrollTrendRange": "ديسمبر 2025 – مايو 2026",
+    "aedPerMonth": "درهم / شهرياً",
+    "weeklyAttendance": "الحضور الأسبوعي",
+    "currentWeek": "الأسبوع الحالي (الأحد–الخميس)",
+    "leaveDistribution": "توزيع الإجازات 2026",
+    "pendingActions": "إجراءات معلقة",
+    "nPending": "{n} معلق",
+    "noPendingActions": "لا توجد إجراءات معلقة",
+    "leaveRequestsAwaiting": "{count, plural, one {طلب إجازة واحد بانتظار المراجعة} other {# طلبات إجازة بانتظار المراجعة}}",
+    "viewAllRequests": "عرض جميع الطلبات",
+    "series": {
+      "total": "الإجمالي",
+      "late": "متأخر",
+      "absent": "غائب"
+    },
+    "leaveTypes": {
+      "Annual": "سنوية",
+      "Sick": "مرضية",
+      "Maternity": "أمومة",
+      "Study": "دراسية",
+      "Other": "أخرى"
+    },
+    "months": {
+      "Dec": "ديسمبر",
+      "Jan": "يناير",
+      "Feb": "فبراير",
+      "Mar": "مارس",
+      "Apr": "أبريل",
+      "May": "مايو"
+    },
+    "days": {
+      "Sun": "أحد",
+      "Mon": "اثنين",
+      "Tue": "ثلاثاء",
+      "Wed": "أربعاء",
+      "Thu": "خميس"
+    }
   },
   "employees": {
     "title": "الموظفين",
@@ -58,7 +110,10 @@
     "noEmployeesDesc": "أضف أول موظف للبدء.",
     "perPage": "لكل صفحة",
     "page": "صفحة",
-    "of": "من"
+    "of": "من",
+    "noSearchResults": "لا يوجد موظفون مطابقون لبحثك.",
+    "previous": "السابق",
+    "next": "التالي"
   },
   "employeesAdd": {
     "title": "إضافة موظف",
@@ -99,7 +154,10 @@
     "saving": "جاري الحفظ...",
     "success": "تم إنشاء الموظف بنجاح",
     "skip": "تخطي",
-    "optional": "اختياري"
+    "optional": "اختياري",
+    "roleEmployee": "موظف",
+    "roleManager": "مدير",
+    "roleHrAdmin": "مسؤول موارد بشرية"
   },
   "leave": {
     "title": "إجازاتي",
@@ -446,7 +504,11 @@
       "createFailed": "فشل إنشاء التقييم",
       "deleteFailed": "فشل حذف التقييم",
       "alreadyExists": "يوجد تقييم لهذا الموظف في هذه الفترة بالفعل"
-    }
+    },
+    "selectEmployee": "يرجى اختيار موظف",
+    "criteriaNamePlaceholder": "اسم المعيار",
+    "saving": "جارٍ الحفظ...",
+    "cancel": "إلغاء"
   },
   "surveys": {
     "title": "الاستبيانات",
@@ -484,7 +546,11 @@
     "selectOption": "اختر خياراً",
     "backToSurveys": "العودة إلى الاستبيانات",
     "required": "يرجى الإجابة على جميع الأسئلة",
-    "mySurveysDesc": "أكمل الاستبيانات المخصصة لك"
+    "mySurveysDesc": "أكمل الاستبيانات المخصصة لك",
+    "rating1to5": "تقييم (1-5)",
+    "multipleChoice": "اختيار متعدد",
+    "text": "نص",
+    "optionsPlaceholder": "خيار1، خيار2"
   },
   "assets": {
     "title": "الأصول",
@@ -519,7 +585,6 @@
     "view": "عرض التفاصيل",
     "empty": "لا توجد أصول بعد",
     "available": "متاح",
-    "assigned": "مسند",
     "damaged": "تالف",
     "retired": "مستبعد",
     "cat": {
@@ -532,7 +597,8 @@
       "VEHICLE": "مركبة",
       "UNIFORM": "زي رسمي",
       "OTHER": "أخرى"
-    }
+    },
+    "assignedBadge": "مُسند"
   },
   "expenses": {
     "title": "المصروفات",
@@ -602,7 +668,10 @@
     "unreadOnly": "غير مقروء فقط",
     "empty": "لا توجد إشعارات بعد",
     "previous": "السابق",
-    "next": "التالي"
+    "next": "التالي",
+    "noNew": "لا توجد إشعارات جديدة",
+    "unreadSuffix": "({count} غير مقروء)",
+    "viewAll": "عرض جميع الإشعارات"
   },
   "onboarding": {
     "listTitle": "التعيين",
@@ -707,5 +776,10 @@
       "description": "أضف أول موظف للبدء.",
       "cta": "إضافة موظف"
     }
+  },
+  "errorPage": {
+    "title": "حدث خطأ ما",
+    "description": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+    "retry": "حاول مجدداً"
   }
 }

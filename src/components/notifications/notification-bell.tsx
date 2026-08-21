@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { markAllAsRead } from '@/lib/actions/notifications'
 import { formatDistanceToNow } from 'date-fns'
+import { useTranslations } from 'next-intl'
 
 type Notification = {
   id: string
@@ -23,6 +24,7 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { locale } = useParams<{ locale: string }>()
+  const t = useTranslations('notifications')
 
   useEffect(() => {
     async function fetchCount() {
@@ -58,7 +60,7 @@ export default function NotificationBell() {
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        aria-label={`Notifications${count > 0 ? ` (${count} unread)` : ''}`}
+        aria-label={count > 0 ? `${t('title')} ${t('unreadSuffix', { count })}` : t('title')}
         className="relative p-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors"
       >
         <Bell className="w-4 h-4 text-[#8B93A8]" />
@@ -72,10 +74,10 @@ export default function NotificationBell() {
       {open && (
         <div className="absolute end-0 top-full mt-2 w-80 bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.35)] overflow-hidden z-50">
           <div className="p-3 border-b border-[rgba(255,255,255,0.065)] flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-[#E0E6F4]">Notifications</span>
+            <span className="text-[13px] font-semibold text-[#E0E6F4]">{t('title')}</span>
             {count > 0 && (
               <button onClick={handleMarkAllRead} className="text-[12px] text-[#D4A843] hover:text-[#EFC254] transition-colors">
-                Mark all read
+                {t('markAllRead')}
               </button>
             )}
           </div>
@@ -84,7 +86,7 @@ export default function NotificationBell() {
             {recent.length === 0 && (
               <div className="p-8 text-center">
                 <Bell className="w-8 h-8 text-[#4A5168] mx-auto mb-2" />
-                <p className="text-[13px] text-[#8B93A8]">No new notifications</p>
+                <p className="text-[13px] text-[#8B93A8]">{t('noNew')}</p>
               </div>
             )}
             {recent.map((n) => (
@@ -108,7 +110,7 @@ export default function NotificationBell() {
             onClick={() => setOpen(false)}
             className="block p-3 text-center text-[13px] font-medium text-[#D4A843] hover:text-[#EFC254] hover:bg-[rgba(212,168,67,0.05)] border-t border-[rgba(255,255,255,0.065)] transition-colors"
           >
-            View all notifications
+            {t('viewAll')}
           </Link>
         </div>
       )}

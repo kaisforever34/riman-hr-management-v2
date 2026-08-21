@@ -1,5 +1,7 @@
 {
-  "app": { "name": "Riman HR" },
+  "app": {
+    "name": "Riman HR"
+  },
   "auth": {
     "signIn": "Sign In",
     "enterCredentials": "Enter your credentials to access the system",
@@ -31,7 +33,11 @@
     "analytics": "Analytics",
     "holidays": "Holidays",
     "signOut": "Sign Out",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -40,7 +46,53 @@
     "todayAttendance": "Today's Attendance",
     "present": "present",
     "addEmployee": "Add Employee",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "hrTitle": "HR Dashboard",
+    "location": "Dubai, UAE",
+    "kpiTotalSub": "Active",
+    "kpiPresentSub": "Clocked in",
+    "kpiLeavesLabel": "Pending Leaves",
+    "kpiLeavesSub": "Awaiting approval",
+    "kpiPayrollLabel": "Payroll",
+    "kpiPayrollSub": "Current month",
+    "payrollTrend": "Payroll Trend",
+    "payrollTrendRange": "Dec 2025 – May 2026",
+    "aedPerMonth": "AED / Month",
+    "weeklyAttendance": "Weekly Attendance",
+    "currentWeek": "Current week (Sun–Thu)",
+    "leaveDistribution": "Leave Distribution 2026",
+    "pendingActions": "Pending Actions",
+    "nPending": "{n} pending",
+    "noPendingActions": "No pending actions",
+    "leaveRequestsAwaiting": "{count, plural, one {# leave request awaiting review} other {# leave requests awaiting review}}",
+    "viewAllRequests": "View all requests",
+    "series": {
+      "total": "Total",
+      "late": "Late",
+      "absent": "Absent"
+    },
+    "leaveTypes": {
+      "Annual": "Annual",
+      "Sick": "Sick",
+      "Maternity": "Maternity",
+      "Study": "Study",
+      "Other": "Other"
+    },
+    "months": {
+      "Dec": "Dec",
+      "Jan": "Jan",
+      "Feb": "Feb",
+      "Mar": "Mar",
+      "Apr": "Apr",
+      "May": "May"
+    },
+    "days": {
+      "Sun": "Sun",
+      "Mon": "Mon",
+      "Tue": "Tue",
+      "Wed": "Wed",
+      "Thu": "Thu"
+    }
   },
   "employees": {
     "title": "Employees",
@@ -58,7 +110,10 @@
     "noEmployeesDesc": "Add your first employee to get started.",
     "perPage": "per page",
     "page": "Page",
-    "of": "of"
+    "of": "of",
+    "noSearchResults": "No employees match your search.",
+    "previous": "Previous",
+    "next": "Next"
   },
   "employeesAdd": {
     "title": "Add Employee",
@@ -99,7 +154,10 @@
     "saving": "Saving...",
     "success": "Employee created successfully",
     "skip": "Skip",
-    "optional": "Optional"
+    "optional": "Optional",
+    "roleEmployee": "Employee",
+    "roleManager": "Manager",
+    "roleHrAdmin": "HR Admin"
   },
   "leave": {
     "title": "My Leaves",
@@ -446,7 +504,11 @@
       "createFailed": "Failed to create review",
       "deleteFailed": "Failed to delete review",
       "alreadyExists": "A review already exists for this employee in this period"
-    }
+    },
+    "selectEmployee": "Please select an employee",
+    "criteriaNamePlaceholder": "Criteria name",
+    "saving": "Saving...",
+    "cancel": "Cancel"
   },
   "surveys": {
     "title": "Surveys",
@@ -484,7 +546,11 @@
     "selectOption": "Select an option",
     "backToSurveys": "Back to Surveys",
     "required": "Please answer all questions",
-    "mySurveysDesc": "Complete your assigned surveys"
+    "mySurveysDesc": "Complete your assigned surveys",
+    "rating1to5": "Rating (1-5)",
+    "multipleChoice": "Multiple Choice",
+    "text": "Text",
+    "optionsPlaceholder": "Option1, Option2"
   },
   "assets": {
     "title": "Assets",
@@ -519,7 +585,6 @@
     "view": "View Details",
     "empty": "No assets yet",
     "available": "Available",
-    "assigned": "Assigned",
     "damaged": "Damaged",
     "retired": "Retired",
     "cat": {
@@ -532,7 +597,8 @@
       "VEHICLE": "Vehicle",
       "UNIFORM": "Uniform",
       "OTHER": "Other"
-    }
+    },
+    "assignedBadge": "Assigned"
   },
   "expenses": {
     "title": "Expenses",
@@ -602,7 +668,10 @@
     "unreadOnly": "Unread only",
     "empty": "No notifications yet",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "noNew": "No new notifications",
+    "unreadSuffix": "({count} unread)",
+    "viewAll": "View all notifications"
   },
   "onboarding": {
     "listTitle": "Onboarding",
@@ -707,5 +776,10 @@
       "description": "Add your first employee to get started.",
       "cta": "Add Employee"
     }
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again.",
+    "retry": "Try again"
   }
 }

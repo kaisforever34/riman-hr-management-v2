@@ -83,12 +83,12 @@ export default function NewSurveyClient({ employees, locale }: { employees: Empl
                   <input value={q.question} onChange={(e) => updateQuestion(i, 'question', e.target.value)} placeholder={t('questionPlaceholder')} className="w-full px-2 py-1.5 bg-[#0D1028] border border-[rgba(255,255,255,0.1)] rounded text-[#E0E6F4] text-xs focus:outline-none focus:border-[#D4A843]" />
                   <div className="flex gap-2">
                     <select value={q.type} onChange={(e) => updateQuestion(i, 'type', e.target.value)} className="px-2 py-1 bg-[#0D1028] border border-[rgba(255,255,255,0.1)] rounded text-[#E0E6F4] text-xs focus:outline-none focus:border-[#D4A843]">
-                      <option value="RATING">Rating (1-5)</option>
-                      <option value="MULTIPLE_CHOICE">Multiple Choice</option>
-                      <option value="TEXT">Text</option>
+                      <option value="RATING">{t('rating1to5')}</option>
+                      <option value="MULTIPLE_CHOICE">{t('multipleChoice')}</option>
+                      <option value="TEXT">{t('text')}</option>
                     </select>
                     {q.type === 'MULTIPLE_CHOICE' && (
-                      <input value={q.options} onChange={(e) => updateQuestion(i, 'options', e.target.value)} placeholder="Option1, Option2" className="flex-1 px-2 py-1 bg-[#0D1028] border border-[rgba(255,255,255,0.1)] rounded text-[#E0E6F4] text-xs focus:outline-none focus:border-[#D4A843]" />
+                      <input value={q.options} onChange={(e) => updateQuestion(i, 'options', e.target.value)} placeholder={t('optionsPlaceholder')} className="flex-1 px-2 py-1 bg-[#0D1028] border border-[rgba(255,255,255,0.1)] rounded text-[#E0E6F4] text-xs focus:outline-none focus:border-[#D4A843]" />
                     )}
                   </div>
                 </div>

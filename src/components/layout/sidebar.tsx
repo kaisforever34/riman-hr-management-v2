@@ -106,7 +106,7 @@ export default function Sidebar({ role }: { role: string }) {
       <div className="border-t border-[rgba(255,255,255,0.065)] py-2 px-2 space-y-0.5">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? t('expandSidebar') : t('collapseSidebar')}
           className={cn(
             "hidden md:flex items-center gap-3 w-full px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 text-[#8B93A8] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#E0E6F4]",
             collapsed && "justify-center px-2"
@@ -135,7 +135,7 @@ export default function Sidebar({ role }: { role: string }) {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        aria-label="Open navigation menu"
+        aria-label={t('openMenu')}
         className="fixed top-3 start-3 z-50 md:hidden flex items-center justify-center w-9 h-9 rounded-lg bg-[#0D1028] border border-[rgba(255,255,255,0.065)] text-[#8B93A8] hover:text-[#E0E6F4] transition-colors"
       >
         <Menu className="w-5 h-5" />
@@ -164,7 +164,7 @@ export default function Sidebar({ role }: { role: string }) {
         {mobileOpen && (
           <button
             onClick={() => setMobileOpen(false)}
-            aria-label="Close navigation menu"
+            aria-label={t('closeMenu')}
             className="absolute top-3 end-3 md:hidden flex items-center justify-center w-7 h-7 rounded-md text-[#8B93A8] hover:text-[#E0E6F4] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
           >
             <X className="w-4 h-4" />

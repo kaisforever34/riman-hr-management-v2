@@ -38,7 +38,7 @@ export default function EmployeeAssetsClient({ assignments }: { assignments: Ass
                   <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{t('assigned')} {new Date(a.assignedAt).toLocaleDateString()}</span>
                 </div>
               </div>
-              <span className="px-2 py-0.5 bg-[rgba(212,168,67,0.15)] text-[#D4A843] rounded-full text-[10px] font-medium">Assigned</span>
+              <span className="px-2 py-0.5 bg-[rgba(212,168,67,0.15)] text-[#D4A843] rounded-full text-[10px] font-medium">{t('assignedBadge')}</span>
             </div>
             {a.asset.notes && <p className="text-[12px] text-[#5A6278] mt-2">{a.asset.notes}</p>}
           </div>

@@ -232,9 +232,9 @@ export default function AddEmployeePage() {
                   <Select onValueChange={(v) => setValue('role', (v ?? 'EMPLOYEE') as 'HR_ADMIN' | 'MANAGER' | 'EMPLOYEE')} value={watch('role')} disabled={loading}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="EMPLOYEE">Employee</SelectItem>
-                      <SelectItem value="MANAGER">Manager</SelectItem>
-                      <SelectItem value="HR_ADMIN">HR Admin</SelectItem>
+                      <SelectItem value="EMPLOYEE">{t('roleEmployee')}</SelectItem>
+                      <SelectItem value="MANAGER">{t('roleManager')}</SelectItem>
+                      <SelectItem value="HR_ADMIN">{t('roleHrAdmin')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

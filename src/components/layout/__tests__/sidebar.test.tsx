@@ -12,6 +12,8 @@ vi.mock('next-intl', () => ({
       onboarding: 'Onboarding', myOnboarding: 'My Onboarding', analytics: 'Analytics',
       surveys: 'Surveys', mySurveys: 'My Surveys', assets: 'Assets', myAssets: 'My Assets',
       expenses: 'Expenses', myExpenses: 'My Expenses',
+      openMenu: 'Open navigation menu', closeMenu: 'Close navigation menu',
+      expandSidebar: 'Expand sidebar', collapseSidebar: 'Collapse sidebar',
     }
     return map[key] || key
   },

@@ -60,7 +60,7 @@ export function NewReviewClient({ criteria, employees }: Props) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!employeeId) { setMessage('Please select an employee'); return }
+    if (!employeeId) { setMessage(t('selectEmployee')); return }
     setSaving(true)
     setMessage('')
 
@@ -170,7 +170,7 @@ export function NewReviewClient({ criteria, employees }: Props) {
               <div key={`c-${i}`} className="flex flex-wrap items-end gap-3 rounded border border-dashed bg-[rgba(255,255,255,0.03)] p-3">
                 <div className="min-w-[150px] flex-1">
                   <label className="text-xs font-medium text-[#8B93A8]">{t('customCriteria')}</label>
-                  <input className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm" value={r.customName || ''} onChange={e => updateCustomRating(i, 'customName', e.target.value)} placeholder="Criteria name" />
+                  <input className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm" value={r.customName || ''} onChange={e => updateCustomRating(i, 'customName', e.target.value)} placeholder={t('criteriaNamePlaceholder')} />
                 </div>
                 <div className="min-w-[130px]">
                   <label className="text-xs font-medium text-[#8B93A8]">{t('rating')}</label>
@@ -240,9 +240,9 @@ export function NewReviewClient({ criteria, employees }: Props) {
 
         <div className="flex gap-2">
           <Button type="submit" disabled={saving}>
-            <Upload className="me-2 h-4 w-4" />{saving ? 'Saving...' : t('newReview')}
+            <Upload className="me-2 h-4 w-4" />{saving ? t('saving') : t('newReview')}
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
+          <Button type="button" variant="outline" onClick={() => router.back()}>{t('cancel')}</Button>
         </div>
       </form>
     </div>
