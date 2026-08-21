@@ -75,6 +75,7 @@ model User {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  tokenVersion Int      @default(0)
 
   employee              Employee?
   accounts              Account[]
@@ -536,4 +537,18 @@ model Expense {
 
   employee   Employee @relation(fields: [employeeId], references: [id])
   reviewedBy User?    @relation(fields: [reviewedById], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorEmail String?
+  action     String
+  entityType String
+  entityId   String?
+  detail     Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }
