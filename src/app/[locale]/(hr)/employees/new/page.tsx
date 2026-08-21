@@ -24,6 +24,16 @@ import Link from 'next/link'
 
 type SectionKey = 'personal' | 'job' | 'bank' | 'emergency'
 
+const DAYS = [
+  { value: 0, key: 'sun' },
+  { value: 1, key: 'mon' },
+  { value: 2, key: 'tue' },
+  { value: 3, key: 'wed' },
+  { value: 4, key: 'thu' },
+  { value: 5, key: 'fri' },
+  { value: 6, key: 'sat' },
+] as const
+
 function generateEmployeeCode() {
   const num = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
   return `EMP-${num}`
@@ -50,6 +60,7 @@ export default function AddEmployeePage() {
     defaultValues: {
       employeeCode: generateEmployeeCode(),
       role: 'EMPLOYEE',
+      workWeek: [0, 1, 2, 3, 4],
     },
   })
 
@@ -71,7 +82,9 @@ export default function AddEmployeePage() {
 
     const formData = new FormData()
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
+      if (Array.isArray(value)) {
+        value.forEach((v) => formData.append(key, String(v)))
+      } else if (value !== undefined && value !== null) {
         formData.append(key, value as string)
       }
     })
@@ -224,6 +237,24 @@ export default function AddEmployeePage() {
                       <SelectItem value="HR_ADMIN">HR Admin</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>{t('workWeek')} *</Label>
+                  <div className="flex flex-wrap gap-4">
+                    {DAYS.map((day) => (
+                      <label key={day.value} className="flex items-center gap-2 text-sm font-normal">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4"
+                          value={day.value}
+                          disabled={loading}
+                          {...register('workWeek')}
+                        />
+                        {t(`days.${day.key}`)}
+                      </label>
+                    ))}
+                  </div>
+                  {errors.workWeek && <p className="text-sm text-red-500">{errors.workWeek.message}</p>}
                 </div>
               </div>
             )}

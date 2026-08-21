@@ -80,6 +80,16 @@
     "hireDate": "Hire Date",
     "salary": "Salary (AED)",
     "role": "Role",
+    "workWeek": "Work Week",
+    "days": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
     "bankName": "Bank Name",
     "iban": "IBAN",
     "swift": "SWIFT/BIC",

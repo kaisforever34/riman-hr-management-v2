@@ -8,6 +8,7 @@ import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { Role } from '@prisma/client'
+import { z } from 'zod'
 
 export async function createEmployee(formData: FormData) {
   const session = await auth()
@@ -15,7 +16,7 @@ export async function createEmployee(formData: FormData) {
     return { error: await serverError('unauthorized') }
   }
 
-  const raw = Object.fromEntries(formData.entries())
+  const raw = { ...Object.fromEntries(formData.entries()), workWeek: formData.getAll('workWeek') }
 
   const parsed = employeeFormSchema.safeParse(raw)
   if (!parsed.success) {
@@ -63,6 +64,7 @@ export async function createEmployee(formData: FormData) {
             swift: data.swift || null,
             emergencyContactName: data.emergencyContactName || null,
             emergencyContactPhone: data.emergencyContactPhone || null,
+            workWeek: data.workWeek,
           },
         },
       },
@@ -77,4 +79,17 @@ export async function createEmployee(formData: FormData) {
 
   revalidatePath('/employees')
   redirect('/employees')
+}
+
+export async function updateEmployeeWorkWeek(formData: FormData) {
+  const session = await auth()
+  if (session?.user.role !== 'HR_ADMIN') return { error: await serverError('unauthorized') }
+
+  const employeeId = formData.get('employeeId') as string
+  const days = formData.getAll('workWeek').map(Number)
+  const parsed = z.array(z.number().int().min(0).max(6)).min(1).safeParse(days)
+  if (!parsed.success || !employeeId) return { error: await serverError('invalidInput') }
+
+  await db.employee.update({ where: { id: employeeId }, data: { workWeek: parsed.data } })
+  revalidatePath('/employees')
 }

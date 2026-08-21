@@ -20,6 +20,7 @@ export const employeeFormSchema = z.object({
   swift: z.string().optional(),
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
+  workWeek: z.array(z.coerce.number().int().min(0).max(6)).min(1, 'Select at least one day').default([0, 1, 2, 3, 4]),
 })
 
 export type EmployeeFormData = z.infer<typeof employeeFormSchema>
