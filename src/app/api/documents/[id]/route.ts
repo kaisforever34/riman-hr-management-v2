@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { readFile } from 'fs/promises'
-import { join, resolve } from 'path'
+import { join, resolve, relative } from 'path'
 import { PRIVATE_UPLOAD_ROOT } from '@/lib/upload'
 
 export const dynamic = 'force-dynamic'
@@ -32,7 +32,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const relativeKey = doc.filePath.replace(/^\/uploads\//, '')
   const fullPath = resolve(join(PRIVATE_UPLOAD_ROOT, relativeKey))
-  if (!fullPath.startsWith(resolve(PRIVATE_UPLOAD_ROOT))) {
+  const rel = relative(resolve(PRIVATE_UPLOAD_ROOT), fullPath)
+  if (rel.startsWith('..') || resolve(PRIVATE_UPLOAD_ROOT) === fullPath) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         'Content-Type': doc.fileType || 'application/octet-stream',
-        'Content-Disposition': `attachment; filename="${doc.fileName.replace(/"/g, '')}"`,
+        'Content-Disposition': `attachment; filename="${doc.fileName.replace(/["\r\n]/g, '')}"`,
         'Cache-Control': 'private, no-store',
       },
     })

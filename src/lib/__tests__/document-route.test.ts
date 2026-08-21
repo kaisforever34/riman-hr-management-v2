@@ -93,6 +93,17 @@ describe('GET /api/documents/[id]', () => {
     expect(res.status).toBe(404)
   })
 
+  it('returns 403 when filePath resolves outside upload root', async () => {
+    mockDb.employeeDocument.findUnique.mockResolvedValue({
+      fileName: 'evil.pdf',
+      filePath: '../secrets/a.pdf',
+      fileType: 'application/pdf',
+      employee: { userId: 'user1' },
+    })
+    const res = await getDocument(req(), { params })
+    expect(res.status).toBe(403)
+  })
+
   it('handles legacy /uploads/ paths', async () => {
     mockDb.employeeDocument.findUnique.mockResolvedValue({
       fileName: 'old.pdf',
