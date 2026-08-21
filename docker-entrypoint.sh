@@ -7,7 +7,7 @@ npx prisma migrate deploy
 USER_COUNT=$(node -e "
 const { PrismaClient } = require('@prisma/client');
 const p = new PrismaClient();
-p.user.count().then(c => { console.log(c); process.exit(0); }).catch(() => { console.log('err'); process.exit(0); });
+p.user.count().then(c => { console.log(c); process.exit(0); }).catch((e) => { console.error(e); process.exit(1); });
 ")
 if [ "$USER_COUNT" = "0" ]; then
   echo "Seeding database..."

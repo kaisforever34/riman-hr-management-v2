@@ -1,7 +1,7 @@
 type Level = 'info' | 'warn' | 'error'
 
 function write(level: Level, msg: string, meta?: Record<string, unknown>) {
-  const line = JSON.stringify({ level, msg, time: new Date().toISOString(), ...meta })
+  const line = JSON.stringify({ ...meta, level, msg, time: new Date().toISOString() })
   if (level === 'info') process.stdout.write(line + '\n')
   else process.stderr.write(line + '\n')
 }

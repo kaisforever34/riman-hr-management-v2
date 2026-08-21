@@ -1,6 +1,6 @@
 // src/lib/__tests__/rate-limit.test.ts
 import { describe, it, expect, beforeEach } from 'vitest'
-import { checkRateLimit, resetRateLimits } from '@/lib/rate-limit'
+import { checkRateLimit, resetRateLimit, resetRateLimits } from '@/lib/rate-limit'
 
 describe('checkRateLimit', () => {
   beforeEach(() => resetRateLimits())
@@ -19,5 +19,12 @@ describe('checkRateLimit', () => {
   it('tracks keys independently', () => {
     for (let i = 0; i < 5; i++) checkRateLimit('ip3')
     expect(checkRateLimit('ip4').ok).toBe(true)
+  })
+
+  it('resetRateLimit allows attempts again after block', () => {
+    for (let i = 0; i < 5; i++) checkRateLimit('ip5')
+    expect(checkRateLimit('ip5').ok).toBe(false)
+    resetRateLimit('ip5')
+    expect(checkRateLimit('ip5').ok).toBe(true)
   })
 })

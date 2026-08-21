@@ -1,0 +1,16 @@
+# SDD Progress - production-readiness
+
+Task 1: complete (commits 1150c85..d66ff27, review clean; lint+70 tests green)
+Task 2: complete (commit e9698c0, review clean)
+Task 3: complete (commit c30d2b0, review clean)
+Task 4: complete (commit 23ec7ce, review clean; minor: shared error UI component deferred)
+Task 5: complete (commit 4991daa, review clean; minor: meta can overwrite reserved keys)
+Task 6: complete (commit 4949f30, review clean)
+Task 7: complete (commit c26ee43, review clean; minor: seed-check error masking)
+Task 8: complete (commit 6059657, review clean; minor: vitest4 poolOptions deprecation follow-up)
+Task 9: complete (commit fa709ba, review clean; vitest config migrated to fileParallelism)
+Task 10: complete (commit 1f5bb3c, review clean)
+Task 11: complete (commit 4be787a, review clean; minor: non-concurrent index creation)
+Task 12: complete (commit 2edf63f, review clean)
+Task 13: complete (commit d4e4b81, review clean)
+Task 14: complete (commit 5505bfd, review clean; minor: seed passwords hardcoded follow-up)

@@ -4,7 +4,8 @@ import bcrypt from 'bcryptjs'
 import { authConfig } from './auth.config'
 import { db } from './db'
 import { signInSchema } from './validations/auth'
-import { checkRateLimit } from './rate-limit'
+import { checkRateLimit, resetRateLimit } from './rate-limit'
+import { env } from './env'
 import type { Role } from '@prisma/client'
 
 declare module 'next-auth' {
@@ -30,13 +31,9 @@ declare module '@auth/core/jwt' {
   }
 }
 
-const secret = process.env.AUTH_SECRET
-if (!secret && process.env.NODE_ENV === 'production') {
-  throw new Error('AUTH_SECRET must be set in production')
-}
-
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
+  secret: env.AUTH_SECRET,
 
   providers: [
     Credentials({
@@ -57,6 +54,8 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
 
         const passwordsMatch = await bcrypt.compare(password, user.passwordHash)
         if (!passwordsMatch) return null
+
+        if (rlEmail) resetRateLimit(`signin:${rlEmail}`)
 
         const employee = await db.employee.findUnique({ where: { userId: user.id } })
         const name = employee ? `${employee.firstName} ${employee.lastName}` : user.email.split('@')[0]

@@ -20,4 +20,13 @@ describe('logger', () => {
     logger.info('started')
     expect(spy).toHaveBeenCalled()
   })
+
+  it('meta cannot override reserved keys', () => {
+    const spy = vi.spyOn(process.stdout, 'write').mockReturnValue(true)
+    logger.info('hello', { level: 'error', msg: 'fake', time: 'fake' })
+    const out = JSON.parse(String(vi.mocked(spy).mock.calls[0][0]))
+    expect(out.level).toBe('info')
+    expect(out.msg).toBe('hello')
+    expect(out.time).not.toBe('fake')
+  })
 })
