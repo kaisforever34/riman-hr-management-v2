@@ -1,97 +1,135 @@
-### Task 3: Rate limiting for auth (signin brute-force protection)
+### Task 3: submitLeave uses working days
 
 **Files:**
-- Create: `src/lib/rate-limit.ts`
-- Modify: `src/lib/auth.ts`
-- Test: `src/lib/__tests__/rate-limit.test.ts`
+- Modify: `src/lib/validations/leave.ts`
+- Modify: `src/lib/actions/leave.ts`
+- Modify: `src/lib/errors.ts`
+- Modify: `src/i18n/messages/en.json`, `src/i18n/messages/ar.json`
+- Test: extend `src/lib/__tests__/leave.test.ts`
 
 **Interfaces:**
-- Produces: `checkRateLimit(key: string): { ok: boolean; retryAfterSec?: number }` — in-memory sliding window (5 attempts / 15 min per key). Single-instance deployment is the target; swap for Redis later if scaling horizontally.
+- Consumes: `countWorkingDays`, `toUaeDateKey` from Task 1; `db.holiday` from Task 2.
+- Produces: error keys `noWorkingDays`, `halfDayMustBeSingleDay`.
 
-- [ ] **Step 1: Write failing test**
+- [ ] **Step 1: Add validation rule + error keys**
+
+In `src/lib/validations/leave.ts`, change `submitLeaveSchema` to:
 
 ```ts
-// src/lib/__tests__/rate-limit.test.ts
-import { describe, it, expect, beforeEach } from 'vitest'
-import { checkRateLimit, resetRateLimits } from '@/lib/rate-limit'
+export const submitLeaveSchema = z
+  .object({
+    leaveTypeId: z.string().min(1, 'Leave type is required'),
+    startDate: z.string().min(1, 'Start date is required'),
+    endDate: z.string().min(1, 'End date is required'),
+    isHalfDay: z.string().optional(),
+    halfDayPeriod: z.string().optional(),
+    reason: z.string().min(1, 'Reason is required'),
+  })
+  .refine(
+    (d) => d.isHalfDay !== 'true' || d.startDate === d.endDate,
+    { message: 'Half-day leave must start and end on the same day', path: ['endDate'] },
+  )
+```
 
-describe('checkRateLimit', () => {
-  beforeEach(() => resetRateLimits())
+In `src/lib/errors.ts` add to the `ErrorKey` union:
 
-  it('allows first attempts', () => {
-    expect(checkRateLimit('ip1').ok).toBe(true)
+```ts
+  | 'noWorkingDays'
+  | 'halfDayMustBeSingleDay'
+```
+
+In `en.json` under `"errors"` add:
+`"noWorkingDays": "The selected period contains no working days."`,
+`"halfDayMustBeSingleDay": "Half-day leave must be within a single day."`
+
+In `ar.json` under `"errors"` add:
+`"noWorkingDays": "لا تحتوي الفترة المحددة على أيام عمل."`,
+`"halfDayMustBeSingleDay": "يجب أن يكون الإجازة نصف اليوم داخل يوم واحد."`
+
+- [ ] **Step 2: Update submitLeave action**
+
+In `src/lib/actions/leave.ts`, replace the duration computation block (currently from `const start = new Date(data.startDate)` through the `durationExceeds365` check) with:
+
+```ts
+  const start = new Date(data.startDate)
+  const end = new Date(data.endDate)
+  const isHalfDay = data.isHalfDay === 'true'
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  if (start < today) return { error: await serverError('startDatePast') }
+  if (end < start) return { error: await serverError('endDateBeforeStart') }
+
+  const holidays = await db.holiday.findMany({
+    where: { date: { gte: start, lte: end } },
+    select: { date: true },
+  })
+  const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
+  const durationDays = isHalfDay
+    ? 0.5
+    : countWorkingDays(toUaeDateKey(start), toUaeDateKey(end), employee.workWeek, holidayKeys)
+
+  if (!isHalfDay && durationDays === 0) return { error: await serverError('noWorkingDays') }
+  if (!isHalfDay && durationDays > 365) return { error: await serverError('durationExceeds365') }
+```
+
+Add import at top: `import { countWorkingDays, toUaeDateKey } from '@/lib/working-days'`
+
+Note: `employee.workWeek` requires the employee query to select it — `db.employee.findUnique({ where: { userId } })` returns full record including scalars, so no change needed there.
+
+- [ ] **Step 3: Extend action test**
+
+Append to `describe('approveLeave')` sibling scope in `src/lib/__tests__/leave.test.ts` a new describe using the existing mock setup (mockDb already has all models; add `holiday: { findMany: vi.fn() }` to the mockDb object):
+
+```ts
+describe('submitLeave working days', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockSession.user.role = 'EMPLOYEE'
+    mockSession.user.id = 'u1'
   })
 
-  it('blocks after 5 attempts', () => {
-    for (let i = 0; i < 5; i++) checkRateLimit('ip2')
-    const result = checkRateLimit('ip2')
-    expect(result.ok).toBe(false)
-    expect(result.retryAfterSec).toBeGreaterThan(0)
+  it('rejects half-day spanning multiple days', async () => {
+    mockDb.employee.findUnique.mockResolvedValueOnce({
+      id: 'emp1', userId: 'u1', hireDate: new Date('2020-01-01'), workWeek: [0, 1, 2, 3, 4],
+    })
+    const form = makeFormData({
+      leaveTypeId: 'lt1', startDate: '2026-09-01', endDate: '2026-09-05',
+      isHalfDay: 'true', reason: 'x',
+    })
+    const result = await submitLeave(form)
+    expect(result?.error).toBeDefined()
   })
 
-  it('tracks keys independently', () => {
-    for (let i = 0; i < 5; i++) checkRateLimit('ip3')
-    expect(checkRateLimit('ip4').ok).toBe(true)
+  it('rejects when range has no working days', async () => {
+    mockDb.employee.findUnique.mockResolvedValueOnce({
+      id: 'emp1', userId: 'u1', hireDate: new Date('2020-01-01'), workWeek: [0, 1, 2, 3, 4],
+    })
+    mockDb.leaveType.findUnique.mockResolvedValue({ id: 'lt1', isActive: true, requiresAttachment: false })
+    mockDb.holiday.findMany.mockResolvedValue([])
+    // 2026-01-09 (Fri) .. 2026-01-10 (Sat) — non-working for Sun-Thu pattern
+    const form = makeFormData({
+      leaveTypeId: 'lt1', startDate: '2026-01-09', endDate: '2026-01-10', reason: 'x',
+    })
+    const result = await submitLeave(form)
+    expect(result?.error).toContain('no working days')
   })
 })
 ```
 
-- [ ] **Step 2: Run to verify fail**
+Also update the import line to include `submitLeave`: `import { approveLeave, cancelLeave, submitLeave } from '@/lib/actions/leave'`.
+Note: existing tests that call `submitLeave` indirectly may need `mockDb.holiday.findMany` defaulting to `vi.fn().mockResolvedValue([])` — set that default in the mockDb declaration.
 
-Run: `npx vitest run src/lib/__tests__/rate-limit.test.ts`
-Expected: FAIL (module missing)
+- [ ] **Step 4: Run tests**
 
-- [ ] **Step 3: Implement `src/lib/rate-limit.ts`**
+Run: `npx vitest run src/lib/__tests__/leave.test.ts` (timeout ≥120000ms)
+Expected: PASS (all, including new)
 
-```ts
-const WINDOW_MS = 15 * 60 * 1000
-const MAX_ATTEMPTS = 5
-
-const attempts = new Map<string, number[]>()
-
-export function checkRateLimit(key: string): { ok: boolean; retryAfterSec?: number } {
-  const now = Date.now()
-  const recent = (attempts.get(key) ?? []).filter((t) => now - t < WINDOW_MS)
-  if (recent.length >= MAX_ATTEMPTS) {
-    const oldest = recent[0]
-    return { ok: false, retryAfterSec: Math.ceil((WINDOW_MS - (now - oldest)) / 1000) }
-  }
-  recent.push(now)
-  attempts.set(key, recent)
-  return { ok: true }
-}
-
-export function resetRateLimits() {
-  attempts.clear()
-}
-```
-
-- [ ] **Step 4: Wire into `src/lib/auth.ts` authorize()**
-
-Add import and at top of `authorize`:
-
-```ts
-import { checkRateLimit } from './rate-limit'
-// inside authorize(credentials), before schema parse:
-const email = typeof credentials?.email === 'string' ? credentials.email.toLowerCase() : ''
-if (email) {
-  const rl = checkRateLimit(`signin:${email}`)
-  if (!rl.ok) return null
-}
-```
-
-Returning `null` shows generic "credentials invalid" — do not reveal rate-limit state to attacker.
-
-- [ ] **Step 5: Run tests + build**
-
-Run: `npx vitest run src/lib/__tests__/rate-limit.test.ts && npm run lint`
-Expected: PASS
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add src/lib/rate-limit.ts src/lib/auth.ts src/lib/__tests__/rate-limit.test.ts
-git commit -m "feat: rate-limit sign-in attempts per email"
+git add src/lib/validations/leave.ts src/lib/actions/leave.ts src/lib/errors.ts src/i18n/messages/en.json src/i18n/messages/ar.json src/lib/__tests__/leave.test.ts
+git commit -m "feat: compute leave duration in working days"
 ```
 
 ---

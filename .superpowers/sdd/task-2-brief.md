@@ -1,51 +1,48 @@
-### Task 2: Security headers + hardened next.config
+### Task 2: Schema migration (workWeek + Holiday)
 
 **Files:**
-- Modify: `next.config.ts`
+- Modify: `prisma/schema.prisma`
+- Create: migration via CLI
 
 **Interfaces:**
-- Produces: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy on all responses.
+- Produces: `Employee.workWeek: number[]` (default `[0,1,2,3,4]`), `db.holiday` model with `findMany/findUnique/create/update/delete`.
 
-- [ ] **Step 1: Update `next.config.ts`**
+- [ ] **Step 1: Edit schema**
 
-```ts
-import createNextIntlPlugin from "next-intl/plugin";
-import type { NextConfig } from "next";
+In `model Employee`, add after `isActive Boolean @default(true)`:
 
-const withNextIntl = createNextIntlPlugin();
-
-const securityHeaders = [
-  { key: "X-Frame-Options", value: "DENY" },
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-];
-
-const nextConfig: NextConfig = {
-  output: "standalone",
-  poweredByHeader: false,
-  reactStrictMode: true,
-  async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
-  },
-};
-
-export default withNextIntl(nextConfig);
+```prisma
+  workWeek              Int[]          @default([0, 1, 2, 3, 4])
 ```
 
-Note: no strict CSP yet (Next.js inline scripts break it); add nonce-based CSP later if required. HSTS only matters over HTTPS — harmless on localhost.
+Add new model after `LeaveType`:
 
-- [ ] **Step 2: Build to verify**
+```prisma
+model Holiday {
+  id        String   @id @default(cuid())
+  name      String
+  nameAr    String?
+  date      DateTime @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+```
 
-Run: `npm run build`
-Expected: success
+- [ ] **Step 2: Create and apply migration**
 
-- [ ] **Step 3: Commit**
+Run: `npx prisma migrate dev --name workweek_and_holidays` (timeout ≥180000ms)
+Expected: migration applied cleanly to dev DB
+
+- [ ] **Step 3: Regenerate client and typecheck**
+
+Run: `npx prisma generate && npx tsc --noEmit`
+Expected: clean
+
+- [ ] **Step 4: Commit**
 
 ```bash
-git add next.config.ts
-git commit -m "feat: add security headers and harden next config"
+git add prisma
+git commit -m "feat: add Employee.workWeek and Holiday table"
 ```
 
 ---

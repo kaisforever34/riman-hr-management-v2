@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createNotifications, createNotification, getApproverUserIds } from './notifications'
 import { serverError } from '@/lib/errors'
-import { countWorkingDays, toUaeDateKey } from '@/lib/working-days'
+import { countWorkingDays, isWorkingDay, toUaeDateKey } from '@/lib/working-days'
 
 export async function submitLeave(formData: FormData) {
   const session = await auth()
@@ -45,6 +45,10 @@ export async function submitLeave(formData: FormData) {
     select: { date: true },
   })
   const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
+  if (isHalfDay && !isWorkingDay(toUaeDateKey(start), employee.workWeek, holidayKeys)) {
+    return { error: await serverError('noWorkingDays') }
+  }
+
   const durationDays = isHalfDay
     ? 0.5
     : countWorkingDays(toUaeDateKey(start), toUaeDateKey(end), employee.workWeek, holidayKeys)

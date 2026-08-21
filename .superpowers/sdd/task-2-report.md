@@ -1,17 +1,21 @@
-# Task 2 Report: Security headers + hardened next.config
+# Task 2 Report: Schema migration (workWeek + Holiday)
 
-## Status: DONE
+**Status:** DONE
+**Commit:** d5368a3 — `feat: add Employee.workWeek and Holiday table`
 
-## Changes
-- Replaced `next.config.ts` content per brief (verbatim): added securityHeaders array (X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy, HSTS), `poweredByHeader: false`, `reactStrictMode: true`, and `headers()` applying to all paths. Kept `output: "standalone"` and next-intl plugin wrapper.
+## What was done
 
-## Verification
-- Skipped full `npm run build` per controller instruction (run at batch checkpoints).
-- `npm run lint`: pass (no errors)
-- `npx tsc --noEmit`: pass (no errors)
+1. **prisma/schema.prisma**
+   - Added `workWeek Int[] @default([0, 1, 2, 3, 4])` to `model Employee` (after `isActive`).
+   - `model Holiday` already existed in the schema with the exact fields from the brief (`id`, `name`, `nameAr?`, `date @unique`, `createdAt`, `updatedAt`) — no change needed.
+   - Note: schema contained a stale/misplaced `workWeek` line inside `model ReviewCriteria`; removed it and restored that model's original `isActive Boolean @default(true)` field.
 
-## Commit
-- e9698c0 — "feat: add security headers and harden next config" (only next.config.ts)
+2. **Migration**: `npx prisma migrate dev --name workweek_and_holidays`
+   - Created & applied cleanly: `prisma/migrations/20260821091256_workweek_and_holidays/`
+   - Dev DB at localhost:5433 now in sync.
+
+3. **Verification**: `npx prisma generate && npx tsc --noEmit` — clean, no errors.
 
 ## Concerns
-- None. Note from brief applies: no strict CSP yet; HSTS is a no-op on localhost.
+
+- None blocking. The Holiday table pre-existed (likely from seed-era schema), so the migration only adds the `Employee.workWeek` column.

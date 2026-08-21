@@ -1,16 +1,20 @@
-# Task 3 Report: Rate limiting for auth (signin brute-force protection)
+# Task 3 Report: submitLeave uses working days
 
-**Status:** DONE
-**Commit:** c30d2b0 `feat: rate-limit sign-in attempts per email`
-**Branch:** production-readiness
+**Status**: Complete
+**Commit**: 143add8 — "feat: compute leave duration in working days"
 
-## What was done
-- Created `src/lib/__tests__/rate-limit.test.ts` per brief (3 tests).
-- `src/lib/rate-limit.ts` already existed with content identical to the brief (in-memory sliding window, 5 attempts / 15 min per key, plus `resetRateLimits`); verified verbatim match.
-- Wired `checkRateLimit` into `authorize()` in `src/lib/auth.ts` before the schema parse. Fixed a pre-existing TS error: the rate-limit block declared `email`, which collided with the later destructured `email` — renamed to `rlEmail`.
-- Verified: `npx tsc --noEmit` clean; `npx vitest run src/lib/__tests__/rate-limit.test.ts` → 3/3 passed.
+## Changes
+- `src/lib/validations/leave.ts`: submitLeaveSchema now a chained `.refine` rejecting half-day leaves where startDate !== endDate.
+- `src/lib/errors.ts`: added `noWorkingDays`, `halfDayMustBeSingleDay` to ErrorKey union.
+- `src/i18n/messages/en.json` / `ar.json`: added both error messages.
+- `src/lib/actions/leave.ts`: replaced calendar-day duration computation with holiday lookup (`db.holiday.findMany`) + `countWorkingDays` using `employee.workWeek`; added `noWorkingDays` rejection.
+- `src/lib/__tests__/leave.test.ts`: added `holiday: { findMany: vi.fn().mockResolvedValue([]) }` to mockDb and new `submitLeave working days` describe with 2 tests.
 
-## Notes / concerns
-- TDD red phase could not be observed because implementation already existed on disk (likely from a prior partial run); test was confirmed passing against it.
-- In-memory store is single-instance only (per brief); swap for Redis if scaling horizontally.
-- Rate limit is keyed by email only; failed attempts count even for valid logins within window (per brief design).
+## Test adjustments vs brief
+- Test 2 form data needed explicit `isHalfDay: 'false', halfDayPeriod: ''` — `formData.get` returns `null` for unset fields and zod `.optional()` rejects null, causing a spurious validation failure.
+- Brief's dates (2026-01-09/10) are in the past relative to today (2026-08-21), tripping the `startDatePast` check; replaced with future Fri/Sat pair 2026-09-04/05.
+
+## Verification
+- `npx vitest run leave.test.ts validations.test.ts`: 51 passed
+- `npm run test`: 8 files, 89 passed
+- `npx tsc --noEmit`: clean

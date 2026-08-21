@@ -1,41 +1,33 @@
-### Task 6: Health check endpoint
+### Task 6: Calendar shading
 
 **Files:**
-- Create: `src/app/api/health/route.ts`
+- Modify: `src/app/[locale]/(hr)/manager/leaves/calendar/page.tsx`
+- Modify: `src/app/[locale]/(hr)/manager/leaves/calendar/calendar-client.tsx`
 
 **Interfaces:**
-- Produces: `GET /api/health` → `{ status: 'ok', db: 'up' | 'down' }` with 200/503. Used by Docker healthcheck and uptime monitors. Must bypass auth — middleware matcher already excludes `/api`.
+- Consumes: `getHolidays()` (Task 4), `isWorkingDay`, `toUaeDateKey` (Task 1).
 
-- [ ] **Step 1: Create route**
+- [ ] **Step 1: Page passes data**
 
-```ts
-// src/app/api/health/route.ts
-import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+In `calendar/page.tsx`, fetch holidays alongside existing queries and pass down:
+`const holidays = await getHolidays()` then prop `holidayKeys={JSON.parse(JSON.stringify(holidays.map((h) => h.date.toISOString())))}`.
+Simpler and safer: pass raw dates and convert in client with `toUaeDateKey(new Date(h.date))` — pass `holidays={JSON.parse(JSON.stringify(holidays))}`.
 
-export const dynamic = 'force-dynamic'
+- [ ] **Step 2: Client shades cells**
 
-export async function GET() {
-  try {
-    await db.$queryRaw`SELECT 1`
-    return NextResponse.json({ status: 'ok', db: 'up' })
-  } catch {
-    return NextResponse.json({ status: 'degraded', db: 'down' }, { status: 503 })
-  }
-}
-```
+In `calendar-client.tsx`:
+- Build `const holidaySet = new Set(holidays.map((h) => toUaeDateKey(new Date(h.date))))`.
+- For each rendered day cell, determine its date key and apply a muted/grey class when `!isWorkingDay(key, workWeekOfCellContext, holidaySet)`. The calendar renders leave entries per employee — if employees' `workWeek` is available in existing props use it; otherwise pass `workWeek` per employee from the page query (add `workWeek: true` to the employee select in the page's query if it selects specific fields).
+- Non-working cells get `className="... opacity-40 bg-muted"` merged with existing cell classes (match file's class style).
 
-- [ ] **Step 2: Verify middleware excludes it**
+- [ ] **Step 3: Verify + commit**
 
-`src/middleware.ts:53` matcher `/((?!api|_next|_vercel|.*\\..*).*)` already excludes `/api`. No change needed.
-
-- [ ] **Step 3: Build + commit**
-
-Run: `npm run build`
+Run: `npx tsc --noEmit && npm run lint` 
+Expected: green
 
 ```bash
-git add src/app/api/health/route.ts
-git commit -m "feat: add /api/health endpoint with db check"
+git add "src/app/[locale]/(hr)/manager/leaves/calendar"
+git commit -m "feat: shade non-working days and holidays on leave calendar"
 ```
 
 ---

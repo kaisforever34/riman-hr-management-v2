@@ -90,6 +90,9 @@ export async function updateEmployeeWorkWeek(formData: FormData) {
   const parsed = z.array(z.number().int().min(0).max(6)).min(1).safeParse(days)
   if (!parsed.success || !employeeId) return { error: await serverError('invalidInput') }
 
+  const emp = await db.employee.findUnique({ where: { id: employeeId } })
+  if (!emp) return { error: await serverError('employeeNotFound') }
+
   await db.employee.update({ where: { id: employeeId }, data: { workWeek: parsed.data } })
   revalidatePath('/employees')
 }

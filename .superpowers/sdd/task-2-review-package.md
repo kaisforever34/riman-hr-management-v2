@@ -1,32 +1,83 @@
-e9698c0 feat: add security headers and harden next config
- next.config.ts | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
-diff --git a/next.config.ts b/next.config.ts
-index fb0cf97..0efba1f 100644
---- a/next.config.ts
-+++ b/next.config.ts
-@@ -1,10 +1,23 @@
- import createNextIntlPlugin from "next-intl/plugin";
- import type { NextConfig } from "next";
- 
- const withNextIntl = createNextIntlPlugin();
- 
-+const securityHeaders = [
-+  { key: "X-Frame-Options", value: "DENY" },
-+  { key: "X-Content-Type-Options", value: "nosniff" },
-+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-+];
+d5368a3 feat: add Employee.workWeek and Holiday table
+ .../20260821091256_workweek_and_holidays/migration.sql  | 17 +++++++++++++++++
+ prisma/schema.prisma                                    | 10 ++++++++++
+ 2 files changed, 27 insertions(+)
+diff --git a/prisma/migrations/20260821091256_workweek_and_holidays/migration.sql b/prisma/migrations/20260821091256_workweek_and_holidays/migration.sql
+new file mode 100644
+index 0000000..456f9ab
+--- /dev/null
++++ b/prisma/migrations/20260821091256_workweek_and_holidays/migration.sql
+@@ -0,0 +1,17 @@
++-- AlterTable
++ALTER TABLE "Employee" ADD COLUMN     "workWeek" INTEGER[] DEFAULT ARRAY[0, 1, 2, 3, 4]::INTEGER[];
 +
- const nextConfig: NextConfig = {
--  output: 'standalone',
-+  output: "standalone",
-+  poweredByHeader: false,
-+  reactStrictMode: true,
-+  async headers() {
-+    return [{ source: "/:path*", headers: securityHeaders }];
-+  },
- };
++-- CreateTable
++CREATE TABLE "Holiday" (
++    "id" TEXT NOT NULL,
++    "name" TEXT NOT NULL,
++    "nameAr" TEXT,
++    "date" TIMESTAMP(3) NOT NULL,
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++    "updatedAt" TIMESTAMP(3) NOT NULL,
++
++    CONSTRAINT "Holiday_pkey" PRIMARY KEY ("id")
++);
++
++-- CreateIndex
++CREATE UNIQUE INDEX "Holiday_date_key" ON "Holiday"("date");
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index 3256917..c8c9aba 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -106,20 +106,21 @@ model Employee {
+   salary                Decimal        @db.Decimal(10, 2)
+   bankName              String?
+   iban                  String?
+   swift                 String?
+   emergencyContactName  String?
+   emergencyContactPhone String?
+   managerId             String?
+   manager               Employee?      @relation("ManagerReports", fields: [managerId], references: [id], onDelete: SetNull)
+   reports               Employee[]     @relation("ManagerReports")
+   isActive              Boolean        @default(true)
++  workWeek              Int[]          @default([0, 1, 2, 3, 4])
+   createdAt             DateTime       @default(now())
+   updatedAt             DateTime       @updatedAt
+   leaveRequests         LeaveRequest[]
+   leaveBalances         LeaveBalance[]
+   attendanceRecords     AttendanceRecord[]
+   payslips              Payslip[]
+   performanceReviews    PerformanceReview[]
+   employeeDocuments     EmployeeDocument[]
+   onboarding            EmployeeOnboarding[]
+   surveyAssignments     SurveyAssignment[]
+@@ -134,20 +135,29 @@ model LeaveType {
+   defaultDays        Int            @default(0)
+   requiresAttachment Boolean        @default(false)
+   isPaid             Boolean        @default(true)
+   isActive           Boolean        @default(true)
+   createdAt          DateTime       @default(now())
+   updatedAt          DateTime       @updatedAt
+   leaveRequests      LeaveRequest[]
+   leaveBalances      LeaveBalance[]
+ }
  
- export default withNextIntl(nextConfig);
++model Holiday {
++  id        String   @id @default(cuid())
++  name      String
++  nameAr    String?
++  date      DateTime @unique
++  createdAt DateTime @default(now())
++  updatedAt DateTime @updatedAt
++}
++
+ model LeaveBalance {
+   id          String    @id @default(cuid())
+   employeeId  String
+   leaveTypeId String
+   yearStart   DateTime
+   yearEnd     DateTime
+   allocated   Int       @default(0)
+   carriedOver Int       @default(0)
+   used        Float     @default(0)
+   employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)

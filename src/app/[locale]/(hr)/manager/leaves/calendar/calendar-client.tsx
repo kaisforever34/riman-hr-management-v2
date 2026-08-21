@@ -64,7 +64,7 @@ export default function CalendarClient({ requests, holidays }: CalendarClientPro
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1
             const dayRequests = getRequestsForDay(day)
-            const dateKey = toUaeDateKey(new Date(year, month, day))
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
             const relevantWeeks = new Set<string>(
               (dayRequests.length > 0
                 ? dayRequests.map((r: any) => r.employee.workWeek)

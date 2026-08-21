@@ -1,75 +1,62 @@
-### Task 5: Structured server-side logging
+### Task 5: Employee work-week editor
 
 **Files:**
-- Create: `src/lib/logger.ts`
-- Modify: `src/lib/db.ts` (log slow queries / errors in dev)
-- Test: `src/lib/__tests__/logger.test.ts`
+- Modify: `src/app/[locale]/(hr)/employees/new/page.tsx` (or its client form component — locate the form rendering `employeeFormSchema` fields)
+- Modify: `src/lib/validations/employee.ts`
+- Modify: `src/lib/actions/employee.ts`
+- Modify: `src/i18n/messages/en.json`, `ar.json`
 
 **Interfaces:**
-- Produces: `logger.info/warn/error(msg, meta?)` — JSON lines in production, readable in dev. No external service dependency (Sentry optional later).
+- Consumes: `Employee.workWeek` (Task 2).
+- Produces: `workWeek` accepted by `createEmployee` (zod-coerced int array); new action `updateEmployeeWorkWeek(formData)`.
 
-- [ ] **Step 1: Write failing test**
+- [ ] **Step 1: Schema**
+
+In `src/lib/validations/employee.ts`, add to `employeeFormSchema`:
 
 ```ts
-// src/lib/__tests__/logger.test.ts
-import { describe, it, expect, vi, afterEach } from 'vitest'
-import { logger } from '@/lib/logger'
-
-describe('logger', () => {
-  afterEach(() => vi.restoreAllMocks())
-
-  it('error writes to stderr with level and message', () => {
-    const spy = vi.spyOn(process.stderr, 'write').mockReturnValue(true)
-    logger.error('db failed', { code: 'P2002' })
-    expect(spy).toHaveBeenCalled()
-    const out = JSON.parse(String(vi.mocked(spy).mock.calls[0][0]))
-    expect(out.level).toBe('error')
-    expect(out.msg).toBe('db failed')
-    expect(out.code).toBe('P2002')
-    expect(out.time).toBeDefined()
-  })
-
-  it('info writes to stdout', () => {
-    const spy = vi.spyOn(process.stdout, 'write').mockReturnValue(true)
-    logger.info('started')
-    expect(spy).toHaveBeenCalled()
-  })
-})
+  workWeek: z.array(z.coerce.number().int().min(0).max(6)).min(1, 'Select at least one day').default([0, 1, 2, 3, 4]),
 ```
 
-- [ ] **Step 2: Verify fail**
+Note: FormData sends repeated `workWeek` keys; in `createEmployee` build it before parsing:
+`const raw = { ...Object.fromEntries(formData.entries()), workWeek: formData.getAll('workWeek') }`
 
-Run: `npx vitest run src/lib/__tests__/logger.test.ts`
-Expected: FAIL
+- [ ] **Step 2: Action changes**
 
-- [ ] **Step 3: Implement `src/lib/logger.ts`**
+In `src/lib/actions/employee.ts` `createEmployee`, inside the `employee.create` data add:
+`workWeek: data.workWeek,`
+
+Add new action in the same file:
 
 ```ts
-type Level = 'info' | 'warn' | 'error'
+export async function updateEmployeeWorkWeek(formData: FormData) {
+  const session = await auth()
+  if (session?.user.role !== 'HR_ADMIN') return { error: await serverError('unauthorized') }
 
-function write(level: Level, msg: string, meta?: Record<string, unknown>) {
-  const line = JSON.stringify({ level, msg, time: new Date().toISOString(), ...meta })
-  if (level === 'info') process.stdout.write(line + '\n')
-  else process.stderr.write(line + '\n')
-}
+  const employeeId = formData.get('employeeId') as string
+  const days = formData.getAll('workWeek').map(Number)
+  const parsed = z.array(z.number().int().min(0).max(6)).min(1).safeParse(days)
+  if (!parsed.success || !employeeId) return { error: await serverError('invalidInput') }
 
-export const logger = {
-  info: (msg: string, meta?: Record<string, unknown>) => write('info', msg, meta),
-  warn: (msg: string, meta?: Record<string, unknown>) => write('warn', msg, meta),
-  error: (msg: string, meta?: Record<string, unknown>) => write('error', msg, meta),
+  await db.employee.update({ where: { id: employeeId }, data: { workWeek: parsed.data } })
+  revalidatePath('/employees')
 }
 ```
 
-- [ ] **Step 4: Run tests**
+(add `import { z } from 'zod'` at top of the file)
 
-Run: `npx vitest run src/lib/__tests__/logger.test.ts`
-Expected: PASS
+- [ ] **Step 3: Form UI**
 
-- [ ] **Step 5: Commit**
+In the new-employee form client component, add a fieldset of seven checkboxes labeled Sun–Sat (use existing i18n pattern; add `employees.workWeek` label key + `employees.days.sun`…`sat` keys to en/ar messages), all named `workWeek`, value `0`…`6`, Sun–Thu checked by default.
+
+- [ ] **Step 4: Verify + commit**
+
+Run: `npx tsc --noEmit && npm run lint && npm run test` (timeout ≥300000ms)
+Expected: green
 
 ```bash
-git add src/lib/logger.ts src/lib/__tests__/logger.test.ts
-git commit -m "feat: add structured JSON logger"
+git add src/lib/validations/employee.ts src/lib/actions/employee.ts "src/app/[locale]/(hr)/employees/new" src/i18n/messages/en.json src/i18n/messages/ar.json
+git commit -m "feat: per-employee weekly work pattern on employee forms"
 ```
 
 ---

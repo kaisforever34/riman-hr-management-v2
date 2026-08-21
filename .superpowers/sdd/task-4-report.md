@@ -1,19 +1,21 @@
-# Task 4 Report: Global error boundary + error.tsx for root
+# Task 4 Report: Holiday admin (actions + page)
 
-## Status: Complete
+**Status:** Complete
+**Commit:** 3534eaa — "feat: HR-managed public holiday admin page"
 
-## Changes
-- Created `src/app/global-error.tsx` — exact code from brief (renders own html/body).
-- Created `src/app/[locale]/error.tsx` — mirrors `(hr)/error.tsx` pattern. Note: the existing (hr) error.tsx does NOT use i18n (plain English strings), so the locale-level file follows that same pattern.
-- Created `src/app/[locale]/(auth)/error.tsx` — was missing; mirrored (hr) pattern.
+## What was done
+- `src/lib/validations/holiday.ts` — createHolidaySchema / deleteHolidaySchema (per brief).
+- `src/lib/queries/holiday.ts` — getHolidays() ordered by date asc.
+- `src/lib/actions/holiday.ts` — createHoliday/deleteHoliday with HR_ADMIN auth check, safeParse, P2002 unique-constraint handling, revalidatePath.
+- `src/app/[locale]/(hr)/manager/holidays/page.tsx` — auth guard (HR_ADMIN only; managers redirected to dashboard), force-dynamic, JSON-serialized props.
+- `holidays-client.tsx` — add-holiday card form (name, nameAr, date) + table with formatted date, name, nameAr, delete button; errors shown via sonner toast; styling mirrors leave-types-client.tsx.
+- Sidebar: added `/manager/holidays` nav item (CalendarRange icon, isAdmin) after expenses.
+- i18n: `nav.holidays` + `holidays` namespace added to en.json and ar.json.
 
 ## Verification
-- `npx tsc --noEmit`: pass
-- `npm run lint`: pass
-- Full build skipped per instructions.
+- `npx tsc --noEmit` ✅
+- `npm run lint` ✅
+- `npm run test` ✅ (8 files, 89 tests passed)
 
-## Commit
-- `23ec7ce` feat: add global and locale-level error boundaries
-
-## Concerns
-- None significant. Error UI copy is English-only, consistent with existing (hr) error.tsx.
+## Notes
+- Client uses a wrapper handler around the server actions to surface returned errors via toast (actions return `{ error }` rather than throwing), consistent with brief's "show state?.error via sonner toast".
