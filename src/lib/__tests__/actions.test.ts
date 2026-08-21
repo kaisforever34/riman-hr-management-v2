@@ -7,6 +7,7 @@ const { mockSession, mockRevalidatePath, mockDb } = vi.hoisted(() => {
     employeeDocument: { findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() },
     companyDocument: { findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() },
     performanceReview: { findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() },
+    auditLog: { create: vi.fn() },
   }
   return { mockSession: session, mockRevalidatePath: revalidate, mockDb: db }
 })

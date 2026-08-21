@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { Role } from '@prisma/client'
 import { z } from 'zod'
+import { logAudit } from '@/lib/audit'
 
 export async function createEmployee(formData: FormData) {
   const session = await auth()
@@ -40,8 +41,9 @@ export async function createEmployee(formData: FormData) {
 
   const passwordHash = await bcrypt.hash(data.password, 10)
 
+  let created
   try {
-    await db.user.create({
+    created = await db.user.create({
       data: {
         email: data.email,
         passwordHash,
@@ -77,6 +79,14 @@ export async function createEmployee(formData: FormData) {
     throw e
   }
 
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'EMPLOYEE_CREATED',
+    entityType: 'Employee',
+    entityId: created.id,
+  })
+
   revalidatePath('/employees')
   redirect('/employees')
 }
@@ -94,5 +104,15 @@ export async function updateEmployeeWorkWeek(formData: FormData) {
   if (!emp) return { error: await serverError('employeeNotFound') }
 
   await db.employee.update({ where: { id: employeeId }, data: { workWeek: parsed.data } })
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'EMPLOYEE_UPDATED',
+    entityType: 'Employee',
+    entityId: employeeId,
+    detail: { workWeek: parsed.data },
+  })
+
   revalidatePath('/employees')
 }

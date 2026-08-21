@@ -7,6 +7,7 @@ import { auth } from '@/lib/auth'
 import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes } from '@/lib/schedule'
 import { revalidatePath } from 'next/cache'
 import type { AttendanceStatus } from '@prisma/client'
+import { logAudit } from '@/lib/audit'
 
 export async function checkIn() {
   const session = await auth()
@@ -159,6 +160,15 @@ export async function managerOverrideAttendance(formData: FormData) {
       checkInNote: data.note,
       adjustedById: session.user.id,
     },
+  })
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'ATTENDANCE_OVERRIDE',
+    entityType: 'AttendanceRecord',
+    entityId: `${data.employeeId}:${data.date}`,
+    detail: { employeeId: data.employeeId, date: data.date },
   })
 
   revalidatePath('/manager/attendance')

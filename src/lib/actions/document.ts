@@ -8,6 +8,7 @@ import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { unlink } from 'fs/promises'
 import { join } from 'path'
+import { logAudit } from '@/lib/audit'
 
 export async function uploadEmployeeDoc(formData: FormData) {
   const session = await auth()
@@ -22,7 +23,7 @@ export async function uploadEmployeeDoc(formData: FormData) {
   const filePath = await uploadDocument(file, 'employees')
   if (!filePath) return { error: await serverError('invalidDocumentFile') }
 
-  await db.employeeDocument.create({
+  const doc = await db.employeeDocument.create({
     data: {
       employeeId: parsed.data.employeeId,
       category: parsed.data.category,
@@ -33,6 +34,14 @@ export async function uploadEmployeeDoc(formData: FormData) {
       notes: parsed.data.notes || null,
       uploadedById: session.user.id,
     },
+  })
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'DOCUMENT_UPLOADED',
+    entityType: 'EmployeeDocument',
+    entityId: doc.id,
   })
 
   revalidatePath('/manager/documents')
@@ -51,7 +60,7 @@ export async function uploadCompanyDoc(formData: FormData) {
   const filePath = await uploadDocument(file, 'company')
   if (!filePath) return { error: await serverError('invalidDocumentFile') }
 
-  await db.companyDocument.create({
+  const doc = await db.companyDocument.create({
     data: {
       category: parsed.data.category,
       title: parsed.data.title,
@@ -62,6 +71,14 @@ export async function uploadCompanyDoc(formData: FormData) {
       notes: parsed.data.notes || null,
       uploadedById: session.user.id,
     },
+  })
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'DOCUMENT_UPLOADED',
+    entityType: 'CompanyDocument',
+    entityId: doc.id,
   })
 
   revalidatePath('/manager/documents')
@@ -94,6 +111,14 @@ export async function deleteDocument(formData: FormData) {
   } else {
     await db.companyDocument.delete({ where: { id } })
   }
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'DOCUMENT_DELETED',
+    entityType: type === 'employee' ? 'EmployeeDocument' : 'CompanyDocument',
+    entityId: id,
+  })
 
   revalidatePath('/manager/documents')
 }

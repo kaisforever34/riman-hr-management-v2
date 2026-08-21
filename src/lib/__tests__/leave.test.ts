@@ -17,6 +17,7 @@ const { mockSession, mockRevalidatePath, mockRedirect, mockDb } = vi.hoisted(() 
     attendanceRecord: { groupBy: vi.fn() },
     appSetting: { findUnique: vi.fn() },
     holiday: { findMany: vi.fn().mockResolvedValue([]) },
+    auditLog: { create: vi.fn() },
   }
   return { mockSession: session, mockRevalidatePath: revalidate, mockRedirect: redirect, mockDb: db }
 })

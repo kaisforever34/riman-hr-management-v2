@@ -10,6 +10,7 @@ import { redirect } from 'next/navigation'
 import { createNotifications, createNotification, getApproverUserIds } from './notifications'
 import { serverError } from '@/lib/errors'
 import { countWorkingDays, isWorkingDay, toUaeDateKey } from '@/lib/working-days'
+import { logAudit } from '@/lib/audit'
 
 export async function submitLeave(formData: FormData) {
   const session = await auth()
@@ -169,6 +170,15 @@ export async function approveLeave(formData: FormData) {
     )
   }
 
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'LEAVE_APPROVED',
+    entityType: 'LeaveRequest',
+    entityId: request.id,
+    detail: { employeeId: request.employeeId, durationDays: request.durationDays },
+  })
+
   revalidatePath('/manager/leaves')
   redirect('/manager/leaves')
 }
@@ -203,6 +213,15 @@ export async function rejectLeave(formData: FormData) {
       `/leave/${parsed.data.id}`,
     )
   }
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'LEAVE_REJECTED',
+    entityType: 'LeaveRequest',
+    entityId: parsed.data.id,
+    detail: { rejectReason: parsed.data.rejectReason },
+  })
 
   revalidatePath('/manager/leaves')
   redirect('/manager/leaves')
@@ -251,6 +270,15 @@ export async function cancelLeave(formData: FormData) {
         })
       }
     }
+  })
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'LEAVE_CANCELLED',
+    entityType: 'LeaveRequest',
+    entityId: request.id,
+    detail: { previousStatus: request.status },
   })
 
   revalidatePath('/leave')
