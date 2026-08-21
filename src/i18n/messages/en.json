@@ -32,6 +32,7 @@
     "myExpenses": "My Expenses",
     "analytics": "Analytics",
     "holidays": "Holidays",
+    "auditLog": "Audit Log",
     "signOut": "Sign Out",
     "collapse": "Collapse",
     "openMenu": "Open navigation menu",
@@ -270,6 +271,15 @@
     "add": "Add",
     "delete": "Delete",
     "empty": "No holidays defined"
+  },
+  "auditLog": {
+    "title": "Audit Log",
+    "time": "Time",
+    "actor": "Actor",
+    "action": "Action",
+    "entity": "Entity",
+    "detail": "Detail",
+    "empty": "No audit log entries"
   },
   "attendance": {
     "title": "Attendance",

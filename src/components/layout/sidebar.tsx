@@ -64,6 +64,7 @@ export default function Sidebar({ role }: { role: string }) {
     { href: `/${locale}/manager/assets`, icon: Package, label: 'assets', show: isAdmin },
     { href: `/${locale}/manager/expenses`, icon: Receipt, label: 'expenses', show: isAdmin },
     { href: `/${locale}/manager/holidays`, icon: CalendarRange, label: 'holidays', show: isAdmin },
+    { href: `/${locale}/manager/audit-log`, icon: ListChecks, label: 'auditLog', show: isAdmin },
     { href: `/${locale}/surveys`, icon: ClipboardList, label: 'mySurveys', show: isEmployee },
     { href: `/${locale}/assets`, icon: Package, label: 'myAssets', show: isEmployee },
     { href: `/${locale}/expenses`, icon: Receipt, label: 'myExpenses', show: isEmployee },
