@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import { authConfig } from './auth.config'
 import { db } from './db'
 import { signInSchema } from './validations/auth'
+import { checkRateLimit } from './rate-limit'
 import type { Role } from '@prisma/client'
 
 declare module 'next-auth' {
@@ -40,6 +41,12 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   providers: [
     Credentials({
       async authorize(credentials) {
+        const rlEmail = typeof credentials?.email === 'string' ? credentials.email.toLowerCase() : ''
+        if (rlEmail) {
+          const rl = checkRateLimit(`signin:${rlEmail}`)
+          if (!rl.ok) return null
+        }
+
         const parsed = signInSchema.safeParse(credentials)
         if (!parsed.success) return null
 
