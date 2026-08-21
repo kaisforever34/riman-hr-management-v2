@@ -113,6 +113,7 @@ model Employee {
   manager               Employee?      @relation("ManagerReports", fields: [managerId], references: [id], onDelete: SetNull)
   reports               Employee[]     @relation("ManagerReports")
   isActive              Boolean        @default(true)
+  workWeek              Int[]          @default([0, 1, 2, 3, 4])
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
   leaveRequests         LeaveRequest[]
@@ -139,6 +140,15 @@ model LeaveType {
   updatedAt          DateTime       @updatedAt
   leaveRequests      LeaveRequest[]
   leaveBalances      LeaveBalance[]
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  name      String
+  nameAr    String?
+  date      DateTime @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model LeaveBalance {
