@@ -97,12 +97,12 @@ describe('getWeeklyAttendance', () => {
 
     const result = await getWeeklyAttendance(10)
     expect(result).toHaveLength(5)
-    expect(result.map((r) => r.day)).toEqual(['SUN', 'MON', 'TUE', 'WED', 'THU'])
-    expect(result[0]).toEqual({ day: 'SUN', present: 1, late: 1, absent: 8 })
-    expect(result[1]).toEqual({ day: 'MON', present: 2, late: 0, absent: 8 })
+    expect(result.map((r) => r.dayIndex)).toEqual([0, 1, 2, 3, 4])
+    expect(result[0]).toEqual({ dayIndex: 0, present: 1, late: 1, absent: 8 })
+    expect(result[1]).toEqual({ dayIndex: 1, present: 2, late: 0, absent: 8 })
     // HALF_DAY counts as present-ish
-    expect(result[2]).toEqual({ day: 'TUE', present: 1, late: 0, absent: 9 })
-    expect(result[4]).toEqual({ day: 'THU', present: 0, late: 1, absent: 9 })
+    expect(result[2]).toEqual({ dayIndex: 2, present: 1, late: 0, absent: 9 })
+    expect(result[4]).toEqual({ dayIndex: 4, present: 0, late: 1, absent: 9 })
     // never negative
   })
 

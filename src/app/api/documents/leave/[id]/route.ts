@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { readFile } from 'fs/promises'
-import { join, resolve, relative, basename } from 'path'
-import { PRIVATE_UPLOAD_ROOT } from '@/lib/upload'
+import { basename } from 'path'
+import { resolvePrivateUploadPath } from '@/lib/upload'
+import { isApprover } from '@/lib/roles'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,13 +20,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!leave?.attachmentFile) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const isOwner = leave.employee?.userId === session.user.id
-  const isManager = session.user.role === 'MANAGER' || session.user.role === 'HR_ADMIN'
-  if (!isOwner && !isManager) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!isOwner && !isApprover(session.user.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const relativeKey = leave.attachmentFile.replace(/^\/uploads\//, '')
-  const fullPath = resolve(join(PRIVATE_UPLOAD_ROOT, relativeKey))
-  const rel = relative(resolve(PRIVATE_UPLOAD_ROOT), fullPath)
-  if (rel.startsWith('..') || resolve(PRIVATE_UPLOAD_ROOT) === fullPath) {
+  const fullPath = resolvePrivateUploadPath(relativeKey)
+  if (!fullPath) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

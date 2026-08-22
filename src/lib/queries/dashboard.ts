@@ -26,7 +26,7 @@ export async function getPayrollTrend(): Promise<
 
 export async function getWeeklyAttendance(
   activeEmployees: number
-): Promise<{ day: string; present: number; late: number; absent: number }[]> {
+): Promise<{ dayIndex: number; present: number; late: number; absent: number }[]> {
   const now = new Date(Date.now() + UAE_OFFSET_MS)
   const weekStart = new Date(now)
   weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay())
@@ -40,8 +40,7 @@ export async function getWeeklyAttendance(
     select: { date: true, status: true },
   })
 
-  const dayLabels = ['SUN', 'MON', 'TUE', 'WED', 'THU']
-  const buckets = dayLabels.map((day) => ({ day, present: 0, late: 0 }))
+  const buckets = [0, 1, 2, 3, 4].map((dayIndex) => ({ dayIndex, present: 0, late: 0 }))
 
   for (const r of records) {
     const d = new Date(r.date)

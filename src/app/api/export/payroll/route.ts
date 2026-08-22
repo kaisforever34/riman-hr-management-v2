@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { toCsv } from '@/lib/csv'
+import { toCsv, isoDay } from '@/lib/csv'
+import { isApprover } from '@/lib/roles'
 
 export const dynamic = 'force-dynamic'
-
-function isoDay(value: Date): string {
-  return value.toISOString().slice(0, 10)
-}
 
 export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  if (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')
+  if (!isApprover(session.user.role))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const periodId = req.nextUrl.searchParams.get('periodId')

@@ -17,7 +17,10 @@ vi.mock('fs/promises', () => {
   const readFile = (...args: unknown[]) => mockReadFile(...args)
   return { readFile, default: { readFile } }
 })
-vi.mock('@/lib/upload', () => ({ PRIVATE_UPLOAD_ROOT: '/abs/private-uploads' }))
+vi.mock('@/lib/upload', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/upload')>()),
+  PRIVATE_UPLOAD_ROOT: '/abs/private-uploads',
+}))
 
 import { GET as getDocument } from '@/app/api/documents/[id]/route'
 import { GET as getLeaveDocument } from '@/app/api/documents/leave/[id]/route'

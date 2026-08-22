@@ -1,7 +1,14 @@
 import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
+import { join, resolve, relative } from 'path'
 
 export const PRIVATE_UPLOAD_ROOT = join(process.cwd(), 'private-uploads')
+
+export function resolvePrivateUploadPath(key: string): string | null {
+  const fullPath = resolve(join(PRIVATE_UPLOAD_ROOT, key))
+  const rel = relative(resolve(PRIVATE_UPLOAD_ROOT), fullPath)
+  if (rel.startsWith('..') || resolve(PRIVATE_UPLOAD_ROOT) === fullPath) return null
+  return fullPath
+}
 
 const UPLOAD_DIR = join(PRIVATE_UPLOAD_ROOT, 'leaves')
 const MAX_SIZE = 5 * 1024 * 1024

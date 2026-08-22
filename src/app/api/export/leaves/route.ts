@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { toCsv } from '@/lib/csv'
+import { toCsv, isoDay } from '@/lib/csv'
+import { isApprover } from '@/lib/roles'
 import type { LeaveStatus } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
-
-function isoDay(value: Date): string {
-  return value.toISOString().slice(0, 10)
-}
 
 const VALID_STATUSES: LeaveStatus[] = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']
 
 export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  if (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')
+  if (!isApprover(session.user.role))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const yearParam = req.nextUrl.searchParams.get('year')
@@ -54,7 +51,7 @@ export async function GET(req: NextRequest) {
   return new NextResponse(csv, {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="leaves-${isoDay(yearStart)}_to_${isoDay(new Date(Date.UTC(year, 11, 31)))}.csv"`,
+      'Content-Disposition': `attachment; filename="leaves-${isoDay(yearStart)}_to_${isoDay(new Date(yearEnd.getTime() - 1))}.csv"`,
     },
   })
 }

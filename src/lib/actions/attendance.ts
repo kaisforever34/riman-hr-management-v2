@@ -8,6 +8,8 @@ import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes } from '@/lib/s
 import { revalidatePath } from 'next/cache'
 import type { AttendanceStatus } from '@prisma/client'
 import { logAudit } from '@/lib/audit'
+import { isUniqueConstraintError } from '@/lib/db-errors'
+import { isApprover } from '@/lib/roles'
 
 export async function checkIn() {
   const session = await auth()
@@ -32,7 +34,7 @@ export async function checkIn() {
       data: { employeeId: employee.id, date: today, ...data },
     })
   } catch (e) {
-    const isUniqueViolation = typeof e === 'object' && e !== null && 'code' in e && (e as { code: string }).code === 'P2002'
+    const isUniqueViolation = isUniqueConstraintError(e)
     if (!isUniqueViolation) throw e
     const updated = await db.attendanceRecord.updateMany({
       where: { employeeId: employee.id, date: today, checkIn: null },
@@ -74,7 +76,7 @@ export async function manualCheckIn(formData: FormData) {
       data: { employeeId: employee.id, date: today, ...data },
     })
   } catch (e) {
-    const isUniqueViolation = typeof e === 'object' && e !== null && 'code' in e && (e as { code: string }).code === 'P2002'
+    const isUniqueViolation = isUniqueConstraintError(e)
     if (!isUniqueViolation) throw e
     const updated = await db.attendanceRecord.updateMany({
       where: { employeeId: employee.id, date: today, checkIn: null },
@@ -118,7 +120,7 @@ export async function checkOut() {
 
 export async function managerOverrideAttendance(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
 
   const parsed = managerOverrideSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: await serverError('invalidInput'), fieldErrors: parsed.error.flatten().fieldErrors }

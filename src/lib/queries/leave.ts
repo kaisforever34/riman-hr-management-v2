@@ -1,4 +1,5 @@
 import { db } from '@/lib/db'
+import { isUniqueConstraintError } from '@/lib/db-errors'
 import type { LeaveRequest, LeaveBalance, LeaveType, LeaveStatus, Prisma } from '@prisma/client'
 
 type DbClient = Prisma.TransactionClient | typeof db
@@ -84,7 +85,7 @@ export async function getOrCreateLeaveBalance(
       data: { employeeId, leaveTypeId, yearStart, yearEnd, allocated: leaveType.defaultDays, carriedOver: 0, used: 0 },
     })
   } catch (e) {
-    if (e instanceof Error && e.message.includes('Unique constraint')) {
+    if (isUniqueConstraintError(e)) {
       const created = await client.leaveBalance.findUnique({
         where: { employeeId_leaveTypeId_yearStart: { employeeId, leaveTypeId, yearStart } },
       })

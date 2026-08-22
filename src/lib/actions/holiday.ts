@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { createHolidaySchema, deleteHolidaySchema, updateHolidaySchema } from '@/lib/validations/holiday'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
+import { isUniqueConstraintError } from '@/lib/db-errors'
 
 export async function createHoliday(formData: FormData) {
   const session = await auth()
@@ -20,7 +21,7 @@ export async function createHoliday(formData: FormData) {
       data: { name: parsed.data.name, nameAr: parsed.data.nameAr || null, date: new Date(parsed.data.date) },
     })
   } catch (e) {
-    const isUnique = typeof e === 'object' && e !== null && 'code' in e && (e as { code: string }).code === 'P2002'
+    const isUnique = isUniqueConstraintError(e)
     if (isUnique) return { error: await serverError('invalidRequest'), fieldErrors: {} }
     throw e
   }
@@ -43,7 +44,7 @@ export async function updateHoliday(formData: FormData) {
       data: { name: parsed.data.name, nameAr: parsed.data.nameAr || null, date: new Date(parsed.data.date) },
     })
   } catch (e) {
-    const isUnique = typeof e === 'object' && e !== null && 'code' in e && (e as { code: string }).code === 'P2002'
+    const isUnique = isUniqueConstraintError(e)
     if (isUnique) return { error: await serverError('invalidRequest'), fieldErrors: {} }
     throw e
   }

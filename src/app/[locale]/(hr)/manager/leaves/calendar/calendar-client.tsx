@@ -13,7 +13,6 @@ const COMPANY_DEFAULT_WORK_WEEK = [0, 1, 2, 3, 4]
 interface CalendarClientProps {
   requests: any[]
   holidays: any[]
-  locale: string
 }
 
 export default function CalendarClient({ requests, holidays }: CalendarClientProps) {

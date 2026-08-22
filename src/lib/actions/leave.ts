@@ -12,6 +12,15 @@ import { createNotifications, createNotification, getApproverUserIds } from './n
 import { serverError } from '@/lib/errors'
 import { countWorkingDays, isWorkingDay, toUaeDateKey } from '@/lib/working-days'
 import { logAudit } from '@/lib/audit'
+import { isApprover } from '@/lib/roles'
+
+type LeaveActionErrorReason = 'INSUFFICIENT_BALANCE' | 'ALREADY_PROCESSED'
+
+class LeaveActionError extends Error {
+  constructor(readonly reason: LeaveActionErrorReason) {
+    super(reason)
+  }
+}
 
 export async function submitLeave(formData: FormData) {
   const session = await auth()
@@ -130,14 +139,14 @@ async function approveOne(requestId: string, session: Session, opts: BulkOptions
 
       const remaining = balance.allocated + balance.carriedOver - balance.used
       if (request.durationDays > remaining) {
-        throw new Error('INSUFFICIENT_BALANCE')
+        throw new LeaveActionError('INSUFFICIENT_BALANCE')
       }
 
       const updated = await tx.leaveRequest.updateMany({
         where: { id: request.id, status: 'PENDING' },
         data: { status: 'APPROVED', approvedById: session.user.id, approvedAt: now },
       })
-      if (updated.count === 0) throw new Error('ALREADY_PROCESSED')
+      if (updated.count === 0) throw new LeaveActionError('ALREADY_PROCESSED')
 
       await tx.leaveBalance.update({
         where: { id: balance.id },
@@ -145,10 +154,10 @@ async function approveOne(requestId: string, session: Session, opts: BulkOptions
       })
     })
   } catch (e) {
-    if (e instanceof Error && e.message === 'INSUFFICIENT_BALANCE') {
+    if (e instanceof LeaveActionError && e.reason === 'INSUFFICIENT_BALANCE') {
       return { ok: false, error: await serverError('insufficientBalance') }
     }
-    if (e instanceof Error && e.message === 'ALREADY_PROCESSED') {
+    if (e instanceof LeaveActionError && e.reason === 'ALREADY_PROCESSED') {
       return { ok: false, error: await serverError('requestNotFoundOrProcessed') }
     }
     throw e
@@ -189,16 +198,16 @@ async function rejectOne(requestId: string, rejectReason: string, session: Sessi
     return { ok: false, error: await serverError('requestNotFoundOrProcessed') }
   }
 
-  const rejectRequest = await db.leaveRequest.findUnique({
+  const request = await db.leaveRequest.findUnique({
     where: { id: requestId },
     include: { employee: { include: { user: true } }, leaveType: true },
   })
-  if (rejectRequest) {
+  if (request) {
     await createNotification(
-      rejectRequest.employee.user.id,
+      request.employee.user.id,
       'LEAVE_REJECTED',
       'Leave Rejected',
-      `Your ${rejectRequest.leaveType?.name ?? ''} leave request has been rejected. Reason: ${rejectReason}`,
+      `Your ${request.leaveType?.name ?? ''} leave request has been rejected. Reason: ${rejectReason}`,
       `/leave/${requestId}`,
     )
   }
@@ -217,7 +226,7 @@ async function rejectOne(requestId: string, rejectReason: string, session: Sessi
 
 export async function approveLeave(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
 
   const raw = { id: formData.get('id') as string }
   const parsed = approveLeaveSchema.safeParse(raw)
@@ -232,7 +241,7 @@ export async function approveLeave(formData: FormData) {
 
 export async function rejectLeave(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
 
   const raw = {
     id: formData.get('id') as string,
@@ -250,7 +259,7 @@ export async function rejectLeave(formData: FormData) {
 
 export async function bulkApproveLeaves(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN'))
+  if (!session?.user || !isApprover(session.user.role))
     return { error: await serverError('unauthorized') }
 
   const ids = formData.getAll('ids').filter((v): v is string => typeof v === 'string')
@@ -269,7 +278,7 @@ export async function bulkApproveLeaves(formData: FormData) {
 
 export async function bulkRejectLeaves(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN'))
+  if (!session?.user || !isApprover(session.user.role))
     return { error: await serverError('unauthorized') }
 
   const reasonParse = rejectLeaveSchema.pick({ rejectReason: true }).safeParse({
@@ -308,7 +317,7 @@ export async function cancelLeave(formData: FormData) {
   if (request.status === 'CANCELLED') return { error: await serverError('requestAlreadyCancelled') }
 
   const isOwner = request.employee.userId === session.user.id
-  const isManager = session.user.role === 'MANAGER' || session.user.role === 'HR_ADMIN'
+  const isManager = isApprover(session.user.role)
   if (!isOwner && !isManager) return { error: await serverError('unauthorized') }
   if (isOwner && !isManager && request.status !== 'PENDING') return { error: await serverError('cannotCancelProcessed') }
 
@@ -317,7 +326,7 @@ export async function cancelLeave(formData: FormData) {
       where: { id: request.id, status: request.status },
       data: { status: 'CANCELLED' },
     })
-    if (updated.count === 0) throw new Error('ALREADY_PROCESSED')
+    if (updated.count === 0) throw new LeaveActionError('ALREADY_PROCESSED')
 
     if (request.status === 'APPROVED') {
       const balance = await tx.leaveBalance.findFirst({
@@ -352,7 +361,7 @@ export async function cancelLeave(formData: FormData) {
 
 export async function setAllocation(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
 
   const raw = {
     employeeId: formData.get('employeeId') as string,

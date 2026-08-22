@@ -86,21 +86,14 @@
  },
  "noData": "No data yet",
  "payrollEstimateNote": "estimated from salaries",
-    "months": {
-      "Dec": "Dec",
-      "Jan": "Jan",
-      "Feb": "Feb",
-      "Mar": "Mar",
-      "Apr": "Apr",
-      "May": "May"
-    },
-    "days": {
-      "Sun": "Sun",
-      "Mon": "Mon",
-      "Tue": "Tue",
-      "Wed": "Wed",
-      "Thu": "Thu"
-    }
+  "months": {
+    "Dec": "Dec",
+    "Jan": "Jan",
+    "Feb": "Feb",
+    "Mar": "Mar",
+    "Apr": "Apr",
+    "May": "May"
+  }
   },
   "employees": {
     "title": "Employees",

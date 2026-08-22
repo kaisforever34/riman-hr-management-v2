@@ -8,8 +8,7 @@ import { Users, UserCheck, Calendar, CreditCard, ChevronRight } from 'lucide-rea
 import { KPICard, Badge } from '@/components/shared'
 import { buttonVariants } from '@/components/ui/button'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 const C = {
   gold: '#D4A843',
@@ -57,14 +56,14 @@ export default function DashboardContent({
   presentCount: number
   pendingLeaves: number
   payrollTrend: { monthKey: string; total: number }[]
-  weeklyAttendance: { day: string; present: number; late: number; absent: number }[]
+  weeklyAttendance: { dayIndex: number; present: number; late: number; absent: number }[]
   leaveDistribution: { name: string; value: number }[]
   payrollKpi: { total: number; source: 'period' | 'salaries' }
 }) {
-  const params = useParams()
-  const locale = params.locale as string
+  const locale = useLocale()
   const t = useTranslations('dashboard')
   const dateLocale = locale === 'ar' ? 'ar-AE' : 'en-GB'
+  const dayFormatter = new Intl.DateTimeFormat(dateLocale, { weekday: 'short' })
   const presentRate = totalEmployees > 0 ? Math.round((presentCount / totalEmployees) * 100) : 0
   const ltLabel = (name: string) =>
     ['Annual', 'Sick', 'Personal', 'Maternity', 'Paternity', 'Hajj/Umrah', 'Compassionate', 'Unpaid', 'Other'].includes(name)
@@ -128,7 +127,7 @@ export default function DashboardContent({
           <ResponsiveContainer width="100%" height={175}>
             <BarChart data={weeklyAttendance} barGap={2}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="day" tickFormatter={(d: string) => t(`days.${d.charAt(0)}${d.slice(1).toLowerCase()}`)} tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="dayIndex" tickFormatter={(d: number) => dayFormatter.format(new Date(2024, 0, 7 + d))} tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTooltip />} />
               <Bar dataKey="present" name={t('present')} fill={C.green} radius={[4, 4, 0, 0]} />

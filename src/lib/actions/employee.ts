@@ -10,6 +10,7 @@ import { redirect } from 'next/navigation'
 import type { Role } from '@prisma/client'
 import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
+import { isUniqueConstraintError } from '@/lib/db-errors'
 
 export async function createEmployee(formData: FormData) {
   const session = await auth()
@@ -72,7 +73,7 @@ export async function createEmployee(formData: FormData) {
       },
     })
   } catch (e) {
-    const isUniqueViolation = typeof e === 'object' && e !== null && 'code' in e && (e as { code: string }).code === 'P2002'
+    const isUniqueViolation = isUniqueConstraintError(e)
     if (isUniqueViolation) {
       return { error: await serverError('emailOrCodeExists'), fieldErrors: {} }
     }
