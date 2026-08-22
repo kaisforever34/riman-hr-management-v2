@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { isWorkingDay, toUaeDateKey } from '@/lib/working-days'
 
+const COMPANY_DEFAULT_WORK_WEEK = [0, 1, 2, 3, 4]
+
 interface CalendarClientProps {
   requests: any[]
   holidays: any[]
@@ -65,14 +67,7 @@ export default function CalendarClient({ requests, holidays }: CalendarClientPro
             const day = i + 1
             const dayRequests = getRequestsForDay(day)
             const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-            const relevantWeeks = new Set<string>(
-              (dayRequests.length > 0
-                ? dayRequests.map((r: any) => r.employee.workWeek)
-                : requests.map((r: any) => r.employee.workWeek))
-            )
-            const isNonWorking = [...relevantWeeks].every(
-              (ww) => !isWorkingDay(dateKey, ww as any, holidaySet)
-            )
+            const isNonWorking = !isWorkingDay(dateKey, COMPANY_DEFAULT_WORK_WEEK, holidaySet)
             return (
               <div
                 key={day}

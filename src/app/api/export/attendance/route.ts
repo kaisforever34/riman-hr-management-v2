@@ -5,11 +5,8 @@ import { toCsv } from '@/lib/csv'
 
 export const dynamic = 'force-dynamic'
 
-function fileDate(d = new Date()): string {
-  const y = d.getUTCFullYear()
-  const m = String(d.getUTCMonth() + 1).padStart(2, '0')
-  const day = String(d.getUTCDate()).padStart(2, '0')
-  return `${y}${m}${day}`
+function isoDay(value: Date): string {
+  return value.toISOString().slice(0, 10)
 }
 
 function iso(value: Date | null | undefined): string {
@@ -58,7 +55,7 @@ export async function GET(req: NextRequest) {
   return new NextResponse(csv, {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="attendance-${fileDate()}.csv"`,
+      'Content-Disposition': `attachment; filename="attendance-${isoDay(from)}_to_${isoDay(to)}.csv"`,
     },
   })
 }

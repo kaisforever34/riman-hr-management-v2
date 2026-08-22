@@ -145,6 +145,12 @@ describe('bulkApproveLeaves', () => {
     fd.append('ids', 'req2')
     const result = await bulkApproveLeaves(fd)
     expect(result).toEqual({ approved: 2, failed: [] })
+    expect(mockDb.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        action: 'LEAVE_APPROVED',
+        detail: expect.objectContaining({ bulk: true }),
+      }),
+    })
   })
 
   it('rejects non-manager', async () => {
@@ -195,6 +201,12 @@ describe('bulkRejectLeaves', () => {
     fd.append('rejectReason', 'Not needed')
     const result = await bulkRejectLeaves(fd)
     expect(result).toEqual({ rejected: 2, failed: [] })
+    expect(mockDb.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        action: 'LEAVE_REJECTED',
+        detail: expect.objectContaining({ bulk: true }),
+      }),
+    })
   })
 })
 

@@ -287,6 +287,9 @@
     "date": "Date",
     "add": "Add",
     "delete": "Delete",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
     "empty": "No holidays defined"
   },
   "auditLog": {

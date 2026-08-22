@@ -1,4 +1,5 @@
 import { db } from '@/lib/db'
+import { UAE_OFFSET_MS } from '@/lib/working-days'
 
 export async function getPayrollTrend(): Promise<
   { monthKey: string; total: number }[]
@@ -26,7 +27,7 @@ export async function getPayrollTrend(): Promise<
 export async function getWeeklyAttendance(
   activeEmployees: number
 ): Promise<{ day: string; present: number; late: number; absent: number }[]> {
-  const now = new Date(Date.now() + 4 * 3600 * 1000)
+  const now = new Date(Date.now() + UAE_OFFSET_MS)
   const weekStart = new Date(now)
   weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay())
   weekStart.setUTCHours(0, 0, 0, 0)
@@ -46,7 +47,7 @@ export async function getWeeklyAttendance(
     const d = new Date(r.date)
     const idx = d.getUTCDay()
     if (idx > 4) continue
-    if (r.status === 'PRESENT') buckets[idx].present++
+    if (r.status === 'PRESENT' || r.status === 'HALF_DAY') buckets[idx].present++
     else if (r.status === 'LATE') buckets[idx].late++
   }
 
@@ -98,7 +99,7 @@ export async function getPayrollKpi(): Promise<{
   total: number
   source: 'period' | 'salaries'
 }> {
-  const now = new Date(Date.now() + 4 * 3600 * 1000)
+  const now = new Date(Date.now() + UAE_OFFSET_MS)
   const month = now.getUTCMonth() + 1
   const year = now.getUTCFullYear()
 

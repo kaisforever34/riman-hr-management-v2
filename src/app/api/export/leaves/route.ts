@@ -6,13 +6,6 @@ import type { LeaveStatus } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
-function fileDate(d = new Date()): string {
-  const y = d.getUTCFullYear()
-  const m = String(d.getUTCMonth() + 1).padStart(2, '0')
-  const day = String(d.getUTCDate()).padStart(2, '0')
-  return `${y}${m}${day}`
-}
-
 function isoDay(value: Date): string {
   return value.toISOString().slice(0, 10)
 }
@@ -61,7 +54,7 @@ export async function GET(req: NextRequest) {
   return new NextResponse(csv, {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="leaves-${fileDate()}.csv"`,
+      'Content-Disposition': `attachment; filename="leaves-${isoDay(yearStart)}_to_${isoDay(new Date(Date.UTC(year, 11, 31)))}.csv"`,
     },
   })
 }

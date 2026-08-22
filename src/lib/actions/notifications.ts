@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { sendEmail, renderEmail } from '@/lib/email'
+import { logger } from '@/lib/logger'
 
 const EMAIL_TYPES = new Set(['LEAVE_SUBMITTED', 'LEAVE_APPROVED', 'LEAVE_REJECTED', 'ONBOARDING_TASK'])
 
@@ -23,7 +24,9 @@ export async function createNotification(
   await db.notification.create({
     data: { userId, type, title, message: message ?? null, link: link ?? null },
   })
-  void emailUsers([userId], type, title, message).catch(() => {})
+  void emailUsers([userId], type, title, message).catch((e) =>
+    logger.error('email fanout failed', { type, error: String(e) })
+  )
 }
 
 export async function createNotifications(
@@ -43,7 +46,9 @@ export async function createNotifications(
       link: link ?? null,
     })),
   })
-  void emailUsers(userIds, type, title, message).catch(() => {})
+  void emailUsers(userIds, type, title, message).catch((e) =>
+    logger.error('email fanout failed', { type, error: String(e) })
+  )
 }
 
 export async function getApproverUserIds(employeeId: string): Promise<string[]> {

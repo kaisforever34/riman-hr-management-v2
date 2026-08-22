@@ -111,7 +111,9 @@ export async function submitLeave(formData: FormData) {
   redirect('/leave')
 }
 
-async function approveOne(requestId: string, session: Session): Promise<{ ok: true } | { ok: false; error: string }> {
+type BulkOptions = { bulk?: boolean }
+
+async function approveOne(requestId: string, session: Session, opts: BulkOptions = {}): Promise<{ ok: true } | { ok: false; error: string }> {
   const request = await db.leaveRequest.findUnique({
     where: { id: requestId },
     include: { employee: true, leaveType: true },
@@ -172,13 +174,13 @@ async function approveOne(requestId: string, session: Session): Promise<{ ok: tr
     action: 'LEAVE_APPROVED',
     entityType: 'LeaveRequest',
     entityId: request.id,
-    detail: { employeeId: request.employeeId, durationDays: request.durationDays },
+    detail: { employeeId: request.employeeId, durationDays: request.durationDays, ...(opts.bulk ? { bulk: true } : {}) },
   })
 
   return { ok: true }
 }
 
-async function rejectOne(requestId: string, rejectReason: string, session: Session): Promise<{ ok: true } | { ok: false; error: string }> {
+async function rejectOne(requestId: string, rejectReason: string, session: Session, opts: BulkOptions = {}): Promise<{ ok: true } | { ok: false; error: string }> {
   const updated = await db.leaveRequest.updateMany({
     where: { id: requestId, status: 'PENDING' },
     data: { status: 'REJECTED', rejectReason, approvedById: session.user.id },
@@ -207,7 +209,7 @@ async function rejectOne(requestId: string, rejectReason: string, session: Sessi
     action: 'LEAVE_REJECTED',
     entityType: 'LeaveRequest',
     entityId: requestId,
-    detail: { rejectReason },
+    detail: { rejectReason, ...(opts.bulk ? { bulk: true } : {}) },
   })
 
   return { ok: true }
@@ -257,7 +259,7 @@ export async function bulkApproveLeaves(formData: FormData) {
   let approved = 0
   const failed: { id: string; error: string }[] = []
   for (const id of ids) {
-    const r = await approveOne(id, session)
+    const r = await approveOne(id, session, { bulk: true })
     if (r.ok) approved++
     else failed.push({ id, error: r.error })
   }
@@ -282,7 +284,7 @@ export async function bulkRejectLeaves(formData: FormData) {
   let rejected = 0
   const failed: { id: string; error: string }[] = []
   for (const id of ids) {
-    const r = await rejectOne(id, rejectReason, session)
+    const r = await rejectOne(id, rejectReason, session, { bulk: true })
     if (r.ok) rejected++
     else failed.push({ id, error: r.error })
   }

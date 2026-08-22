@@ -9,3 +9,7 @@ export const createHolidaySchema = z.object({
 export const deleteHolidaySchema = z.object({
   id: z.string().min(1),
 })
+
+export const updateHolidaySchema = createHolidaySchema.extend({
+  id: z.string().min(1),
+})

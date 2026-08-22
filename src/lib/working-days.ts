@@ -1,4 +1,4 @@
-const UAE_OFFSET_MS = 4 * 60 * 60 * 1000
+export const UAE_OFFSET_MS = 4 * 60 * 60 * 1000
 
 export function toUaeDateKey(d: Date): string {
   return new Date(d.getTime() + UAE_OFFSET_MS).toISOString().slice(0, 10)

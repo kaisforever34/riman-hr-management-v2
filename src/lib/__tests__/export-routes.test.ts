@@ -64,7 +64,7 @@ describe('export payroll route', () => {
     const res = await getPayroll(req('http://localhost/api/export/payroll?periodId=p1'))
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toBe('text/csv; charset=utf-8')
-    expect(res.headers.get('content-disposition')).toContain('attachment; filename="payroll-')
+    expect(res.headers.get('content-disposition')).toContain('attachment; filename="payroll-2026-03-01_to_2026-03-31.csv"')
     const bytes = new Uint8Array(await res.arrayBuffer())
     const body = new TextDecoder('utf-8').decode(bytes)
     expect(bytes[0]).toBe(0xef)
@@ -100,15 +100,25 @@ describe('export attendance route', () => {
         employee: { employeeCode: 'E1', firstName: 'Ali', lastName: 'Hassan' },
       },
     ])
-    const res = await getAttendance(req('http://localhost/api/export/attendance'))
+    const res = await getAttendance(req('http://localhost/api/export/attendance?from=2026-03-01&to=2026-03-31'))
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toBe('text/csv; charset=utf-8')
+    expect(res.headers.get('content-disposition')).toContain('attachment; filename="attendance-2026-03-01_to_2026-03-31.csv"')
     const bytes = new Uint8Array(await res.arrayBuffer())
     const body = new TextDecoder('utf-8').decode(bytes)
     expect(bytes[0]).toBe(0xef)
     expect(bytes[1]).toBe(0xbb)
     expect(bytes[2]).toBe(0xbf)
     expect(body).toContain('E1,Ali Hassan,2026-03-01')
+  })
+
+  it('falls back to a default date range in the filename when params absent', async () => {
+    mockDb.attendanceRecord.findMany.mockResolvedValue([])
+    const res = await getAttendance(req('http://localhost/api/export/attendance'))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-disposition')).toMatch(
+      /attachment; filename="attendance-\d{4}-\d{2}-\d{2}_to_\d{4}-\d{2}-\d{2}\.csv"/,
+    )
   })
 })
 
@@ -141,6 +151,7 @@ describe('export leaves route', () => {
     const res = await getLeaves(req('http://localhost/api/export/leaves?year=2026'))
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toBe('text/csv; charset=utf-8')
+    expect(res.headers.get('content-disposition')).toContain('attachment; filename="leaves-2026-01-01_to_2026-12-31.csv"')
     const bytes = new Uint8Array(await res.arrayBuffer())
     const body = new TextDecoder('utf-8').decode(bytes)
     expect(bytes[0]).toBe(0xef)

@@ -100,8 +100,8 @@ describe('getWeeklyAttendance', () => {
     expect(result.map((r) => r.day)).toEqual(['SUN', 'MON', 'TUE', 'WED', 'THU'])
     expect(result[0]).toEqual({ day: 'SUN', present: 1, late: 1, absent: 8 })
     expect(result[1]).toEqual({ day: 'MON', present: 2, late: 0, absent: 8 })
-    // HALF_DAY not counted present → absent derived
-    expect(result[2]).toEqual({ day: 'TUE', present: 0, late: 0, absent: 10 })
+    // HALF_DAY counts as present-ish
+    expect(result[2]).toEqual({ day: 'TUE', present: 1, late: 0, absent: 9 })
     expect(result[4]).toEqual({ day: 'THU', present: 0, late: 1, absent: 9 })
     // never negative
   })
