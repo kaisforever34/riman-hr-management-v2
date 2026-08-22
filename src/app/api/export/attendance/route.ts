@@ -18,7 +18,7 @@ function iso(value: Date | null | undefined): string {
 
 export async function GET(req: NextRequest) {
   const session = await auth()
-  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 

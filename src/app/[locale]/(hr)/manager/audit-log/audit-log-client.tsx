@@ -16,7 +16,7 @@ export default function AuditLogClient({ logs }: AuditLogClientProps) {
 
   const filtered = filter
     ? logs.filter((log) => {
-        const hay = `${log.action} ${log.actorEmail ?? ''} ${log.entityType}`.toLowerCase()
+        const hay = `${log.action} ${log.actorEmail ?? ''} ${log.entityType} ${log.entityId ?? ''}`.toLowerCase()
         return hay.includes(filter.toLowerCase())
       })
     : logs

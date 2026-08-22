@@ -123,7 +123,8 @@
     "previous": "Previous",
     "next": "Next",
     "deactivate": "Deactivate",
-    "deactivateConfirm": "Are you sure you want to deactivate this employee? Their sessions will be signed out immediately."
+    "deactivateConfirm": "Are you sure you want to deactivate this employee? Their sessions will be signed out immediately.",
+    "deactivateFailed": "Could not deactivate this employee: {message}"
   },
   "employeesAdd": {
     "title": "Add Employee",

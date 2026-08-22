@@ -77,6 +77,25 @@ describe('GET /api/documents/[id]', () => {
     expect(res.status).toBe(200)
   })
 
+  it('HR_ADMIN downloads any EmployeeDocument', async () => {
+    mockSession.user = { id: 'admin1', role: 'HR_ADMIN' }
+    mockDb.employeeDocument.findUnique.mockResolvedValue({
+      fileName: 'a.pdf',
+      filePath: 'documents/employees/a.pdf',
+      fileType: 'application/pdf',
+      employee: { userId: 'other' },
+    })
+    const res = await getDocument(req(), { params })
+    expect(res.status).toBe(200)
+  })
+
+  it('returns 401 for zombie session without user id (revoked token)', async () => {
+    // @ts-expect-error test
+    mockSession.user = { id: undefined, role: undefined }
+    const res = await getDocument(req('company'), { params })
+    expect(res.status).toBe(401)
+  })
+
   it('any authenticated user downloads CompanyDocument', async () => {
     mockDb.companyDocument.findUnique.mockResolvedValue({
       fileName: 'c.pdf',
@@ -166,6 +185,31 @@ describe('GET /api/documents/leave/[id]', () => {
       employee: { userId: 'user1' },
     })
     expect((await getLeaveDocument(leaveReq(), { params: leaveParams })).status).toBe(404)
+  })
+
+  it('returns 403 on path-traversal attachment key', async () => {
+    mockDb.leaveRequest.findUnique.mockResolvedValue({
+      attachmentFile: '../secrets/a.pdf',
+      employee: { userId: 'user1' },
+    })
+    const res = await getLeaveDocument(leaveReq(), { params: leaveParams })
+    expect(res.status).toBe(403)
+  })
+
+  it('handles legacy /uploads/-prefixed attachment key', async () => {
+    mockDb.leaveRequest.findUnique.mockResolvedValue({
+      attachmentFile: '/uploads/leaves/old.pdf',
+      employee: { userId: 'user1' },
+    })
+    const res = await getLeaveDocument(leaveReq(), { params: leaveParams })
+    expect(res.status).toBe(200)
+  })
+
+  it('returns 401 for zombie session without user id (revoked token)', async () => {
+    // @ts-expect-error test
+    mockSession.user = { id: undefined, role: undefined }
+    const res = await getLeaveDocument(leaveReq(), { params: leaveParams })
+    expect(res.status).toBe(401)
   })
 })
 

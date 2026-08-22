@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET() {
   const session = await auth()
-  if (!session?.user) return NextResponse.json({ count: 0, recent: [] })
+  if (!session?.user?.id) return NextResponse.json({ count: 0, recent: [] })
 
   const [count, recent] = await Promise.all([
     db.notification.count({ where: { userId: session.user.id, isRead: false } }),

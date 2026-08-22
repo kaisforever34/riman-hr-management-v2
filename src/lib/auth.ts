@@ -89,10 +89,10 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
             select: { isActive: true, tokenVersion: true },
           })
           if (!u || !u.isActive || u.tokenVersion !== token.tokenVersion) {
-            return {} as typeof token
+            return null
           }
         } catch {
-          return {} as typeof token
+          return null
         }
       }
       return token

@@ -123,7 +123,8 @@
     "previous": "السابق",
     "next": "التالي",
     "deactivate": "تعطيل",
-    "deactivateConfirm": "هل أنت متأكد من تعطيل هذا الموظف؟ سيتم إنهاء جلساته فوراً."
+    "deactivateConfirm": "هل أنت متأكد من تعطيل هذا الموظف؟ سيتم إنهاء جلساته فوراً.",
+    "deactivateFailed": "تعذّر تعطيل هذا الموظف: {message}"
   },
   "employeesAdd": {
     "title": "إضافة موظف",
