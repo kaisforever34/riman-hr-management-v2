@@ -28,9 +28,6 @@ export default auth(async function middleware(req) {
   const isManagerRoute = /\/manager(\/|$)/.test(pathname)
 
   if (isAuthPage) {
-    if (req.auth?.user) {
-      return NextResponse.redirect(new URL(`/${locale}/dashboard`, req.nextUrl))
-    }
     return response
   }
 
