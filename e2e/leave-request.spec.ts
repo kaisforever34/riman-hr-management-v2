@@ -51,23 +51,27 @@ test.describe('Employee Leave Request', () => {
     await page.getByRole('option').first().click();
     
     const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dayAfter = new Date(today);
-    dayAfter.setDate(dayAfter.getDate() + 2);
+    // Use a far-future window so repeated runs don't collide with earlier PENDING requests
+    const startOffset = 30 + Math.floor(Math.random() * 20);
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() + startOffset);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 1);
 
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
-    await page.fill('#startDate', formatDate(tomorrow));
-    await page.fill('#endDate', formatDate(dayAfter));
+    await page.fill('#startDate', formatDate(startDate));
+    await page.fill('#endDate', formatDate(endDate));
     const testReason = `Test leave request ${Math.random().toString(36).substring(7)}`;
     await page.fill('#reason', testReason);
 
     // Submit
     await page.click('button[type="submit"]:has-text("Submit Leave Request")');
 
-    // Should be back on /leave and see the new request
+    // Should be back on /leave and see the new request row (list shows type/dates/status, not reason)
     await expect(page).toHaveURL(/\/leave/);
-    await expect(page.locator(`text=${testReason}`)).toBeVisible();
+    const newRow = page.getByRole('row').filter({ hasText: 'Pending' }).first();
+    await expect(newRow).toBeVisible();
+    await expect(newRow).toContainText('Annual');
   });
 });

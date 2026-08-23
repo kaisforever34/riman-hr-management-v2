@@ -33,8 +33,8 @@ export async function submitLeave(formData: FormData) {
     leaveTypeId: formData.get('leaveTypeId') as string,
     startDate: formData.get('startDate') as string,
     endDate: formData.get('endDate') as string,
-    isHalfDay: formData.get('isHalfDay') as string,
-    halfDayPeriod: formData.get('halfDayPeriod') as string,
+    isHalfDay: (formData.get('isHalfDay') ?? undefined) as string | undefined,
+    halfDayPeriod: (formData.get('halfDayPeriod') ?? undefined) as string | undefined,
     reason: formData.get('reason') as string,
   }
 
