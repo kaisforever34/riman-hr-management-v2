@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import type { ReviewStatus } from '@prisma/client'
+import type { ReviewStatus } from '@/lib/types'
 
 export async function getReviews(filters?: {
   employeeId?: string

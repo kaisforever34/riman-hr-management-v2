@@ -69,7 +69,7 @@ export default function AuditLogClient({ logs }: AuditLogClientProps) {
                     {log.entityId ? `/${log.entityId}` : ''}
                   </td>
                   <td className="p-3 max-w-[280px] truncate text-[#8B93A8]">
-                    {log.detail ? JSON.stringify(log.detail).slice(0, 80) : '-'}
+                    {log.detail ? String(log.detail).slice(0, 80) : '-'}
                   </td>
                 </tr>
               ))

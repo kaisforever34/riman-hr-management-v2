@@ -7,7 +7,7 @@ import { auth } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import type { Role } from '@prisma/client'
+import type { Role } from '@/lib/types'
 import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
 import { isUniqueConstraintError } from '@/lib/db-errors'
@@ -67,7 +67,7 @@ export async function createEmployee(formData: FormData) {
             swift: data.swift || null,
             emergencyContactName: data.emergencyContactName || null,
             emergencyContactPhone: data.emergencyContactPhone || null,
-            workWeek: data.workWeek,
+            workWeek: JSON.stringify(data.workWeek),
           },
         },
       },
@@ -164,7 +164,7 @@ export async function updateEmployeeWorkWeek(formData: FormData) {
   const emp = await db.employee.findUnique({ where: { id: employeeId } })
   if (!emp) return { error: await serverError('employeeNotFound') }
 
-  await db.employee.update({ where: { id: employeeId }, data: { workWeek: parsed.data } })
+  await db.employee.update({ where: { id: employeeId }, data: { workWeek: JSON.stringify(parsed.data) } })
 
   await logAudit({
     actorId: session.user.id,

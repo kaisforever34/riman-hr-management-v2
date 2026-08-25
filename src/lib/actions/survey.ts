@@ -1,7 +1,6 @@
 'use server'
 
 import { serverError } from '@/lib/errors'
-import type { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
@@ -32,7 +31,7 @@ export async function createSurvey(
         create: questions.map((q) => ({
           type: q.type,
           question: q.question,
-          options: q.options ? q.options : undefined,
+          options: q.options ? JSON.stringify(q.options) : undefined,
           order: q.order,
         })),
       },
@@ -126,7 +125,7 @@ export async function submitSurveyResponses(assignmentId: string, responses: { q
       data: responses.map((r) => ({
         questionId: r.questionId,
         assignmentId,
-        value: r.value as Prisma.InputJsonValue,
+        value: JSON.stringify(r.value),
       })),
     })
 

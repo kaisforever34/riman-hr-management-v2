@@ -148,7 +148,7 @@ describe('bulkApproveLeaves', () => {
     expect(mockDb.auditLog.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         action: 'LEAVE_APPROVED',
-        detail: expect.objectContaining({ bulk: true }),
+        detail: expect.stringContaining('"bulk":true'),
       }),
     })
   })
@@ -204,7 +204,7 @@ describe('bulkRejectLeaves', () => {
     expect(mockDb.auditLog.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         action: 'LEAVE_REJECTED',
-        detail: expect.objectContaining({ bulk: true }),
+        detail: expect.stringContaining('"bulk":true'),
       }),
     })
   })
@@ -258,7 +258,7 @@ describe('submitLeave working days', () => {
 
   it('rejects half-day spanning multiple days', async () => {
     mockDb.employee.findUnique.mockResolvedValueOnce({
-      id: 'emp1', userId: 'u1', hireDate: new Date('2020-01-01'), workWeek: [0, 1, 2, 3, 4],
+      id: 'emp1', userId: 'u1', hireDate: new Date('2020-01-01'), workWeek: JSON.stringify([0, 1, 2, 3, 4]),
     })
     const form = makeFormData({
       leaveTypeId: 'lt1', startDate: '2026-09-01', endDate: '2026-09-05',
@@ -270,7 +270,7 @@ describe('submitLeave working days', () => {
 
   it('rejects when range has no working days', async () => {
     mockDb.employee.findUnique.mockResolvedValueOnce({
-      id: 'emp1', userId: 'u1', hireDate: new Date('2020-01-01'), workWeek: [0, 1, 2, 3, 4],
+      id: 'emp1', userId: 'u1', hireDate: new Date('2020-01-01'), workWeek: JSON.stringify([0, 1, 2, 3, 4]),
     })
     mockDb.leaveType.findUnique.mockResolvedValue({ id: 'lt1', isActive: true, requiresAttachment: false })
     mockDb.holiday.findMany.mockResolvedValue([])
@@ -285,7 +285,7 @@ describe('submitLeave working days', () => {
 
   it('rejects half-day on non-working day', async () => {
     mockDb.employee.findUnique.mockResolvedValueOnce({
-      id: 'emp1', userId: 'u1', hireDate: new Date('2020-01-01'), workWeek: [0, 1, 2, 3, 4],
+      id: 'emp1', userId: 'u1', hireDate: new Date('2020-01-01'), workWeek: JSON.stringify([0, 1, 2, 3, 4]),
     })
     mockDb.holiday.findMany.mockResolvedValue([])
     // 2026-09-04 (Fri) — non-working for Sun-Thu pattern

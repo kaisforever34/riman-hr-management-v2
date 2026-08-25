@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 import { isUniqueConstraintError } from '@/lib/db-errors'
-import type { LeaveRequest, LeaveBalance, LeaveType, LeaveStatus, Prisma } from '@prisma/client'
+import type { LeaveRequest, LeaveBalance, LeaveType, Prisma } from '@prisma/client'
+import type { LeaveStatus } from '@/lib/types'
 
 type DbClient = Prisma.TransactionClient | typeof db
 

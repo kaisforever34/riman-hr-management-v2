@@ -6,7 +6,7 @@ import { db } from './db'
 import { signInSchema } from './validations/auth'
 import { checkRateLimit, resetRateLimit } from './rate-limit'
 import { env } from './env'
-import type { Role } from '@prisma/client'
+import type { Role } from '@/lib/types'
 
 declare module 'next-auth' {
   interface User {
@@ -64,7 +64,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         return {
           id: user.id,
           email: user.email,
-          role: user.role,
+          role: user.role as Role,
           name,
           tokenVersion: user.tokenVersion,
         }

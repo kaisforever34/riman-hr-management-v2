@@ -56,13 +56,14 @@ export async function submitLeave(formData: FormData) {
     select: { date: true },
   })
   const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
-  if (isHalfDay && !isWorkingDay(toUaeDateKey(start), employee.workWeek, holidayKeys)) {
+  const workWeekArr = JSON.parse(employee.workWeek) as number[]
+  if (isHalfDay && !isWorkingDay(toUaeDateKey(start), workWeekArr, holidayKeys)) {
     return { error: await serverError('noWorkingDays') }
   }
 
   const durationDays = isHalfDay
     ? 0.5
-    : countWorkingDays(toUaeDateKey(start), toUaeDateKey(end), employee.workWeek, holidayKeys)
+    : countWorkingDays(toUaeDateKey(start), toUaeDateKey(end), workWeekArr, holidayKeys)
 
   if (!isHalfDay && durationDays === 0) return { error: await serverError('noWorkingDays') }
   if (!isHalfDay && durationDays > 365) return { error: await serverError('durationExceeds365') }

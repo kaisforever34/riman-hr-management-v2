@@ -1,4 +1,3 @@
-import { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
@@ -20,7 +19,7 @@ export async function logAudit(entry: AuditEntry): Promise<void> {
         action: entry.action,
         entityType: entry.entityType,
         entityId: entry.entityId ?? null,
-        detail: (entry.detail ?? undefined) as Prisma.InputJsonValue | undefined,
+        detail: entry.detail ? JSON.stringify(entry.detail) : null,
       },
     })
   } catch (e) {

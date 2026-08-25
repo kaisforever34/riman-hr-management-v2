@@ -1,7 +1,6 @@
 'use server'
 
 import { serverError } from '@/lib/errors'
-import type { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
@@ -83,7 +82,7 @@ export async function completeOnboardingTask(taskId: string, formData?: Record<s
         status: 'COMPLETED',
         completedAt: new Date(),
         completedById: session.user.id,
-        formData: (formData ?? undefined) as Prisma.InputJsonValue,
+        formData: formData ? JSON.stringify(formData) : undefined,
       },
     })
 

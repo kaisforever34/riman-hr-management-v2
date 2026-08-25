@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { toCsv, isoDay } from '@/lib/csv'
 import { isApprover } from '@/lib/roles'
-import type { LeaveStatus } from '@prisma/client'
+import type { LeaveStatus } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 

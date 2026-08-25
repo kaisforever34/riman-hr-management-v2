@@ -158,7 +158,7 @@ export default function EmployeeSurveyFillClient({ assignment, locale }: { assig
 
             {q.type === 'MULTIPLE_CHOICE' && (
               <div className="space-y-2">
-                {(Array.isArray(q.options) ? q.options : []).map((opt: string) => (
+                {(typeof q.options === 'string' ? (() => { try { return JSON.parse(q.options) } catch { return [] } })() : Array.isArray(q.options) ? q.options : []).map((opt: string) => (
                   <button
                     key={opt}
                     type="button"

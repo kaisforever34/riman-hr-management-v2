@@ -26,8 +26,12 @@ export default function SurveyResultsClient({ survey, locale }: { survey: Survey
   const t = useTranslations('surveys')
   const completed = survey.assignments.filter((a) => a.status === 'COMPLETED').length
 
+  function parseVal(v: unknown): unknown {
+    return typeof v === 'string' ? (() => { try { return JSON.parse(v) } catch { return v } })() : v
+  }
+
   function avgRating(responses: { value: unknown }[]): string {
-    const nums = responses.map((r) => Number(r.value)).filter((n) => !isNaN(n))
+    const nums = responses.map((r) => Number(parseVal(r.value))).filter((n) => !isNaN(n))
     return nums.length ? (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(1) : '-'
   }
 
@@ -63,7 +67,7 @@ export default function SurveyResultsClient({ survey, locale }: { survey: Survey
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {q.responses.map((r) => (
                   <div key={r.id} className="p-2 bg-[#0F1120] rounded-lg border border-[rgba(255,255,255,0.04)]">
-                    <p className="text-xs text-[#E0E6F4]">{String(r.value)}</p>
+                    <p className="text-xs text-[#E0E6F4]">{String(parseVal(r.value))}</p>
                     {!survey.isAnonymous && r.assignment && (
                       <p className="text-[10px] text-[#5A6278] mt-1">{r.assignment.employee.firstName} {r.assignment.employee.lastName}</p>
                     )}
@@ -75,8 +79,8 @@ export default function SurveyResultsClient({ survey, locale }: { survey: Survey
             {q.type === 'RATING' && q.responses.length > 0 && (
               <div className="flex items-end gap-1 h-24">
                 {[1,2,3,4,5].map((n) => {
-                  const count = q.responses.filter((r) => Number(r.value) === n).length
-                  const maxCount = Math.max(...[1,2,3,4,5].map((x) => q.responses.filter((r) => Number(r.value) === x).length))
+                  const count = q.responses.filter((r) => Number(parseVal(r.value)) === n).length
+                  const maxCount = Math.max(...[1,2,3,4,5].map((x) => q.responses.filter((r) => Number(parseVal(r.value)) === x).length))
                   const pct = maxCount > 0 ? (count / maxCount) * 100 : 0
                   return (
                     <div key={n} className="flex-1 flex flex-col items-center gap-1">
@@ -92,8 +96,8 @@ export default function SurveyResultsClient({ survey, locale }: { survey: Survey
 
             {q.type === 'MULTIPLE_CHOICE' && (
               <div className="space-y-1">
-                {(Array.isArray(q.options) ? q.options : []).map((opt: string) => {
-                  const count = q.responses.filter((r) => Array.isArray(r.value) ? r.value.includes(opt) : r.value === opt).length
+                {(typeof q.options === 'string' ? (() => { try { return JSON.parse(q.options) } catch { return [] } })() : Array.isArray(q.options) ? q.options : []).map((opt: string) => {
+                  const count = q.responses.filter((r) => { const pv = parseVal(r.value); return Array.isArray(pv) ? pv.includes(opt) : pv === opt }).length
                   const pct = q.responses.length > 0 ? Math.round((count / q.responses.length) * 100) : 0
                   return (
                     <div key={opt} className="flex items-center gap-2 text-xs">

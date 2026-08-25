@@ -6,7 +6,7 @@ import { manualCheckInSchema, managerOverrideSchema } from '@/lib/validations/at
 import { auth } from '@/lib/auth'
 import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes } from '@/lib/schedule'
 import { revalidatePath } from 'next/cache'
-import type { AttendanceStatus } from '@prisma/client'
+import type { AttendanceStatus } from '@/lib/types'
 import { logAudit } from '@/lib/audit'
 import { isUniqueConstraintError } from '@/lib/db-errors'
 import { isApprover } from '@/lib/roles'

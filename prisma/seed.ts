@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { randomBytes } from 'crypto'
 
@@ -35,7 +35,7 @@ async function main() {
     create: {
       email: 'admin@riman.com',
       passwordHash,
-      role: Role.HR_ADMIN,
+      role: 'HR_ADMIN',
       employee: {
         create: {
           firstName: 'System',
@@ -69,30 +69,30 @@ async function main() {
   }
 
   // ── Onboarding / Offboarding Task Templates ──
-  const onboardingTasks: { type: string; titleEn: string; titleAr: string; category: string; roles: Role[]; order: number; isRequired: boolean }[] = [
+  const onboardingTasks: { type: string; titleEn: string; titleAr: string; category: string; roles: string[]; order: number; isRequired: boolean }[] = [
     // Onboarding: FORM tasks (employee fills)
-    { type: 'ONBOARDING', titleEn: 'Personal Information', titleAr: 'المعلومات الشخصية', category: 'FORM', roles: [Role.EMPLOYEE], order: 1, isRequired: true },
-    { type: 'ONBOARDING', titleEn: 'Bank Account Details', titleAr: 'تفاصيل الحساب البنكي', category: 'FORM', roles: [Role.EMPLOYEE], order: 2, isRequired: true },
-    { type: 'ONBOARDING', titleEn: 'Emergency Contact', titleAr: 'جهة الاتصال في الطوارئ', category: 'FORM', roles: [Role.EMPLOYEE], order: 3, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Personal Information', titleAr: 'المعلومات الشخصية', category: 'FORM', roles: ['EMPLOYEE'], order: 1, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Bank Account Details', titleAr: 'تفاصيل الحساب البنكي', category: 'FORM', roles: ['EMPLOYEE'], order: 2, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Emergency Contact', titleAr: 'جهة الاتصال في الطوارئ', category: 'FORM', roles: ['EMPLOYEE'], order: 3, isRequired: true },
     // Onboarding: DOCUMENT tasks (employee uploads)
-    { type: 'ONBOARDING', titleEn: 'Passport Copy', titleAr: 'نسخة جواز السفر', category: 'DOCUMENT', roles: [Role.EMPLOYEE], order: 4, isRequired: true },
-    { type: 'ONBOARDING', titleEn: 'Visa / ID', titleAr: 'الإقامة / الهوية', category: 'DOCUMENT', roles: [Role.EMPLOYEE], order: 5, isRequired: true },
-    { type: 'ONBOARDING', titleEn: 'Certificate / Qualification', titleAr: 'الشهادات / المؤهلات', category: 'DOCUMENT', roles: [Role.EMPLOYEE], order: 6, isRequired: false },
+    { type: 'ONBOARDING', titleEn: 'Passport Copy', titleAr: 'نسخة جواز السفر', category: 'DOCUMENT', roles: ['EMPLOYEE'], order: 4, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Visa / ID', titleAr: 'الإقامة / الهوية', category: 'DOCUMENT', roles: ['EMPLOYEE'], order: 5, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Certificate / Qualification', titleAr: 'الشهادات / المؤهلات', category: 'DOCUMENT', roles: ['EMPLOYEE'], order: 6, isRequired: false },
     // Onboarding: MANAGER_ACTION tasks
-    { type: 'ONBOARDING', titleEn: 'Assign Workspace / Locker', titleAr: 'تخصيص مساحة عمل / خزانة', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 7, isRequired: true },
-    { type: 'ONBOARDING', titleEn: 'Uniform Fitting', titleAr: 'تجهيز الزي الرسمي', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 8, isRequired: true },
-    { type: 'ONBOARDING', titleEn: 'Policy Review & Acknowledgment', titleAr: 'مراجعة السياسات والتوقيع', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 9, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Assign Workspace / Locker', titleAr: 'تخصيص مساحة عمل / خزانة', category: 'MANAGER_ACTION', roles: ['HR_ADMIN', 'MANAGER'], order: 7, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Uniform Fitting', titleAr: 'تجهيز الزي الرسمي', category: 'MANAGER_ACTION', roles: ['HR_ADMIN', 'MANAGER'], order: 8, isRequired: true },
+    { type: 'ONBOARDING', titleEn: 'Policy Review & Acknowledgment', titleAr: 'مراجعة السياسات والتوقيع', category: 'MANAGER_ACTION', roles: ['HR_ADMIN', 'MANAGER'], order: 9, isRequired: true },
     // Offboarding: FORM
-    { type: 'OFFBOARDING', titleEn: 'Exit Interview', titleAr: 'مقابلة الخروج', category: 'FORM', roles: [Role.EMPLOYEE], order: 1, isRequired: true },
+    { type: 'OFFBOARDING', titleEn: 'Exit Interview', titleAr: 'مقابلة الخروج', category: 'FORM', roles: ['EMPLOYEE'], order: 1, isRequired: true },
     // Offboarding: MANAGER_ACTION
-    { type: 'OFFBOARDING', titleEn: 'Collect Keys / Access Cards', titleAr: 'استلام المفاتيح / بطاقات الدخول', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 2, isRequired: true },
-    { type: 'OFFBOARDING', titleEn: 'Return Uniform / Equipment', titleAr: 'إعادة الزي الرسمي / المعدات', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 3, isRequired: true },
-    { type: 'OFFBOARDING', titleEn: 'Final Settlement Notification', titleAr: 'إشعار التسوية النهائية', category: 'MANAGER_ACTION', roles: [Role.HR_ADMIN, Role.MANAGER], order: 4, isRequired: true },
+    { type: 'OFFBOARDING', titleEn: 'Collect Keys / Access Cards', titleAr: 'استلام المفاتيح / بطاقات الدخول', category: 'MANAGER_ACTION', roles: ['HR_ADMIN', 'MANAGER'], order: 2, isRequired: true },
+    { type: 'OFFBOARDING', titleEn: 'Return Uniform / Equipment', titleAr: 'إعادة الزي الرسمي / المعدات', category: 'MANAGER_ACTION', roles: ['HR_ADMIN', 'MANAGER'], order: 3, isRequired: true },
+    { type: 'OFFBOARDING', titleEn: 'Final Settlement Notification', titleAr: 'إشعار التسوية النهائية', category: 'MANAGER_ACTION', roles: ['HR_ADMIN', 'MANAGER'], order: 4, isRequired: true },
   ]
 
   await prisma.onboardingTask.deleteMany()
   for (const task of onboardingTasks) {
-    await prisma.onboardingTask.create({ data: task })
+    await prisma.onboardingTask.create({ data: { ...task, roles: JSON.stringify(task.roles) } })
   }
 
   // ── Performance Criteria ──
@@ -110,14 +110,14 @@ async function main() {
 
   // ── Sample Employees ──
   const sampleEmployees = [
-    { email: 'ahmed@riman.com', firstName: 'Ahmed', lastName: 'Hassan', code: 'EMP-001', dob: uaeDate(1988, 5, 12), nationality: 'AE', jobTitle: 'Store Manager', department: 'Retail', hireDate: uaeDate(2021, 3, 1), salary: 8000.00, role: Role.MANAGER },
-    { email: 'fatima@riman.com', firstName: 'Fatima', lastName: 'Ali', code: 'EMP-002', dob: uaeDate(1995, 8, 22), nationality: 'AE', jobTitle: 'Sales Associate', department: 'Retail', hireDate: uaeDate(2022, 6, 15), salary: 3500.00, role: Role.EMPLOYEE },
-    { email: 'mohammed@riman.com', firstName: 'Mohammed', lastName: 'Rashed', code: 'EMP-003', dob: uaeDate(1990, 11, 3), nationality: 'AE', jobTitle: 'Warehouse Supervisor', department: 'Warehouse', hireDate: uaeDate(2020, 9, 1), salary: 5000.00, role: Role.MANAGER },
-    { email: 'sara@riman.com', firstName: 'Sara', lastName: 'Khalid', code: 'EMP-004', dob: uaeDate(1998, 2, 14), nationality: 'AE', jobTitle: 'Admin Assistant', department: 'Admin', hireDate: uaeDate(2023, 1, 10), salary: 4000.00, role: Role.EMPLOYEE },
-    { email: 'omar@riman.com', firstName: 'Omar', lastName: 'Said', code: 'EMP-005', dob: uaeDate(1993, 7, 30), nationality: 'AE', jobTitle: 'Cashier', department: 'Retail', hireDate: uaeDate(2022, 11, 20), salary: 3000.00, role: Role.EMPLOYEE },
+    { email: 'ahmed@riman.com', firstName: 'Ahmed', lastName: 'Hassan', code: 'EMP-001', dob: uaeDate(1988, 5, 12), nationality: 'AE', jobTitle: 'Store Manager', department: 'Retail', hireDate: uaeDate(2021, 3, 1), salary: 8000.00, role: 'MANAGER' },
+    { email: 'fatima@riman.com', firstName: 'Fatima', lastName: 'Ali', code: 'EMP-002', dob: uaeDate(1995, 8, 22), nationality: 'AE', jobTitle: 'Sales Associate', department: 'Retail', hireDate: uaeDate(2022, 6, 15), salary: 3500.00, role: 'EMPLOYEE' },
+    { email: 'mohammed@riman.com', firstName: 'Mohammed', lastName: 'Rashed', code: 'EMP-003', dob: uaeDate(1990, 11, 3), nationality: 'AE', jobTitle: 'Warehouse Supervisor', department: 'Warehouse', hireDate: uaeDate(2020, 9, 1), salary: 5000.00, role: 'MANAGER' },
+    { email: 'sara@riman.com', firstName: 'Sara', lastName: 'Khalid', code: 'EMP-004', dob: uaeDate(1998, 2, 14), nationality: 'AE', jobTitle: 'Admin Assistant', department: 'Admin', hireDate: uaeDate(2023, 1, 10), salary: 4000.00, role: 'EMPLOYEE' },
+    { email: 'omar@riman.com', firstName: 'Omar', lastName: 'Said', code: 'EMP-005', dob: uaeDate(1993, 7, 30), nationality: 'AE', jobTitle: 'Cashier', department: 'Retail', hireDate: uaeDate(2022, 11, 20), salary: 3000.00, role: 'EMPLOYEE' },
   ]
 
-  const createdEmployees: { id: string; email: string; hireDate: Date; role: Role }[] = []
+  const createdEmployees: { id: string; email: string; hireDate: Date; role: string }[] = []
 
   for (const emp of sampleEmployees) {
     const user = await prisma.user.upsert({
@@ -149,13 +149,13 @@ async function main() {
   // ── Manager assignments: employees report to a manager in their department ──
   const managersByDept = new Map<string, string>()
   for (const emp of createdEmployees) {
-    if (emp.role === Role.MANAGER) {
+    if (emp.role === 'MANAGER') {
       const record = sampleEmployees.find((s) => s.email === emp.email)
       if (record) managersByDept.set(record.department, emp.id)
     }
   }
   for (const emp of createdEmployees) {
-    if (emp.role === Role.MANAGER) continue
+    if (emp.role === 'MANAGER') continue
     const record = sampleEmployees.find((s) => s.email === emp.email)
     if (!record) continue
     const managerId = managersByDept.get(record.department) ?? null

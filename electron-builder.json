@@ -1,0 +1,41 @@
+{
+  "appId": "com.riman.hr",
+  "productName": "Riman HR Management",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "electron/**/*",
+    "!.next/**",
+    "!.next/standalone/**",
+    "node_modules/**"
+  ],
+  "extraResources": [
+    {
+      "from": ".next/standalone",
+      "to": "standalone"
+    },
+    {
+      "from": ".next/static",
+      "to": "standalone/.next/static"
+    },
+    {
+      "from": "public",
+      "to": "standalone/public"
+    },
+    {
+      "from": "prisma",
+      "to": "standalone/prisma"
+    }
+  ],
+  "win": {
+    "target": "nsis",
+    "icon": "public/favicon.ico"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  }
+}

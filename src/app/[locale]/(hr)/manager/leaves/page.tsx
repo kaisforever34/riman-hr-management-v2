@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getManagerAllRequests, getAllLeaveTypes, getEmployees } from '@/lib/queries/leave'
 import ManagerLeavesClient from './manager-leaves-client'
-import type { LeaveStatus } from '@prisma/client'
+import type { LeaveStatus } from '@/lib/types'
 export const dynamic = 'force-dynamic'
 
 const LEAVE_STATUSES: LeaveStatus[] = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']
