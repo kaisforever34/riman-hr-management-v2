@@ -117,7 +117,11 @@
     "next": "التالي",
     "deactivate": "تعطيل",
     "deactivateConfirm": "هل أنت متأكد من تعطيل هذا الموظف؟ سيتم إنهاء جلساته فوراً.",
-    "deactivateFailed": "تعذّر تعطيل هذا الموظف"
+    "deactivateFailed": "تعذّر تعطيل هذا الموظف",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "resetPasswordConfirm": "إعادة تعيين كلمة مرور هذا المستخدم؟ سيُطلب منه تعيين كلمة مرور جديدة عند تسجيل الدخول التالي.",
+    "resetPasswordSuccess": "تم إعادة تعيين كلمة المرور بنجاح",
+    "resetPasswordFailed": "تعذّر إعادة تعيين كلمة المرور"
   },
   "employeesAdd": {
     "title": "إضافة موظف",
@@ -162,6 +166,31 @@
     "roleEmployee": "موظف",
     "roleManager": "مدير",
     "roleHrAdmin": "مسؤول موارد بشرية"
+  },
+  "addUser": {
+    "title": "إضافة حساب مستخدم",
+    "subtitle": "إنشاء حساب مستخدم. إذا كان لهذا المستخدم سجل موظف، حدد تفاصيله أدناه.",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "مثال: john@riman.com",
+    "password": "كلمة المرور",
+    "passwordPlaceholder": "8 أحرف على الأقل",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "confirmPasswordPlaceholder": "أعد إدخال كلمة المرور",
+    "role": "الدور",
+    "roleEmployee": "موظف",
+    "roleManager": "مدير",
+    "roleHrAdmin": "مسؤول موارد بشرية",
+    "linkedEmployee": "الموظف المرتبط (اختياري)",
+    "selectEmployee": "اختر موظفاً موجوداً...",
+    "noPassword": "اتركه فارغاً لتوليد كلمة مرور آمنة وعرضها للمسؤول.",
+    "generatePassword": "توليد كلمة مرور تلقائياً",
+    "passwordShown": "كلمة مرور مؤقتة — شاركها مع المستخدم بأمان",
+    "saveUser": "إنشاء المستخدم",
+    "saving": "جاري الإنشاء...",
+    "success": "تم إنشاء المستخدم بنجاح",
+    "emailExists": "مستخدم بهذا البريد الإلكتروني موجود بالفعل",
+    "passwordsMismatch": "كلمتا المرور غير متطابقتين",
+    "invalidEmail": "بريد إلكتروني غير صالح"
   },
   "leave": {
     "title": "إجازاتي",
@@ -795,7 +824,10 @@
     "notYourTask": "هذه ليست مهمتك",
     "assignmentNotFound": "التكليف غير موجود",
     "notYourSurvey": "هذا ليس استبيانك",
-    "alreadyCompleted": "مكتمل بالفعل"
+    "alreadyCompleted": "مكتمل بالفعل",
+    "userNotFound": "المستخدم غير موجود",
+    "passwordResetFailed": "فشل إعادة تعيين كلمة المرور",
+    "passwordChanged": "تم تغيير كلمة المرور بنجاح"
   },
   "empty": {
     "noEmployees": {

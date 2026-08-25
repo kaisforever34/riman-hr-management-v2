@@ -48,6 +48,12 @@ export type ErrorKey =
   | 'assignmentNotFound'
   | 'notYourSurvey'
   | 'alreadyCompleted'
+  | 'userNotFound'
+  | 'passwordResetFailed'
+  | 'userCreated'
+  | 'passwordChangeFailed'
+  | 'passwordChanged'
+  | 'emailAlreadyUsed'
 
 export async function serverError(key: ErrorKey): Promise<string> {
   const t = await getTranslations('errors')

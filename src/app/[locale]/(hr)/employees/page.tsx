@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { DeactivateButton } from './deactivate-button'
+import { ResetPasswordButton } from './reset-password-button'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
@@ -17,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Avatar } from '@/components/shared'
-import { Plus, Search, Users } from 'lucide-react'
+import { Plus, Search, Users, UserPlus } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -85,13 +86,22 @@ async function EmployeesData(props: {
         <div>
           <h1 className="font-syne text-2xl font-bold text-[#E0E6F4] tracking-tight">{t('title')}</h1>
         </div>
-        <Link
-          href="employees/new"
-          className={buttonVariants()}
-        >
-          <Plus className="me-2 h-4 w-4" />
-          {t('addEmployee')}
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="employees/new-user"
+            className={buttonVariants({ variant: 'outline' })}
+          >
+            <UserPlus className="me-2 h-4 w-4" />
+            {t('resetPassword')}
+          </Link>
+          <Link
+            href="employees/new"
+            className={buttonVariants()}
+          >
+            <Plus className="me-2 h-4 w-4" />
+            {t('addEmployee')}
+          </Link>
+        </div>
       </div>
 
       {totalCount > 0 && (
@@ -160,9 +170,12 @@ async function EmployeesData(props: {
                   </TableCell>
                   {isHrAdmin && (
                     <TableCell>
-                      {emp.user.isActive && emp.user.id !== session?.user.id && (
-                        <DeactivateButton userId={emp.user.id} />
-                      )}
+                      <div className="flex items-center gap-1">
+                        <ResetPasswordButton userId={emp.user.id} />
+                        {emp.user.isActive && emp.user.id !== session?.user.id && (
+                          <DeactivateButton userId={emp.user.id} />
+                        )}
+                      </div>
                     </TableCell>
                   )}
                 </TableRow>
