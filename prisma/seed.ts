@@ -1,4 +1,4 @@
-import { PrismaClient, Role, AttendanceStatus } from '@prisma/client'
+import { PrismaClient, Role } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { randomBytes } from 'crypto'
 
@@ -196,7 +196,7 @@ async function main() {
 
     for (const emp of createdEmployees) {
       const rand = Math.random()
-      let status: AttendanceStatus = AttendanceStatus.PRESENT
+      let status: 'PRESENT' | 'LATE' | 'ABSENT' = 'PRESENT'
       let checkInHour = 11
       let checkInMin = 30 + Math.floor(Math.random() * 15)
       let lateMinutes = 0
@@ -206,11 +206,11 @@ async function main() {
 
       if (rand < 0.1) {
         // 10% chance absent
-        status = AttendanceStatus.ABSENT
+        status = 'ABSENT'
         checkInHour = 0; checkInMin = 0; checkOutHour = 0; checkOutMin = 0
       } else if (rand < 0.25) {
         // 15% chance late
-        status = AttendanceStatus.LATE
+        status = 'LATE'
         checkInHour = 11
         checkInMin = 45 + Math.floor(Math.random() * 45)
         lateMinutes = (checkInHour - workStart.hour) * 60 + (checkInMin - workStart.minute)
