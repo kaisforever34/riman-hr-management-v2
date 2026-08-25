@@ -1,5 +1,6 @@
 import { PrismaClient, Role, AttendanceStatus } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { randomBytes } from 'crypto'
 
 const prisma = new PrismaClient()
 
@@ -10,7 +11,7 @@ function uaeDate(year: number, month: number, day: number): Date {
 function getUaeToday(): Date {
   const now = new Date()
   const uae = new Date(now.getTime() + 4 * 60 * 60 * 1000)
-  return uaeDate(uae.getUTCFullYear(), uae.getUTCMonth() + 1, uae.getUTCDate())
+  return uaeDate(uae.getUTCFullYear(), uae.getUTCMonth() + 1, uae?.getUTCDate())
 }
 
 function isWeekend(d: Date): boolean {
@@ -19,9 +20,13 @@ function isWeekend(d: Date): boolean {
   return day === 5 || day === 6
 }
 
+function randomPassword(): string {
+  return randomBytes(12).toString('hex')
+}
+
 async function main() {
-  const passwordHash = await bcrypt.hash('admin123', 10)
-  const empPasswordHash = await bcrypt.hash('employee123', 10)
+  const passwordHash = await bcrypt.hash(randomPassword(), 10)
+  const empPasswordHash = await bcrypt.hash(randomPassword(), 10)
 
   // ── Admin ──
   await prisma.user.upsert({
@@ -387,11 +392,9 @@ async function main() {
   console.log('  Riman HR — Seed Complete')
   console.log('═══════════════════════════════════════════')
   console.log('')
-  console.log('  Admin:  admin@riman.com / admin123')
-  console.log('  Employees:')
-  for (const emp of sampleEmployees) {
-    console.log(`    ${emp.email} / employee123`)
-  }
+  console.log('  ⚠️  Default passwords were randomly generated and NOT printed.')
+  console.log('  Run `npx prisma db execute --stdin` or query the DB to retrieve them,')
+  console.log('  or reset passwords via the admin UI before using this system in production.')
   console.log('')
   console.log('  Departments: Retail, Warehouse, Admin')
   console.log('  Sample data: attendance (30 days), payroll (last month), performance reviews, company docs')

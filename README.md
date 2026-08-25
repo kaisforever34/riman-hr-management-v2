@@ -63,9 +63,9 @@ npm run dev
 
 Open http://localhost:3000.
 
-### Default seeded credentials
+### Seeded accounts
 
-The seed script creates an admin account and sample employees with **hardcoded default passwords**. These are well-known defaults — **change them immediately in any production environment** before exposing the app.
+The seed script creates an admin account and sample employees with **randomly generated passwords**. Passwords are not printed to the console — retrieve them from the database or use the admin UI to reset them before first use.
 
 ## Testing
 
@@ -118,6 +118,7 @@ The container exposes a health endpoint at `/api/health`, used by the Docker `HE
 
 ## Security Notes
 
-- Seeded accounts use default passwords — rotate them before production use.
-- Set a strong `AUTH_SECRET` (32+ random bytes).
+- Seeded passwords are randomly generated per install — log into the admin UI and set a known password.
+- Set a strong `AUTH_SECRET` (32+ random bytes) via `npx auth secret`.
 - Restrict database access to the app server.
+- Run `npm run verify` before deploying (lint, typecheck, tests, build).

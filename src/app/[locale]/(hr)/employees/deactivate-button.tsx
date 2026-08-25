@@ -27,7 +27,7 @@ export function DeactivateButton({ userId }: { userId: string }) {
       </Button>
       {error ? (
         <p className="mt-1 max-w-[220px] text-xs text-red-600">
-          {t('deactivateFailed', { message: error.error })}
+          {t('deactivateFailed')}
         </p>
       ) : null}
     </form>

@@ -14,7 +14,6 @@ interface EmployeeDocData {
   employeeName: string
   category: string
   fileName: string
-  filePath: string
   fileSize: number
   fileType: string
   notes: string | null
@@ -26,7 +25,6 @@ interface CompanyDocData {
   category: string
   title: string
   fileName: string
-  filePath: string
   fileSize: number
   fileType: string
   notes: string | null

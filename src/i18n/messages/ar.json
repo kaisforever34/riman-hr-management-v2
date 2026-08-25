@@ -117,7 +117,7 @@
     "next": "التالي",
     "deactivate": "تعطيل",
     "deactivateConfirm": "هل أنت متأكد من تعطيل هذا الموظف؟ سيتم إنهاء جلساته فوراً.",
-    "deactivateFailed": "تعذّر تعطيل هذا الموظف: {message}"
+    "deactivateFailed": "تعذّر تعطيل هذا الموظف"
   },
   "employeesAdd": {
     "title": "إضافة موظف",

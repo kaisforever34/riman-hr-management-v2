@@ -5,6 +5,23 @@ import { readFile } from 'fs/promises'
 import { resolvePrivateUploadPath } from '@/lib/upload'
 import { isApprover } from '@/lib/roles'
 
+const SAFE_CONTENT_TYPES = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'text/plain',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/zip',
+  'application/octet-stream',
+])
+
+function safeContentType(type: string): string {
+  return SAFE_CONTENT_TYPES.has(type) ? type : 'application/octet-stream'
+}
+
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -39,7 +56,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const buffer = await readFile(fullPath)
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
-        'Content-Type': doc.fileType || 'application/octet-stream',
+        'Content-Type': safeContentType(doc.fileType),
         'Content-Disposition': `attachment; filename="${doc.fileName.replace(/["\r\n]/g, '')}"`,
         'Cache-Control': 'private, no-store',
       },
