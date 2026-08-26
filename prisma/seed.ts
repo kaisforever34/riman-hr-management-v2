@@ -45,6 +45,17 @@ async function main() {
           department: 'HR',
           hireDate: new Date('2020-01-01'),
           salary: 25000.00,
+          gender: 'Male',
+          basicSalary: 15000.00,
+          housingAllowance: 5000.00,
+          transportAllowance: 2500.00,
+          otherAllowances: 2500.00,
+          contractType: 'INDEFINITE',
+          contractStartDate: new Date('2019-01-01'),
+          contractEndDate: null,
+          visaExpiryDate: new Date('2027-06-15'),
+          iqamaNumber: '784-1990-1234567-1',
+          iqamaExpiryDate: new Date('2027-06-15'),
         },
       },
     },
@@ -70,6 +81,17 @@ async function main() {
           department: 'HR',
           hireDate: new Date('2019-01-01'),
           salary: 20000.00,
+          gender: 'Male',
+          basicSalary: 12000.00,
+          housingAllowance: 4000.00,
+          transportAllowance: 2000.00,
+          otherAllowances: 2000.00,
+          contractType: 'INDEFINITE',
+          contractStartDate: new Date('2018-01-01'),
+          contractEndDate: null,
+          visaExpiryDate: new Date('2027-06-15'),
+          iqamaNumber: '784-1985-2345678-2',
+          iqamaExpiryDate: new Date('2027-06-15'),
         },
       },
     },
@@ -133,16 +155,27 @@ async function main() {
 
   // ── Sample Employees ──
   const sampleEmployees = [
-    { email: 'ahmed@riman.com', firstName: 'Ahmed', lastName: 'Hassan', code: 'EMP-001', dob: uaeDate(1988, 5, 12), nationality: 'AE', jobTitle: 'Store Manager', department: 'Retail', hireDate: uaeDate(2021, 3, 1), salary: 8000.00, role: 'MANAGER' },
-    { email: 'fatima@riman.com', firstName: 'Fatima', lastName: 'Ali', code: 'EMP-002', dob: uaeDate(1995, 8, 22), nationality: 'AE', jobTitle: 'Sales Associate', department: 'Retail', hireDate: uaeDate(2022, 6, 15), salary: 3500.00, role: 'EMPLOYEE' },
-    { email: 'mohammed@riman.com', firstName: 'Mohammed', lastName: 'Rashed', code: 'EMP-003', dob: uaeDate(1990, 11, 3), nationality: 'AE', jobTitle: 'Warehouse Supervisor', department: 'Warehouse', hireDate: uaeDate(2020, 9, 1), salary: 5000.00, role: 'MANAGER' },
-    { email: 'sara@riman.com', firstName: 'Sara', lastName: 'Khalid', code: 'EMP-004', dob: uaeDate(1998, 2, 14), nationality: 'AE', jobTitle: 'Admin Assistant', department: 'Admin', hireDate: uaeDate(2023, 1, 10), salary: 4000.00, role: 'EMPLOYEE' },
-    { email: 'omar@riman.com', firstName: 'Omar', lastName: 'Said', code: 'EMP-005', dob: uaeDate(1993, 7, 30), nationality: 'AE', jobTitle: 'Cashier', department: 'Retail', hireDate: uaeDate(2022, 11, 20), salary: 3000.00, role: 'EMPLOYEE' },
+    { email: 'ahmed@riman.com', firstName: 'Ahmed', lastName: 'Hassan', code: 'EMP-001', dob: uaeDate(1988, 5, 12), nationality: 'AE', jobTitle: 'Store Manager', department: 'Retail', hireDate: uaeDate(2021, 3, 1), salary: 8000.00, role: 'MANAGER', gender: 'Male' as const },
+    { email: 'fatima@riman.com', firstName: 'Fatima', lastName: 'Ali', code: 'EMP-002', dob: uaeDate(1995, 8, 22), nationality: 'AE', jobTitle: 'Sales Associate', department: 'Retail', hireDate: uaeDate(2022, 6, 15), salary: 3500.00, role: 'EMPLOYEE', gender: 'Female' as const },
+    { email: 'mohammed@riman.com', firstName: 'Mohammed', lastName: 'Rashed', code: 'EMP-003', dob: uaeDate(1990, 11, 3), nationality: 'AE', jobTitle: 'Warehouse Supervisor', department: 'Warehouse', hireDate: uaeDate(2020, 9, 1), salary: 5000.00, role: 'MANAGER', gender: 'Male' as const },
+    { email: 'sara@riman.com', firstName: 'Sara', lastName: 'Khalid', code: 'EMP-004', dob: uaeDate(1998, 2, 14), nationality: 'AE', jobTitle: 'Admin Assistant', department: 'Admin', hireDate: uaeDate(2023, 1, 10), salary: 4000.00, role: 'EMPLOYEE', gender: 'Female' as const },
+    { email: 'omar@riman.com', firstName: 'Omar', lastName: 'Said', code: 'EMP-005', dob: uaeDate(1993, 7, 30), nationality: 'AE', jobTitle: 'Cashier', department: 'Retail', hireDate: uaeDate(2022, 11, 20), salary: 3000.00, role: 'EMPLOYEE', gender: 'Male' as const },
   ]
 
   const createdEmployees: { id: string; email: string; hireDate: Date; role: string }[] = []
 
   for (const emp of sampleEmployees) {
+    const contractType = emp.role === 'MANAGER' ? 'INDEFINITE' : 'FIXED_TERM'
+    const contractStartDate = new Date(emp.hireDate.getTime() - 365 * 24 * 60 * 60 * 1000)
+    const contractEndDate = new Date(emp.hireDate.getTime() + 365 * 24 * 60 * 60 * 1000)
+    const basicSalary = Math.round(emp.salary * 0.6 * 100) / 100
+    const housingAllowance = Math.round(emp.salary * 0.2 * 100) / 100
+    const transportAllowance = Math.round(emp.salary * 0.1 * 100) / 100
+    const otherAllowances = Math.round(emp.salary * 0.1 * 100) / 100
+    const now = new Date()
+    const visaExpiryDate = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000)
+    const iqamaNumber = `784-${emp.dob.getUTCFullYear()}-${Math.floor(1000000 + Math.random() * 9000000)}-${Math.floor(1 + Math.random() * 9)}`
+
     const user = await prisma.user.upsert({
       where: { email: emp.email },
       update: { role: emp.role },
@@ -161,6 +194,17 @@ async function main() {
             department: emp.department,
             hireDate: emp.hireDate,
             salary: emp.salary,
+            gender: emp.gender,
+            basicSalary,
+            housingAllowance,
+            transportAllowance,
+            otherAllowances,
+            contractType,
+            contractStartDate,
+            contractEndDate,
+            visaExpiryDate,
+            iqamaNumber,
+            iqamaExpiryDate: visaExpiryDate,
           },
         },
       },
@@ -285,6 +329,25 @@ async function main() {
       update: {},
       create: { key: 'TRANSPORTATION_AMOUNT', value: '500' },
     })
+
+    // ── New App Settings ──
+    const newAppSettings = [
+      { key: 'GPSSA_EMPLOYEE_RATE', value: '5' },
+      { key: 'GPSSA_EMPLOYER_RATE', value: '12.5' },
+      { key: 'GRACE_PERIOD_MINUTES', value: '5' },
+      { key: 'AUTO_CLOCKOUT_HOUR', value: '21' },
+      { key: 'AUTO_CLOCKOUT_MINUTE', value: '0' },
+      { key: 'MAX_CARRYOVER_DAYS', value: '15' },
+      { key: 'MAX_CONSECUTIVE_LEAVE_DAYS', value: '30' },
+    ]
+
+    for (const setting of newAppSettings) {
+      await prisma.appSetting.upsert({
+        where: { key: setting.key },
+        update: {},
+        create: setting,
+      })
+    }
 
     const transportAmount = parseInt(appSetting.value)
 

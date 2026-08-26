@@ -213,6 +213,29 @@
     "roleManager": "Manager",
     "roleHrAdmin": "HR Admin"
   },
+  "employee": {
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "contractType": "Contract Type",
+    "fixedTerm": "Fixed Term",
+    "indefinite": "Indefinite",
+    "probation": "Probation",
+    "contractStartDate": "Contract Start Date",
+    "contractEndDate": "Contract End Date",
+    "probationEndDate": "Probation End Date",
+    "visaExpiryDate": "Visa Expiry Date",
+    "iqamaNumber": "Iqama Number",
+    "iqamaExpiryDate": "Iqama Expiry Date",
+    "contractExpiringSoon": "Contract Expiring Soon",
+    "visaExpiringSoon": "Visa Expiring Soon",
+    "basicSalary": "Basic Salary",
+    "housingAllowance": "Housing Allowance",
+    "transportAllowance": "Transport Allowance",
+    "otherAllowances": "Other Allowances",
+    "terminateEmployee": "Terminate Employee",
+    "terminated": "Terminated"
+  },
   "addUser": {
     "title": "Add User Account",
     "subtitle": "Create a user account. If this user has an employee record, select their employee details below.",
@@ -294,7 +317,13 @@
     "errors": {
       "submitFailed": "Failed to submit leave request",
       "cancelFailed": "Failed to cancel leave request"
-    }
+    },
+    "sickLeave": "Sick Leave",
+    "carryover": "Carryover",
+    "carryoverDays": "Carryover Days",
+    "maxCarryover": "Maximum Carryover",
+    "maxConsecutiveDays": "Maximum Consecutive Days",
+    "leaveReasonNotRequired": "Reason is not required for this leave type"
   },
   "managerLeaves": {
     "title": "Leave Requests",
@@ -408,7 +437,36 @@
       "checkInFailed": "Failed to check in",
       "checkOutFailed": "Failed to check out",
       "manualCheckInFailed": "Failed to record manual check-in"
-    }
+    },
+    "overtime": "Overtime",
+    "overtimeRequest": "Overtime Request",
+    "overtimeRequests": "Overtime Requests",
+    "overtimeApproved": "Overtime Approved",
+    "overtimeRejected": "Overtime Rejected",
+    "overtimePending": "Overtime Pending",
+    "submitOvertime": "Submit Overtime",
+    "overtimeMinutes": "Overtime Minutes",
+    "overtimeMinutesHelp": "Number of overtime minutes",
+    "overtimeNote": "Overtime Note",
+    "overtimeDate": "Overtime Date",
+    "overtimeStatus": "Overtime Status",
+    "approveOvertime": "Approve Overtime",
+    "rejectOvertime": "Reject Overtime",
+    "gracePeriod": "Grace Period",
+    "gracePeriodMinutes": "Grace Period (minutes)",
+    "lateArrival": "Late Arrival",
+    "autoClockout": "Auto Clock-out",
+    "clockIn": "Clock In",
+    "clockOut": "Clock Out",
+    "hoursWorked": "Hours Worked",
+    "present": "Present",
+    "absent": "Absent",
+    "late": "Late",
+    "overtimeHours": "Overtime Hours",
+    "statusPresent": "Present",
+    "statusAbsent": "Absent",
+    "statusLate": "Late",
+    "statusOnLeave": "On Leave"
   },
   "managerAttendance": {
     "title": "Attendance",
@@ -472,7 +530,22 @@
       "createFailed": "Failed to create payroll period",
       "finalizeFailed": "Failed to finalize payroll",
       "recalculateFailed": "Failed to recalculate"
-    }
+    },
+    "salaryBreakdown": "Salary Breakdown",
+    "basicSalary": "Basic Salary",
+    "housingAllowance": "Housing Allowance",
+    "transportAllowance": "Transport Allowance",
+    "otherAllowances": "Other Allowances",
+    "totalGross": "Total Gross",
+    "gpssaEmployee": "GPSSA (Employee)",
+    "gpssaEmployer": "GPSSA (Employer)",
+    "overtimePay": "Overtime Pay",
+    "bonusPay": "Bonus Pay",
+    "totalDeductions": "Total Deductions",
+    "eosbAmount": "EOSB Amount",
+    "eosb": "End of Service Benefit",
+    "eosbEligible": "EOSB Eligible",
+    "eosbCalculation": "EOSB Calculation"
   },
   "managerPayroll": {
     "title": "Payroll Period",
@@ -611,7 +684,14 @@
     "selectEmployee": "Please select an employee",
     "criteriaNamePlaceholder": "Criteria name",
     "saving": "Saving...",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "dssfNeedsImprovement": "Needs Improvement",
+    "belowExpectations": "Below Expectations",
+    "meets": "Meets Expectations",
+    "exceeds": "Exceeds Expectations",
+    "farExceeds": "Far Exceeds Expectations",
+    "submitReview": "Submit Review",
+    "approveReview": "Approve Review"
   },
   "surveys": {
     "title": "Surveys",
@@ -812,7 +892,12 @@
     "document": "Document",
     "fillForm": "Fill Form",
     "upload": "Upload",
-    "noActiveOnboarding": "You have no active onboarding tasks"
+    "noActiveOnboarding": "You have no active onboarding tasks",
+    "deadline": "Deadline",
+    "overdue": "Overdue",
+    "skipped": "Skipped",
+    "taskDeadline": "Task Deadline",
+    "accessRevoked": "Access Revoked"
   },
   "common": {
     "loading": "Loading...",
@@ -823,7 +908,13 @@
     "search": "Search...",
     "back": "Back",
     "exportCsv": "Export CSV",
-    "actions": "Actions"
+    "actions": "Actions",
+    "overtime": "Overtime",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approval": "Approval",
+    "rejectReason": "Rejection Reason",
+    "pending": "Pending"
   },
   "errors": {
     "network": "Connection lost. Check your internet and try again.",

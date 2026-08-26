@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { recalculatePayslips, updateLateDeduction, finalizePayroll } from '@/lib/actions/payroll'
+import { recalculatePayslips, finalizePayroll } from '@/lib/actions/payroll'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -32,8 +32,6 @@ export function PeriodClient({ period, payslips }: Props) {
   const tc = useTranslations('common')
   const [loading, setLoading] = useState('')
   const [message, setMessage] = useState('')
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editValue, setEditValue] = useState('')
   const [showFinalize, setShowFinalize] = useState(false)
   const isDraft = period.status === 'DRAFT'
 
@@ -58,21 +56,6 @@ export function PeriodClient({ period, payslips }: Props) {
     }
     setLoading('')
     setShowFinalize(false)
-  }
-
-  const handleSaveLateDeduction = async (payslipId: string) => {
-    setLoading(payslipId)
-    setMessage('')
-    const form = new FormData()
-    form.set('payslipId', payslipId)
-    form.set('lateDeduction', editValue)
-    const result = await updateLateDeduction(form)
-    if (result?.error) {
-      setMessage(result.error)
-    } else {
-      setEditingId(null)
-    }
-    setLoading('')
   }
 
   const monthName = format(new Date(period.year, period.month - 1), 'MMMM yyyy')
@@ -154,32 +137,7 @@ export function PeriodClient({ period, payslips }: Props) {
                     <td className="px-4 py-3 text-end text-audit-red">{slip.transportationDeduction > 0 ? `-${slip.transportationDeduction.toFixed(2)}` : '0.00'}</td>
                     <td className="px-4 py-3 text-end text-audit-red">{slip.absenceDeduction > 0 ? `-${slip.absenceDeduction.toFixed(2)}` : '0.00'}</td>
                     <td className="px-4 py-3 text-end">
-                      {editingId === slip.id ? (
-                        <span className="inline-flex items-center gap-1">
-                          <input
-                            type="number"
-                            className="w-20 rounded border bg-[#0D1028] px-2 py-1 text-end text-sm"
-                            value={editValue}
-                            onChange={e => setEditValue(e.target.value)}
-                            min="0"
-                            step="0.01"
-                          />
-                          <Button size="sm" onClick={() => handleSaveLateDeduction(slip.id)} disabled={loading === slip.id}>
-                            {t('saveLateDeduction')}
-                          </Button>
-                        </span>
-                      ) : (
-                        <span
-                          className={cn('cursor-pointer', isDraft && 'hover:text-[#4B8BF0]')}
-                          onClick={() => {
-                            if (!isDraft) return
-                            setEditingId(slip.id)
-                            setEditValue(String(slip.lateDeduction))
-                          }}
-                        >
-                          {slip.lateDeduction > 0 ? `-${slip.lateDeduction.toFixed(2)}` : '0.00'}
-                        </span>
-                      )}
+                      {slip.lateDeduction > 0 ? `-${slip.lateDeduction.toFixed(2)}` : '0.00'}
                     </td>
                     <td className="px-4 py-3 text-end font-medium">{slip.netPay.toFixed(2)}</td>
                   </tr>

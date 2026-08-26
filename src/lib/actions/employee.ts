@@ -56,6 +56,7 @@ export async function createEmployee(formData: FormData) {
             lastName: data.lastName,
             employeeCode: data.employeeCode,
             dateOfBirth: new Date(data.dateOfBirth),
+            gender: data.gender || null,
             nationality: data.nationality,
             maritalStatus: data.maritalStatus || null,
             phoneNumber: data.phoneNumber || null,
@@ -63,12 +64,23 @@ export async function createEmployee(formData: FormData) {
             department: data.department,
             hireDate: new Date(data.hireDate),
             salary: parseFloat(data.salary),
+            basicSalary: data.basicSalary ? parseFloat(data.basicSalary) : 0,
+            housingAllowance: data.housingAllowance ? parseFloat(data.housingAllowance) : 0,
+            transportAllowance: data.transportAllowance ? parseFloat(data.transportAllowance) : 0,
+            otherAllowances: data.otherAllowances ? parseFloat(data.otherAllowances) : 0,
             bankName: data.bankName || null,
             iban: data.iban || null,
             swift: data.swift || null,
             emergencyContactName: data.emergencyContactName || null,
             emergencyContactPhone: data.emergencyContactPhone || null,
             workWeek: JSON.stringify(data.workWeek),
+            contractType: data.contractType || null,
+            contractStartDate: data.contractStartDate ? new Date(data.contractStartDate) : null,
+            contractEndDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
+            probationEndDate: data.probationEndDate ? new Date(data.probationEndDate) : null,
+            visaExpiryDate: data.visaExpiryDate ? new Date(data.visaExpiryDate) : null,
+            iqamaNumber: data.iqamaNumber || null,
+            iqamaExpiryDate: data.iqamaExpiryDate ? new Date(data.iqamaExpiryDate) : null,
           },
         },
       },
@@ -195,6 +207,7 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
     department: z.string().min(1),
     nationality: z.string().min(1),
     dateOfBirth: z.string().min(1),
+    gender: z.string().optional(),
     maritalStatus: z.string().optional(),
     emergencyContactName: z.string().optional(),
     emergencyContactPhone: z.string().optional(),
@@ -203,6 +216,17 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
     iban: z.string().optional(),
     swift: z.string().optional(),
     salary: z.string().min(1).regex(/^\d+(\.\d{1,2})?$/, 'Invalid format'),
+    basicSalary: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
+    housingAllowance: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
+    transportAllowance: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
+    otherAllowances: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
+    contractType: z.string().optional(),
+    contractStartDate: z.string().optional(),
+    contractEndDate: z.string().optional(),
+    probationEndDate: z.string().optional(),
+    visaExpiryDate: z.string().optional(),
+    iqamaNumber: z.string().optional(),
+    iqamaExpiryDate: z.string().optional(),
   }).safeParse(raw)
 
   if (!parsed.success) {
@@ -227,6 +251,7 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
       department: data.department,
       nationality: data.nationality,
       dateOfBirth: new Date(data.dateOfBirth),
+      gender: data.gender || null,
       maritalStatus: data.maritalStatus || null,
       emergencyContactName: data.emergencyContactName || null,
       emergencyContactPhone: data.emergencyContactPhone || null,
@@ -235,6 +260,17 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
       iban: data.iban || null,
       swift: data.swift || null,
       salary: parseFloat(data.salary),
+      basicSalary: data.basicSalary ? parseFloat(data.basicSalary) : 0,
+      housingAllowance: data.housingAllowance ? parseFloat(data.housingAllowance) : 0,
+      transportAllowance: data.transportAllowance ? parseFloat(data.transportAllowance) : 0,
+      otherAllowances: data.otherAllowances ? parseFloat(data.otherAllowances) : 0,
+      contractType: data.contractType || null,
+      contractStartDate: data.contractStartDate ? new Date(data.contractStartDate) : null,
+      contractEndDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
+      probationEndDate: data.probationEndDate ? new Date(data.probationEndDate) : null,
+      visaExpiryDate: data.visaExpiryDate ? new Date(data.visaExpiryDate) : null,
+      iqamaNumber: data.iqamaNumber || null,
+      iqamaExpiryDate: data.iqamaExpiryDate ? new Date(data.iqamaExpiryDate) : null,
     },
   })
 
@@ -360,4 +396,154 @@ export async function changePassword(currentPassword: string, newPassword: strin
   })
 
   return { success: true }
+}
+
+export async function getContractExpiringSoon(days: number = 30) {
+  const session = await auth()
+  if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
+    return { error: await serverError('unauthorized') }
+  }
+
+  const now = new Date()
+  const deadline = new Date()
+  deadline.setDate(deadline.getDate() + days)
+
+  const employees = await db.employee.findMany({
+    where: {
+      isActive: true,
+      contractEndDate: { not: null, gte: now, lte: deadline },
+    },
+    include: { user: { select: { email: true, role: true } } },
+    orderBy: { contractEndDate: 'asc' },
+  })
+
+  return employees.map((emp) => ({
+    id: emp.id,
+    firstName: emp.firstName,
+    lastName: emp.lastName,
+    employeeCode: emp.employeeCode,
+    jobTitle: emp.jobTitle,
+    department: emp.department,
+    contractType: emp.contractType,
+    contractEndDate: emp.contractEndDate,
+    daysUntilExpiry: Math.ceil((emp.contractEndDate!.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
+  }))
+}
+
+export async function getVisaExpiringSoon(days: number = 30) {
+  const session = await auth()
+  if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
+    return { error: await serverError('unauthorized') }
+  }
+
+  const now = new Date()
+  const deadline = new Date()
+  deadline.setDate(deadline.getDate() + days)
+
+  const employees = await db.employee.findMany({
+    where: {
+      isActive: true,
+      OR: [
+        { visaExpiryDate: { not: null, gte: now, lte: deadline } },
+        { iqamaExpiryDate: { not: null, gte: now, lte: deadline } },
+      ],
+    },
+    include: { user: { select: { email: true, role: true } } },
+    orderBy: { visaExpiryDate: 'asc' },
+  })
+
+  return employees.map((emp) => {
+    const expiryDate = emp.visaExpiryDate && emp.iqamaExpiryDate
+      ? emp.visaExpiryDate < emp.iqamaExpiryDate
+        ? emp.visaExpiryDate
+        : emp.iqamaExpiryDate
+      : emp.visaExpiryDate || emp.iqamaExpiryDate
+
+    return {
+      id: emp.id,
+      firstName: emp.firstName,
+      lastName: emp.lastName,
+      employeeCode: emp.employeeCode,
+      jobTitle: emp.jobTitle,
+      department: emp.department,
+      visaExpiryDate: emp.visaExpiryDate,
+      iqamaNumber: emp.iqamaNumber,
+      iqamaExpiryDate: emp.iqamaExpiryDate,
+      daysUntilExpiry: expiryDate ? Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null,
+    }
+  })
+}
+
+export async function terminateEmployee(employeeId: string, terminationDate: string) {
+  const session = await auth()
+  if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
+    return { error: await serverError('unauthorized') }
+  }
+
+  if (!employeeId || !terminationDate) {
+    return { error: await serverError('invalidInput') }
+  }
+
+  const employee = await db.employee.findUnique({ where: { id: employeeId } })
+  if (!employee) return { error: await serverError('employeeNotFound') }
+
+  const termDate = new Date(terminationDate)
+  const hireDate = new Date(employee.hireDate)
+  const yearsOfService = (termDate.getTime() - hireDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25)
+
+  const monthlySalary = employee.basicSalary || employee.salary
+  const dailySalary = monthlySalary / 30
+
+  let eosbAmount = 0
+  if (yearsOfService > 0) {
+    if (yearsOfService <= 5) {
+      eosbAmount = dailySalary * 21 * yearsOfService
+    } else {
+      const firstFiveYears = dailySalary * 21 * 5
+      const remainingYears = yearsOfService - 5
+      const additionalDays = dailySalary * 30 * remainingYears
+      const maxEosb = monthlySalary * 24
+      eosbAmount = Math.min(firstFiveYears + additionalDays, maxEosb)
+    }
+  }
+
+  const totalSalary = (employee.basicSalary || 0) +
+    (employee.housingAllowance || 0) +
+    (employee.transportAllowance || 0) +
+    (employee.otherAllowances || 0)
+
+  await db.$transaction([
+    db.employee.update({
+      where: { id: employeeId },
+      data: { isActive: false, terminationDate: termDate },
+    }),
+    db.user.update({
+      where: { id: employee.userId },
+      data: { isActive: false, tokenVersion: { increment: 1 } },
+    }),
+    db.eosbRecord.create({
+      data: {
+        employeeId,
+        terminationDate: termDate,
+        yearsOfService: Math.round(yearsOfService * 100) / 100,
+        lastSalary: totalSalary,
+        eosbAmount: Math.round(eosbAmount * 100) / 100,
+      },
+    }),
+  ])
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'EMPLOYEE_TERMINATED',
+    entityType: 'Employee',
+    entityId: employeeId,
+    detail: { terminationDate: termDate.toISOString(), eosbAmount },
+  })
+
+  revalidatePath('/employees')
+  revalidatePath(`/employees/${employeeId}`)
+  revalidatePath('/payroll')
+
+  return { success: true, eosbAmount, yearsOfService: Math.round(yearsOfService * 100) / 100 }
 }

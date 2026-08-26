@@ -28,6 +28,7 @@ model User {
   notifications         Notification[]
   surveys               Survey[]
   expensesReviewed      Expense[]
+  overtimeApproved      OvertimeRecord[]
 }
 
 model Employee {
@@ -38,6 +39,7 @@ model Employee {
   lastName              String
   employeeCode          String         @unique
   dateOfBirth           DateTime
+  gender                String?
   nationality           String
   maritalStatus         String?
   phoneNumber           String?
@@ -45,6 +47,10 @@ model Employee {
   department            String
   hireDate              DateTime
   salary                Float
+  basicSalary           Float          @default(0)
+  housingAllowance      Float          @default(0)
+  transportAllowance    Float          @default(0)
+  otherAllowances       Float          @default(0)
   bankName              String?
   iban                  String?
   swift                 String?
@@ -55,6 +61,14 @@ model Employee {
   reports               Employee[]     @relation("ManagerReports")
   isActive              Boolean        @default(true)
   workWeek              String         @default("[0,1,2,3,4]")
+  contractType          String?
+  contractStartDate     DateTime?
+  contractEndDate       DateTime?
+  probationEndDate      DateTime?
+  terminationDate       DateTime?
+  visaExpiryDate        DateTime?
+  iqamaNumber           String?
+  iqamaExpiryDate       DateTime?
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
   leaveRequests         LeaveRequest[]
@@ -67,6 +81,8 @@ model Employee {
   surveyAssignments     SurveyAssignment[]
   assetAssignments      AssetAssignment[]
   expenses              Expense[]
+  overtimeRecords       OvertimeRecord[]
+  eosbRecords           EosbRecord[]
 }
 
 model LeaveType {
@@ -141,6 +157,10 @@ model AttendanceRecord {
   status            String    @default("PRESENT")
   lateMinutes       Int       @default(0)
   earlyLeaveMinutes Int       @default(0)
+  overtimeMinutes   Int       @default(0)
+  overtimeApproved  Boolean   @default(false)
+  graceMinutes      Int       @default(0)
+  autoClockout      Boolean   @default(false)
   checkInMethod     String    @default("CLICK")
   checkOutMethod    String?
   checkInNote       String?
@@ -212,16 +232,26 @@ model PayrollPeriod {
 }
 
 model Payslip {
-  id                     String   @id @default(cuid())
-  payrollPeriodId        String
-  employeeId             String
-  basicSalary            Float
-  transportationDeduction Float   @default(0)
-  absenceDeduction       Float    @default(0)
-  lateDeduction          Float    @default(0)
-  netPay                 Float
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  id                      String   @id @default(cuid())
+  payrollPeriodId         String
+  employeeId              String
+  basicSalary             Float
+  housingAllowance        Float    @default(0)
+  transportAllowance      Float    @default(0)
+  otherAllowances         Float    @default(0)
+  totalGross              Float    @default(0)
+  transportationDeduction Float    @default(0)
+  absenceDeduction        Float    @default(0)
+  lateDeduction           Float    @default(0)
+  gpssaEmployee           Float    @default(0)
+  gpssaEmployer           Float    @default(0)
+  overtimePay             Float    @default(0)
+  bonusPay                Float    @default(0)
+  totalDeductions         Float    @default(0)
+  eosbAmount              Float    @default(0)
+  netPay                  Float
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   payrollPeriod PayrollPeriod @relation(fields: [payrollPeriodId], references: [id], onDelete: Cascade)
   employee      Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -320,6 +350,7 @@ model EmployeeOnboardingTask {
   taskTemplateId   String
   assignedTo       String
   status           String   @default("PENDING")
+  deadline         DateTime?
   completedAt      DateTime?
   completedById    String?
   formData         String?
@@ -329,6 +360,38 @@ model EmployeeOnboardingTask {
 
   onboarding   EmployeeOnboarding @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
   taskTemplate OnboardingTask     @relation(fields: [taskTemplateId], references: [id])
+}
+
+model OvertimeRecord {
+  id           String    @id @default(cuid())
+  employeeId   String
+  date         DateTime
+  minutes      Int
+  status       String    @default("PENDING")
+  reason       String?
+  approvedById String?
+  approvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  approvedBy User?    @relation(fields: [approvedById], references: [id])
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+  @@index([date])
+}
+
+model EosbRecord {
+  id              String   @id @default(cuid())
+  employeeId      String
+  terminationDate DateTime
+  yearsOfService  Float
+  lastSalary      Float
+  eosbAmount      Float
+  createdAt       DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 }
 
 model Account {

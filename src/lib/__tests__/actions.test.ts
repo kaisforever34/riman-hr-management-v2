@@ -150,28 +150,28 @@ describe('performance actions', () => {
       expect(createCall.data.overallRating).toBe('EXCEEDS')
     })
 
-    it('computes overall rating as BELOW', async () => {
+    it('computes overall rating as BELOW_EXPECTATIONS', async () => {
       mockDb.performanceReview.findFirst.mockResolvedValueOnce(null)
       mockDb.performanceReview.create.mockResolvedValueOnce({ id: 'r3' })
 
       const form = makeFormData({
         employeeId: 'e1', year: '2024', quarter: '3',
         ratings: JSON.stringify([
-          { criteriaId: 'c1', rating: 'BELOW' },
-          { criteriaId: 'c2', rating: 'BELOW' },
+          { criteriaId: 'c1', rating: 'BELOW_EXPECTATIONS' },
+          { criteriaId: 'c2', rating: 'BELOW_EXPECTATIONS' },
         ]),
         goals: JSON.stringify([]),
       })
 
       await createReview(form)
       const createCall = mockDb.performanceReview.create.mock.calls[0][0]
-      expect(createCall.data.overallRating).toBe('BELOW')
+      expect(createCall.data.overallRating).toBe('BELOW_EXPECTATIONS')
     })
   })
 
   describe('deleteReview', () => {
     it('deletes existing review', async () => {
-      mockDb.performanceReview.findUnique.mockResolvedValueOnce({ id: 'r1' })
+      mockDb.performanceReview.findUnique.mockResolvedValueOnce({ id: 'r1', status: 'DRAFT' })
       mockDb.performanceReview.delete.mockResolvedValueOnce({})
       const form = makeFormData({ id: 'r1' })
       const result = await deleteReview(form)

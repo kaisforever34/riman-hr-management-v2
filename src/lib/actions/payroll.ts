@@ -1,21 +1,19 @@
 'use server'
 
-import { serverError } from '@/lib/errors'
 import { db } from '@/lib/db'
-import { createPayrollPeriodSchema, updateLateDeductionSchema } from '@/lib/validations/payroll'
 import { auth } from '@/lib/auth'
-import { getAppSetting, getActiveEmployeesForPayroll } from '@/lib/queries/payroll'
+import { serverError } from '@/lib/errors'
+import { isApprover } from '@/lib/roles'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { logAudit } from '@/lib/audit'
+import { createPayrollPeriodSchema } from '@/lib/validations/payroll'
+import { getAppSetting, getActiveEmployeesForPayroll } from '@/lib/queries/payroll'
 import { startOfMonth, endOfMonth } from 'date-fns'
 
 const DAILY_RATE_DIVISOR = 30
-const DEFAULT_TRANSPORTATION = 500
-
-async function getTransportationAmount(): Promise<number> {
-  const val = await getAppSetting('TRANSPORTATION_AMOUNT')
-  return val ? parseInt(val, 10) : DEFAULT_TRANSPORTATION
-}
+const HOURS_PER_WORKDAY = 9
+const OT_PREMIUM_RATE = 1.25
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100
@@ -28,7 +26,24 @@ function overlapDays(reqStart: Date, reqEnd: Date, periodStart: Date, periodEnd:
   return Math.floor(ms / (1000 * 60 * 60 * 24)) + 1
 }
 
-async function computeDeductions(
+async function getNumericAppSetting(key: string, fallback: number): Promise<number> {
+  const val = await getAppSetting(key)
+  return val ? parseFloat(val) : fallback
+}
+
+async function getTransportationAmount(): Promise<number> {
+  return getNumericAppSetting('TRANSPORTATION_AMOUNT', 500)
+}
+
+async function getGpssaRates(): Promise<{ employeeRate: number; employerRate: number }> {
+  const [employeeRate, employerRate] = await Promise.all([
+    getNumericAppSetting('GPSSA_EMPLOYEE_RATE', 5),
+    getNumericAppSetting('GPSSA_EMPLOYER_RATE', 12.5),
+  ])
+  return { employeeRate, employerRate }
+}
+
+async function computeAnnualLeaveAndAbsences(
   employeeIds: string[],
   periodStart: Date,
   periodEnd: Date,
@@ -80,9 +95,142 @@ async function computeDeductions(
   return result
 }
 
+async function computeLateDeductions(
+  employeeIds: string[],
+  periodStart: Date,
+  periodEnd: Date,
+  basicSalaryMap: Map<string, number>,
+): Promise<Map<string, number>> {
+  const result = new Map<string, number>()
+  for (const id of employeeIds) result.set(id, 0)
+
+  const lateRecords = await db.attendanceRecord.findMany({
+    where: {
+      employeeId: { in: employeeIds },
+      date: { gte: periodStart, lte: periodEnd },
+      lateMinutes: { gt: 0 },
+    },
+    select: { employeeId: true, lateMinutes: true },
+  })
+
+  for (const record of lateRecords) {
+    const basicSalary = basicSalaryMap.get(record.employeeId) ?? 0
+    if (basicSalary <= 0) continue
+    const hourlyRate = basicSalary / DAILY_RATE_DIVISOR / HOURS_PER_WORKDAY
+    const deduction = (record.lateMinutes / 60) * hourlyRate
+    const current = result.get(record.employeeId) ?? 0
+    result.set(record.employeeId, current + deduction)
+  }
+
+  for (const [id, val] of result) {
+    result.set(id, round2(val))
+  }
+
+  return result
+}
+
+async function computeOvertimePay(
+  employeeIds: string[],
+  periodStart: Date,
+  periodEnd: Date,
+  basicSalaryMap: Map<string, number>,
+): Promise<Map<string, number>> {
+  const result = new Map<string, number>()
+  for (const id of employeeIds) result.set(id, 0)
+
+  const approvedOvertime = await db.overtimeRecord.findMany({
+    where: {
+      employeeId: { in: employeeIds },
+      status: 'APPROVED',
+      date: { gte: periodStart, lte: periodEnd },
+    },
+    select: { employeeId: true, minutes: true },
+  })
+
+  for (const record of approvedOvertime) {
+    const basicSalary = basicSalaryMap.get(record.employeeId) ?? 0
+    if (basicSalary <= 0) continue
+    const hourlyRate = basicSalary / DAILY_RATE_DIVISOR / HOURS_PER_WORKDAY
+    const hours = record.minutes / 60
+    const pay = hours * hourlyRate * OT_PREMIUM_RATE
+    const current = result.get(record.employeeId) ?? 0
+    result.set(record.employeeId, current + pay)
+  }
+
+  for (const [id, val] of result) {
+    result.set(id, round2(val))
+  }
+
+  return result
+}
+
+async function computePayslipData(
+  employees: Awaited<ReturnType<typeof getActiveEmployeesForPayroll>>,
+  periodStart: Date,
+  periodEnd: Date,
+) {
+  const employeeIds = employees.map((e) => e.id)
+
+  const basicSalaryMap = new Map<string, number>()
+  for (const emp of employees) {
+    basicSalaryMap.set(emp.id, emp.basicSalary)
+  }
+
+  const [leaveAbsences, gpssaRates, lateDeductions, overtimePayMap] = await Promise.all([
+    computeAnnualLeaveAndAbsences(employeeIds, periodStart, periodEnd),
+    getGpssaRates(),
+    computeLateDeductions(employeeIds, periodStart, periodEnd, basicSalaryMap),
+    computeOvertimePay(employeeIds, periodStart, periodEnd, basicSalaryMap),
+  ])
+
+  const transportationAmount = await getTransportationAmount()
+
+  return employees.map((emp) => {
+    const { annualLeaveDays, absentDays } = leaveAbsences.get(emp.id) ?? { annualLeaveDays: 0, absentDays: 0 }
+    const basicSalary = emp.basicSalary
+    const housingAllowance = emp.housingAllowance
+    const transportAllowance = emp.transportAllowance
+    const otherAllowances = emp.otherAllowances
+
+    const totalGross = basicSalary + housingAllowance + transportAllowance + otherAllowances
+
+    const gpssaEmployee = round2(basicSalary * (gpssaRates.employeeRate / 100))
+    const gpssaEmployer = round2(basicSalary * (gpssaRates.employerRate / 100))
+
+    const overtimePay = overtimePayMap.get(emp.id) ?? 0
+
+    const absenceDeduction = round2((basicSalary / DAILY_RATE_DIVISOR) * absentDays)
+    const lateDeduction = lateDeductions.get(emp.id) ?? 0
+    const transportationDeduction = round2((transportationAmount / DAILY_RATE_DIVISOR) * annualLeaveDays)
+
+    const totalDeductions = round2(gpssaEmployee + absenceDeduction + lateDeduction + transportationDeduction)
+
+    const netPay = round2(totalGross + overtimePay - totalDeductions)
+
+    return {
+      employeeId: emp.id,
+      basicSalary,
+      housingAllowance,
+      transportAllowance,
+      otherAllowances,
+      totalGross,
+      gpssaEmployee,
+      gpssaEmployer,
+      overtimePay,
+      bonusPay: 0,
+      absenceDeduction,
+      lateDeduction,
+      transportationDeduction,
+      totalDeductions,
+      eosbAmount: 0,
+      netPay,
+    }
+  })
+}
+
 export async function createPayrollPeriod(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
 
   const parsed = createPayrollPeriodSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: await serverError('invalidMonthYear') }
@@ -100,25 +248,7 @@ export async function createPayrollPeriod(formData: FormData) {
 
   if (employees.length === 0) return { error: await serverError('noActiveEmployees') }
 
-  const transportationAmount = await getTransportationAmount()
-  const deductions = await computeDeductions(employees.map((e) => e.id), periodStart, periodEnd)
-
-  const payslipData = employees.map((emp) => {
-    const { annualLeaveDays, absentDays } = deductions.get(emp.id) ?? { annualLeaveDays: 0, absentDays: 0 }
-    const salary = Number(emp.salary)
-    const dailyRate = salary / DAILY_RATE_DIVISOR
-    const transportDeduction = round2((transportationAmount / DAILY_RATE_DIVISOR) * annualLeaveDays)
-    const absenceDeduction = round2(dailyRate * absentDays)
-
-    return {
-      employeeId: emp.id,
-      basicSalary: salary,
-      transportationDeduction: transportDeduction,
-      absenceDeduction,
-      lateDeduction: 0,
-      netPay: round2(salary - transportDeduction - absenceDeduction),
-    }
-  })
+  const payslipData = await computePayslipData(employees, periodStart, periodEnd)
 
   const period = await db.$transaction(async (tx) => {
     const created = await tx.payrollPeriod.create({
@@ -130,13 +260,22 @@ export async function createPayrollPeriod(formData: FormData) {
     return created
   })
 
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? undefined,
+    action: 'PAYROLL_PERIOD_CREATED',
+    entityType: 'PayrollPeriod',
+    entityId: period.id,
+    detail: { month, year, payslipCount: payslipData.length },
+  })
+
   revalidatePath('/manager/payroll')
   redirect(`/manager/payroll/${period.id}`)
 }
 
 export async function recalculatePayslips(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
 
   const periodId = formData.get('periodId') as string
   const period = await db.payrollPeriod.findUnique({ where: { id: periodId } })
@@ -145,61 +284,87 @@ export async function recalculatePayslips(formData: FormData) {
   const periodStart = startOfMonth(new Date(period.year, period.month - 1))
   const periodEnd = endOfMonth(periodStart)
   const existingPayslips = await db.payslip.findMany({ where: { payrollPeriodId: periodId } })
+
+  const employeeIds = existingPayslips.map((s) => s.employeeId)
+  const employees = await db.employee.findMany({
+    where: { id: { in: employeeIds } },
+  })
+
+  const basicSalaryMap = new Map<string, number>()
+  for (const emp of employees) {
+    basicSalaryMap.set(emp.id, emp.basicSalary)
+  }
+
+  const [leaveAbsences, gpssaRates, lateDeductions, overtimePayMap] = await Promise.all([
+    computeAnnualLeaveAndAbsences(employeeIds, periodStart, periodEnd),
+    getGpssaRates(),
+    computeLateDeductions(employeeIds, periodStart, periodEnd, basicSalaryMap),
+    computeOvertimePay(employeeIds, periodStart, periodEnd, basicSalaryMap),
+  ])
+
   const transportationAmount = await getTransportationAmount()
-  const deductions = await computeDeductions(existingPayslips.map((s) => s.employeeId), periodStart, periodEnd)
 
   await db.$transaction(async (tx) => {
     for (const slip of existingPayslips) {
-      const { annualLeaveDays, absentDays } = deductions.get(slip.employeeId) ?? { annualLeaveDays: 0, absentDays: 0 }
-      const salary = Number(slip.basicSalary)
-      const dailyRate = salary / DAILY_RATE_DIVISOR
-      const transportDeduction = round2((transportationAmount / DAILY_RATE_DIVISOR) * annualLeaveDays)
-      const absenceDeduction = round2(dailyRate * absentDays)
+      const emp = employees.find((e) => e.id === slip.employeeId)
+      if (!emp) continue
+
+      const { annualLeaveDays, absentDays } = leaveAbsences.get(slip.employeeId) ?? { annualLeaveDays: 0, absentDays: 0 }
+      const basicSalary = emp.basicSalary
+      const housingAllowance = emp.housingAllowance
+      const transportAllowance = emp.transportAllowance
+      const otherAllowances = emp.otherAllowances
+
+      const totalGross = basicSalary + housingAllowance + transportAllowance + otherAllowances
+
+      const gpssaEmployee = round2(basicSalary * (gpssaRates.employeeRate / 100))
+      const gpssaEmployer = round2(basicSalary * (gpssaRates.employerRate / 100))
+
+      const overtimePay = overtimePayMap.get(slip.employeeId) ?? 0
+
+      const absenceDeduction = round2((basicSalary / DAILY_RATE_DIVISOR) * absentDays)
+      const lateDeduction = lateDeductions.get(slip.employeeId) ?? 0
+      const transportationDeduction = round2((transportationAmount / DAILY_RATE_DIVISOR) * annualLeaveDays)
+
+      const totalDeductions = round2(gpssaEmployee + absenceDeduction + lateDeduction + transportationDeduction)
+      const netPay = round2(totalGross + overtimePay + Number(slip.bonusPay) - totalDeductions)
 
       await tx.payslip.update({
         where: { id: slip.id },
         data: {
-          transportationDeduction: transportDeduction,
+          basicSalary,
+          housingAllowance,
+          transportAllowance,
+          otherAllowances,
+          totalGross,
+          gpssaEmployee,
+          gpssaEmployer,
+          overtimePay,
           absenceDeduction,
-          netPay: round2(salary - transportDeduction - absenceDeduction - Number(slip.lateDeduction)),
+          lateDeduction,
+          transportationDeduction,
+          totalDeductions,
+          netPay,
         },
       })
     }
   })
 
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? undefined,
+    action: 'PAYROLL_RECALCULATED',
+    entityType: 'PayrollPeriod',
+    entityId: periodId,
+    detail: { payslipCount: existingPayslips.length },
+  })
+
   revalidatePath(`/manager/payroll/${periodId}`)
-}
-
-export async function updateLateDeduction(formData: FormData) {
-  const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
-
-  const parsed = updateLateDeductionSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: await serverError('invalidDeduction') }
-
-  const slip = await db.payslip.findUnique({
-    where: { id: parsed.data.payslipId },
-    include: { payrollPeriod: true },
-  })
-  if (!slip || slip.payrollPeriod.status !== 'DRAFT') return { error: await serverError('cannotModifyFinalized') }
-
-  const lateDeduction = parsed.data.lateDeduction
-  const basicSalary = Number(slip.basicSalary)
-  if (lateDeduction > basicSalary) return { error: await serverError('deductionExceedsSalary') }
-
-  const netPay = basicSalary - Number(slip.transportationDeduction) - Number(slip.absenceDeduction) - lateDeduction
-
-  await db.payslip.update({
-    where: { id: slip.id },
-    data: { lateDeduction, netPay: round2(netPay) },
-  })
-
-  revalidatePath(`/manager/payroll/${slip.payrollPeriodId}`)
 }
 
 export async function finalizePayroll(formData: FormData) {
   const session = await auth()
-  if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return { error: await serverError('unauthorized') }
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
 
   const periodId = formData.get('periodId') as string
   const period = await db.payrollPeriod.findUnique({ where: { id: periodId } })
@@ -210,6 +375,96 @@ export async function finalizePayroll(formData: FormData) {
     data: { status: 'FINALIZED', processedAt: new Date(), processedById: session.user.id },
   })
 
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? undefined,
+    action: 'PAYROLL_FINALIZED',
+    entityType: 'PayrollPeriod',
+    entityId: periodId,
+    detail: { month: period.month, year: period.year },
+  })
+
   revalidatePath('/manager/payroll')
   revalidatePath(`/manager/payroll/${periodId}`)
+}
+
+export async function calculateEOSB(employeeId: string) {
+  const employee = await db.employee.findUnique({ where: { id: employeeId } })
+  if (!employee) return { error: await serverError('employeeNotFound') }
+  if (!employee.terminationDate) return { error: await serverError('invalidInput') }
+
+  const hireDate = new Date(employee.hireDate)
+  const terminationDate = new Date(employee.terminationDate)
+  const yearsOfService =
+    (terminationDate.getTime() - hireDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25)
+
+  const lastSalary = employee.salary
+  const dailyRate = lastSalary / DAILY_RATE_DIVISOR
+
+  let totalDays = 0
+  let remainingYears = yearsOfService
+
+  const firstFiveYears = Math.min(remainingYears, 5)
+  totalDays += firstFiveYears * 21
+  remainingYears -= firstFiveYears
+
+  if (remainingYears > 0) {
+    totalDays += remainingYears * 30
+  }
+
+  let eosbAmount = totalDays * dailyRate
+
+  const twoYearSalaryCap = lastSalary * 24
+  if (eosbAmount > twoYearSalaryCap) {
+    eosbAmount = twoYearSalaryCap
+  }
+
+  eosbAmount = round2(eosbAmount)
+
+  const record = await db.eosbRecord.create({
+    data: {
+      employeeId,
+      terminationDate,
+      yearsOfService: round2(yearsOfService),
+      lastSalary,
+      eosbAmount,
+    },
+  })
+
+  return { record, eosbAmount }
+}
+
+export async function getOvertimePayrollData(
+  employeeId: string,
+  month: number,
+  year: number,
+) {
+  const periodStart = startOfMonth(new Date(year, month - 1))
+  const periodEnd = endOfMonth(periodStart)
+
+  const employee = await db.employee.findUnique({ where: { id: employeeId } })
+  if (!employee) return { error: await serverError('employeeNotFound') }
+
+  const approvedOvertime = await db.overtimeRecord.findMany({
+    where: {
+      employeeId,
+      status: 'APPROVED',
+      date: { gte: periodStart, lte: periodEnd },
+    },
+    orderBy: { date: 'asc' },
+  })
+
+  const totalMinutes = approvedOvertime.reduce((sum, r) => sum + r.minutes, 0)
+  const totalHours = totalMinutes / 60
+
+  const hourlyRate = employee.basicSalary / DAILY_RATE_DIVISOR / HOURS_PER_WORKDAY
+  const totalPay = round2(totalHours * hourlyRate * OT_PREMIUM_RATE)
+
+  return {
+    records: approvedOvertime,
+    totalMinutes,
+    totalHours: round2(totalHours),
+    hourlyRate: round2(hourlyRate),
+    totalPay,
+  }
 }

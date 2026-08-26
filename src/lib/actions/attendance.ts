@@ -3,10 +3,11 @@
 import { serverError } from '@/lib/errors'
 import { db } from '@/lib/db'
 import { manualCheckInSchema, managerOverrideSchema } from '@/lib/validations/attendance'
+import { submitOvertimeSchema, approveOvertimeSchema } from '@/lib/validations/leave'
 import { auth } from '@/lib/auth'
-import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes, WORK_START_HOUR, WORK_START_MINUTE, WORK_END_HOUR, WORK_END_MINUTE } from '@/lib/schedule'
+import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes, getGracePeriodMinutes, getOvertimeMinutes, WORK_START_HOUR, WORK_START_MINUTE, WORK_END_HOUR, WORK_END_MINUTE } from '@/lib/schedule'
 import { revalidatePath } from 'next/cache'
-import type { AttendanceStatus } from '@/lib/types'
+import type { AttendanceStatus, OvertimeStatus } from '@/lib/types'
 import { logAudit } from '@/lib/audit'
 import { isUniqueConstraintError } from '@/lib/db-errors'
 import { isApprover } from '@/lib/roles'
@@ -20,12 +21,14 @@ export async function checkIn() {
 
   const today = getTodayUaeDate()
   const now = new Date()
-  const { isLate, lateMinutes } = isWithinSchedule(now)
+  const gracePeriod = await getGracePeriodMinutes()
+  const { isLate, lateMinutes } = isWithinSchedule(now, gracePeriod)
 
   const data = {
     checkIn: now,
     status: (isLate ? 'LATE' : 'PRESENT') as AttendanceStatus,
     lateMinutes,
+    graceMinutes: gracePeriod,
     checkInMethod: 'CLICK',
   }
 
@@ -61,12 +64,14 @@ export async function manualCheckIn(formData: FormData) {
   if (checkInTime > now) return { error: await serverError('checkInFuture') }
 
   const today = getTodayUaeDate()
-  const { isLate, lateMinutes } = isWithinSchedule(checkInTime)
+  const gracePeriod = await getGracePeriodMinutes()
+  const { isLate, lateMinutes } = isWithinSchedule(checkInTime, gracePeriod)
 
   const data = {
     checkIn: checkInTime,
     status: (isLate ? 'LATE' : 'PRESENT') as AttendanceStatus,
     lateMinutes,
+    graceMinutes: gracePeriod,
     checkInMethod: 'MANUAL',
     checkInNote: parsed.data.note,
   }
@@ -104,6 +109,7 @@ export async function checkOut() {
 
   const now = new Date()
   const earlyLeaveMinutes = getEarlyLeaveMinutes(now)
+  const overtimeMinutes = getOvertimeMinutes(now)
 
   const updated = await db.attendanceRecord.updateMany({
     where: { id: record.id, checkOut: null },
@@ -111,11 +117,148 @@ export async function checkOut() {
       checkOut: now,
       checkOutMethod: 'CLICK',
       earlyLeaveMinutes,
+      overtimeMinutes,
+      overtimeApproved: overtimeMinutes > 0,
     },
   })
   if (updated.count === 0) return { error: await serverError('alreadyCheckedOut') }
 
   revalidatePath('/attendance')
+}
+
+export async function submitOvertime(formData: FormData) {
+  const session = await auth()
+  if (!session?.user?.id) return { error: await serverError('unauthorized') }
+
+  const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
+  if (!employee) return { error: await serverError('employeeRecordNotFound') }
+
+  if (!isApprover(session.user.role)) {
+    return { error: await serverError('unauthorized') }
+  }
+
+  const parsed = submitOvertimeSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { error: await serverError('invalidInput'), fieldErrors: parsed.error.flatten().fieldErrors }
+
+  const { date, minutes, reason } = parsed.data
+  const overtimeDate = new Date(date)
+
+  try {
+    const record = await db.overtimeRecord.create({
+      data: {
+        employeeId: employee.id,
+        date: overtimeDate,
+        minutes,
+        reason,
+        status: 'PENDING',
+      },
+    })
+
+    await logAudit({
+      actorId: session.user.id,
+      actorEmail: session.user.email ?? null,
+      action: 'OVERTIME_SUBMITTED',
+      entityType: 'OvertimeRecord',
+      entityId: record.id,
+      detail: { employeeId: employee.id, date, minutes, reason },
+    })
+
+    revalidatePath('/attendance')
+    revalidatePath('/overtime')
+    return { success: true }
+  } catch (e) {
+    if (isUniqueConstraintError(e)) {
+      return { error: await serverError('overtimeAlreadySubmitted') }
+    }
+    throw e
+  }
+}
+
+export async function approveOvertime(formData: FormData) {
+  const session = await auth()
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
+
+  const parsed = approveOvertimeSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { error: await serverError('invalidInput'), fieldErrors: parsed.error.flatten().fieldErrors }
+
+  const { id: overtimeId, status, rejectionReason } = parsed.data
+
+  const overtimeRecord = await db.overtimeRecord.findUnique({ where: { id: overtimeId } })
+  if (!overtimeRecord) return { error: await serverError('overtimeNotFound') }
+  if (overtimeRecord.status !== 'PENDING') return { error: await serverError('overtimeAlreadyProcessed') }
+
+  await db.overtimeRecord.update({
+    where: { id: overtimeId },
+    data: {
+      status: status as OvertimeStatus,
+      approvedById: session.user.id,
+      approvedAt: new Date(),
+      reason: rejectionReason || overtimeRecord.reason,
+    },
+  })
+
+  if (status === 'APPROVED') {
+    await db.attendanceRecord.updateMany({
+      where: {
+        employeeId: overtimeRecord.employeeId,
+        date: overtimeRecord.date,
+      },
+      data: {
+        overtimeMinutes: overtimeRecord.minutes,
+        overtimeApproved: true,
+      },
+    })
+  }
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'OVERTIME_APPROVED',
+    entityType: 'OvertimeRecord',
+    entityId: overtimeId,
+    detail: { overtimeId, status, employeeId: overtimeRecord.employeeId },
+  })
+
+  revalidatePath('/attendance')
+  revalidatePath('/overtime')
+}
+
+export async function autoClockout() {
+  const session = await auth()
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
+
+  const today = getTodayUaeDate()
+  const shiftEnd = new Date(today)
+  shiftEnd.setHours(WORK_END_HOUR, WORK_END_MINUTE, 0, 0)
+
+  const records = await db.attendanceRecord.findMany({
+    where: {
+      date: today,
+      checkIn: { not: null },
+      checkOut: null,
+    },
+    include: { employee: true },
+  })
+
+  let count = 0
+  for (const record of records) {
+    const overtimeMinutes = getOvertimeMinutes(shiftEnd)
+    await db.attendanceRecord.update({
+      where: { id: record.id },
+      data: {
+        checkOut: shiftEnd,
+        checkOutMethod: 'AUTO',
+        autoClockout: true,
+        overtimeMinutes,
+        overtimeApproved: overtimeMinutes > 0,
+      },
+    })
+    count++
+  }
+
+  revalidatePath('/attendance')
+  revalidatePath('/manager/attendance')
+  return { success: true, count }
 }
 
 export async function managerOverrideAttendance(formData: FormData) {
@@ -138,11 +281,19 @@ export async function managerOverrideAttendance(formData: FormData) {
   if (data.checkOut) updateData.checkOut = new Date(data.checkOut)
   if (data.status) updateData.status = data.status
   if (data.note) updateData.checkInNote = data.note
+  if (data.overtimeMinutes !== undefined) updateData.overtimeMinutes = data.overtimeMinutes
 
   if (data.checkIn) {
-    const { isLate, lateMinutes } = isWithinSchedule(new Date(data.checkIn))
+    const gracePeriod = await getGracePeriodMinutes()
+    const { isLate, lateMinutes } = isWithinSchedule(new Date(data.checkIn), gracePeriod)
     updateData.status = data.status || ((isLate ? 'LATE' : 'PRESENT') as AttendanceStatus)
     updateData.lateMinutes = lateMinutes
+    updateData.graceMinutes = gracePeriod
+  }
+
+  if (data.checkOut) {
+    const overtimeMinutes = getOvertimeMinutes(new Date(data.checkOut))
+    updateData.overtimeMinutes = data.overtimeMinutes ?? overtimeMinutes
   }
 
   if (data.checkIn) updateData.checkInMethod = 'MANAGER'
@@ -161,6 +312,7 @@ export async function managerOverrideAttendance(formData: FormData) {
       checkOutMethod: data.checkOut ? 'MANAGER' : null,
       checkInNote: data.note,
       adjustedById: session.user.id,
+      overtimeMinutes: data.overtimeMinutes ?? 0,
     },
   })
 
@@ -206,4 +358,55 @@ export async function markAbsent(employeeIds: string[], date?: string) {
   revalidatePath('/manager/attendance')
 
   return { success: true, count: results.length }
+}
+
+export async function getOvertimeRecords(filters?: {
+  employeeId?: string
+  status?: OvertimeStatus
+  month?: number
+  year?: number
+}) {
+  const session = await auth()
+  if (!session?.user) return { error: await serverError('unauthorized') }
+
+  const where: Record<string, unknown> = {}
+  if (filters?.employeeId) where.employeeId = filters.employeeId
+  if (filters?.status) where.status = filters.status
+  if (filters?.month !== undefined && filters?.year !== undefined) {
+    const start = new Date(filters.year, filters.month - 1, 1)
+    const end = new Date(filters.year, filters.month, 0, 23, 59, 59)
+    where.date = { gte: start, lte: end }
+  } else if (filters?.year !== undefined) {
+    const start = new Date(filters.year, 0, 1)
+    const end = new Date(filters.year, 11, 31, 23, 59, 59)
+    where.date = { gte: start, lte: end }
+  }
+
+  const records = await db.overtimeRecord.findMany({
+    where,
+    include: {
+      employee: {
+        include: { user: { select: { email: true } } },
+      },
+      approvedBy: { select: { email: true } },
+    },
+    orderBy: { date: 'desc' },
+  })
+
+  return { data: records }
+}
+
+export async function getMyOvertime() {
+  const session = await auth()
+  if (!session?.user?.id) return { error: await serverError('unauthorized') }
+
+  const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
+  if (!employee) return { error: await serverError('employeeRecordNotFound') }
+
+  const records = await db.overtimeRecord.findMany({
+    where: { employeeId: employee.id },
+    orderBy: { date: 'desc' },
+  })
+
+  return { data: records }
 }

@@ -249,7 +249,9 @@ describe('performance schemas', () => {
     it('accepts valid rating', () => {
       expect(ratingSchema.safeParse({ rating: 'EXCEEDS' }).success).toBe(true)
       expect(ratingSchema.safeParse({ rating: 'MEETS' }).success).toBe(true)
-      expect(ratingSchema.safeParse({ rating: 'BELOW' }).success).toBe(true)
+      expect(ratingSchema.safeParse({ rating: 'FAR_EXCEEDS' }).success).toBe(true)
+      expect(ratingSchema.safeParse({ rating: 'BELOW_EXPECTATIONS' }).success).toBe(true)
+      expect(ratingSchema.safeParse({ rating: 'NEEDS_IMPROVEMENT' }).success).toBe(true)
     })
 
     it('rejects invalid rating', () => {

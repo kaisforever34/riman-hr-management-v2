@@ -16,10 +16,49 @@ import { isApprover } from '@/lib/roles'
 
 type LeaveActionErrorReason = 'INSUFFICIENT_BALANCE' | 'ALREADY_PROCESSED'
 
+const DEFAULT_MAX_CONSECUTIVE_DAYS = 30
+const DEFAULT_MAX_CARRYOVER_DAYS = 15
+
 class LeaveActionError extends Error {
   constructor(readonly reason: LeaveActionErrorReason) {
     super(reason)
   }
+}
+
+async function getAppSetting(key: string, defaultValue: number): Promise<number> {
+  const setting = await db.appSetting.findUnique({ where: { key } })
+  if (!setting) return defaultValue
+  const parsed = parseInt(setting.value, 10)
+  return Number.isFinite(parsed) ? parsed : defaultValue
+}
+
+async function calculateCarryover(
+  employeeId: string,
+  leaveTypeId: string,
+  hireDate: Date,
+  tx?: typeof db,
+): Promise<number> {
+  const client = tx ?? db
+  const now = new Date()
+  const currentYearStart = new Date(Date.UTC(now.getFullYear(), hireDate.getMonth(), hireDate.getDate()))
+  if (currentYearStart > now) {
+    currentYearStart.setFullYear(currentYearStart.getFullYear() - 1)
+  }
+
+  const previousYearStart = new Date(currentYearStart)
+  previousYearStart.setFullYear(previousYearStart.getFullYear() - 1)
+
+  const previousYearBalance = await client.leaveBalance.findUnique({
+    where: { employeeId_leaveTypeId_yearStart: { employeeId, leaveTypeId, yearStart: previousYearStart } },
+  })
+
+  if (!previousYearBalance) return 0
+
+  const unused = previousYearBalance.allocated + previousYearBalance.carriedOver - previousYearBalance.used
+  if (unused <= 0) return 0
+
+  const maxCarryover = await getAppSetting('MAX_CARRYOVER_DAYS', DEFAULT_MAX_CARRYOVER_DAYS)
+  return Math.min(unused, maxCarryover)
 }
 
 export async function submitLeave(formData: FormData) {
@@ -29,8 +68,13 @@ export async function submitLeave(formData: FormData) {
   const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
   if (!employee) return { error: await serverError('employeeRecordNotFound') }
 
+  const leaveTypeId = formData.get('leaveTypeId') as string
+  const leaveType = await db.leaveType.findUnique({ where: { id: leaveTypeId } })
+  if (!leaveType || !leaveType.isActive) return { error: await serverError('invalidLeaveType') }
+
   const raw = {
-    leaveTypeId: formData.get('leaveTypeId') as string,
+    leaveTypeId,
+    leaveTypeName: leaveType.name,
     startDate: formData.get('startDate') as string,
     endDate: formData.get('endDate') as string,
     isHalfDay: (formData.get('isHalfDay') ?? undefined) as string | undefined,
@@ -68,8 +112,8 @@ export async function submitLeave(formData: FormData) {
   if (!isHalfDay && durationDays === 0) return { error: await serverError('noWorkingDays') }
   if (!isHalfDay && durationDays > 365) return { error: await serverError('durationExceeds365') }
 
-  const leaveType = await db.leaveType.findUnique({ where: { id: data.leaveTypeId } })
-  if (!leaveType || !leaveType.isActive) return { error: await serverError('invalidLeaveType') }
+  const maxConsecutiveDays = await getAppSetting('MAX_CONSECUTIVE_LEAVE_DAYS', DEFAULT_MAX_CONSECUTIVE_DAYS)
+  if (durationDays > maxConsecutiveDays) return { error: await serverError('maxConsecutiveDays') }
 
   if (leaveType.requiresAttachment) {
     const file = formData.get('attachment') as File
@@ -102,11 +146,20 @@ export async function submitLeave(formData: FormData) {
       durationDays,
       isHalfDay,
       halfDayPeriod: isHalfDay ? data.halfDayPeriod : null,
-      reason: data.reason,
+      reason: data.reason || '',
       attachmentFile,
       status: 'PENDING',
     },
   })
+
+  const carryover = await calculateCarryover(employee.id, data.leaveTypeId, employee.hireDate)
+  const balance = await getOrCreateLeaveBalance(employee.id, data.leaveTypeId, employee.hireDate)
+  if (carryover > balance.carriedOver) {
+    await db.leaveBalance.update({
+      where: { id: balance.id },
+      data: { carriedOver: carryover },
+    })
+  }
 
   const approverIds = await getApproverUserIds(employee.id)
   await createNotifications(
@@ -123,13 +176,22 @@ export async function submitLeave(formData: FormData) {
 
 type BulkOptions = { bulk?: boolean }
 
-async function approveOne(requestId: string, session: Session, opts: BulkOptions = {}): Promise<{ ok: true } | { ok: false; error: string }> {
+async function approveOne(
+  requestId: string,
+  session: Session,
+  opts: BulkOptions = {},
+  employeeId?: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
   const request = await db.leaveRequest.findUnique({
     where: { id: requestId },
     include: { employee: true, leaveType: true },
   })
   if (!request || request.status !== 'PENDING') {
     return { ok: false, error: await serverError('requestNotFoundOrProcessed') }
+  }
+
+  if (employeeId && request.employeeId !== employeeId) {
+    return { ok: false, error: await serverError('unauthorized') }
   }
 
   const now = new Date()
@@ -401,9 +463,18 @@ export async function submitLeaveForEmployee(formData: FormData) {
   const session = await auth()
   if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
 
+  const employeeId = formData.get('employeeId') as string
+  const employee = await db.employee.findUnique({ where: { id: employeeId } })
+  if (!employee) return { error: await serverError('employeeNotFound') }
+
+  const leaveTypeId = formData.get('leaveTypeId') as string
+  const leaveType = await db.leaveType.findUnique({ where: { id: leaveTypeId } })
+  if (!leaveType || !leaveType.isActive) return { error: await serverError('invalidLeaveType') }
+
   const raw = {
-    employeeId: formData.get('employeeId') as string,
-    leaveTypeId: formData.get('leaveTypeId') as string,
+    employeeId,
+    leaveTypeId,
+    leaveTypeName: leaveType.name,
     startDate: formData.get('startDate') as string,
     endDate: formData.get('endDate') as string,
     isHalfDay: (formData.get('isHalfDay') ?? undefined) as string | undefined,
@@ -424,9 +495,6 @@ export async function submitLeaveForEmployee(formData: FormData) {
   if (start < today) return { error: await serverError('startDatePast') }
   if (end < start) return { error: await serverError('endDateBeforeStart') }
 
-  const employee = await db.employee.findUnique({ where: { id: data.employeeId } })
-  if (!employee) return { error: await serverError('employeeNotFound') }
-
   const holidays = await db.holiday.findMany({
     where: { date: { gte: start, lte: end } },
     select: { date: true },
@@ -444,8 +512,8 @@ export async function submitLeaveForEmployee(formData: FormData) {
   if (!isHalfDay && durationDays === 0) return { error: await serverError('noWorkingDays') }
   if (!isHalfDay && durationDays > 365) return { error: await serverError('durationExceeds365') }
 
-  const leaveType = await db.leaveType.findUnique({ where: { id: data.leaveTypeId } })
-  if (!leaveType || !leaveType.isActive) return { error: await serverError('invalidLeaveType') }
+  const maxConsecutiveDays = await getAppSetting('MAX_CONSECUTIVE_LEAVE_DAYS', DEFAULT_MAX_CONSECUTIVE_DAYS)
+  if (durationDays > maxConsecutiveDays) return { error: await serverError('maxConsecutiveDays') }
 
   const overlapping = await db.leaveRequest.findFirst({
     where: {
@@ -466,11 +534,20 @@ export async function submitLeaveForEmployee(formData: FormData) {
       durationDays,
       isHalfDay,
       halfDayPeriod: isHalfDay ? data.halfDayPeriod : null,
-      reason: data.reason,
+      reason: data.reason || '',
       attachmentFile: null,
       status: 'PENDING',
     },
   })
+
+  const carryover = await calculateCarryover(employee.id, data.leaveTypeId, employee.hireDate)
+  const balance = await getOrCreateLeaveBalance(employee.id, data.leaveTypeId, employee.hireDate)
+  if (carryover > balance.carriedOver) {
+    await db.leaveBalance.update({
+      where: { id: balance.id },
+      data: { carriedOver: carryover },
+    })
+  }
 
   const approverIds = await getApproverUserIds(employee.id)
   await createNotifications(
