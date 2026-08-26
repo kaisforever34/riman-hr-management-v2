@@ -7,9 +7,7 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
   Users,
-  CalendarCheck,
   CalendarRange,
-  Clock,
   ListChecks,
   Banknote,
   FolderOpen,
@@ -43,7 +41,6 @@ export default function Sidebar({ role }: { role: string }) {
   }, [pathname])
 
   const isAdmin = role === 'HR_ADMIN' || role === 'MANAGER'
-  const isEmployee = role === 'EMPLOYEE'
   const isHrAdmin = role === 'HR_ADMIN'
 
   const navItems = [
@@ -52,10 +49,9 @@ export default function Sidebar({ role }: { role: string }) {
     { href: `/${locale}/notifications`, icon: Bell, label: 'notifications', show: true },
     { href: `/${locale}/employees`, icon: Users, label: 'employees', show: isAdmin },
     { href: `/${locale}/manager/onboarding`, icon: DoorOpen, label: 'onboarding', show: isAdmin },
-    { href: `/${locale}/leave`, icon: CalendarCheck, label: 'myLeaves', show: true },
-    { href: `/${locale}/onboarding`, icon: DoorOpen, label: 'myOnboarding', show: isEmployee },
+
     { href: `/${locale}/manager/leaves`, icon: CalendarRange, label: 'leaveRequests', show: isAdmin },
-    { href: `/${locale}/attendance`, icon: Clock, label: 'attendance', show: true },
+
     { href: `/${locale}/manager/attendance`, icon: ListChecks, label: 'managerAttendance', show: isAdmin },
     { href: `/${locale}/manager/payroll`, icon: Banknote, label: 'payroll', show: isAdmin },
     { href: `/${locale}/manager/performance`, icon: BarChart3, label: 'performance', show: isAdmin },
@@ -66,9 +62,7 @@ export default function Sidebar({ role }: { role: string }) {
     { href: `/${locale}/manager/expenses`, icon: Receipt, label: 'expenses', show: isAdmin },
     { href: `/${locale}/manager/holidays`, icon: CalendarRange, label: 'holidays', show: isAdmin },
     { href: `/${locale}/manager/audit-log`, icon: ListChecks, label: 'auditLog', show: isHrAdmin },
-    { href: `/${locale}/surveys`, icon: ClipboardList, label: 'mySurveys', show: isEmployee },
-    { href: `/${locale}/assets`, icon: Package, label: 'myAssets', show: isEmployee },
-    { href: `/${locale}/expenses`, icon: Receipt, label: 'myExpenses', show: isEmployee },
+
   ].filter((item) => item.show)
 
   const sidebarContent = (
