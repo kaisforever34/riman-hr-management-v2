@@ -4,7 +4,7 @@ import { serverError } from '@/lib/errors'
 import { db } from '@/lib/db'
 import { manualCheckInSchema, managerOverrideSchema } from '@/lib/validations/attendance'
 import { auth } from '@/lib/auth'
-import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes } from '@/lib/schedule'
+import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes, WORK_START_HOUR, WORK_START_MINUTE, WORK_END_HOUR, WORK_END_MINUTE } from '@/lib/schedule'
 import { revalidatePath } from 'next/cache'
 import type { AttendanceStatus } from '@/lib/types'
 import { logAudit } from '@/lib/audit'
@@ -175,4 +175,35 @@ export async function managerOverrideAttendance(formData: FormData) {
 
   revalidatePath('/manager/attendance')
   revalidatePath('/manager/attendance/reports')
+}
+
+export async function markAbsent(employeeIds: string[], date?: string) {
+  const session = await auth()
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
+
+  const targetDate = date ? new Date(date) : getTodayUaeDate()
+  const shiftStart = `${String(WORK_START_HOUR).padStart(2, '0')}:${String(WORK_START_MINUTE).padStart(2, '0')}`
+  const shiftEnd = `${String(WORK_END_HOUR).padStart(2, '0')}:${String(WORK_END_MINUTE).padStart(2, '0')}`
+  const note = `Auto-marked absent. Expected shift: ${shiftStart}-${shiftEnd}`
+
+  const results = await Promise.all(
+    employeeIds.map((employeeId) =>
+      db.attendanceRecord.upsert({
+        where: { employeeId_date: { employeeId, date: targetDate } },
+        update: { status: 'ABSENT', checkInNote: note, adjustedById: session.user.id },
+        create: {
+          employeeId,
+          date: targetDate,
+          status: 'ABSENT',
+          checkInNote: note,
+          adjustedById: session.user.id,
+        },
+      })
+    )
+  )
+
+  revalidatePath('/attendance')
+  revalidatePath('/manager/attendance')
+
+  return { success: true, count: results.length }
 }

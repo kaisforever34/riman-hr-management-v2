@@ -53,6 +53,7 @@ export type ErrorKey =
   | 'userCreated'
   | 'passwordChangeFailed'
   | 'passwordChanged'
+  | 'passwordChangeFailed'
   | 'emailAlreadyUsed'
 
 export async function serverError(key: ErrorKey): Promise<string> {

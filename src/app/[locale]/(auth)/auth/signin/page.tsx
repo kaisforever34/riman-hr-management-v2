@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LogIn, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
 
 export default function SignInPage() {
   const t = useTranslations('auth')
@@ -116,6 +117,15 @@ export default function SignInPage() {
           {loading ? t('signingIn') : t('signIn')}
         </Button>
       </form>
+
+      <div className="mt-4 text-center">
+        <Link
+          href={`/${locale}/auth/forgot-password`}
+          className="text-[13px] text-[#8B93A8] hover:text-[#D4A843] transition-colors"
+        >
+          {t('forgotPassword')}
+        </Link>
+      </div>
     </div>
   )
 }

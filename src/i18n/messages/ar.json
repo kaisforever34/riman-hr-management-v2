@@ -8,7 +8,8 @@
     "email": "البريد الإلكتروني",
     "password": "كلمة المرور",
     "signingIn": "جاري تسجيل الدخول...",
-    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "forgotPassword": "نسيت كلمة المرور؟"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -122,6 +123,59 @@
     "resetPasswordConfirm": "إعادة تعيين كلمة مرور هذا المستخدم؟ سيُطلب منه تعيين كلمة مرور جديدة عند تسجيل الدخول التالي.",
     "resetPasswordSuccess": "تم إعادة تعيين كلمة المرور بنجاح",
     "resetPasswordFailed": "تعذّر إعادة تعيين كلمة المرور"
+  },
+  "employeeDetail": {
+    "personalInfo": "المعلومات الشخصية",
+    "jobDetails": "تفاصيل الوظيفة",
+    "bankDetails": "التفاصيل المصرفية",
+    "emergencyContact": "جهة اتصال الطوارئ",
+    "employeeCode": "الرمز",
+    "email": "البريد الإلكتروني",
+    "phoneNumber": "رقم الهاتف",
+    "dateOfBirth": "تاريخ الميلاد",
+    "nationality": "الجنسية",
+    "maritalStatus": "الحالة الاجتماعية",
+    "status": "الحالة",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "jobTitle": "المسمى الوظيفي",
+    "department": "القسم",
+    "salary": "الراتب",
+    "manager": "المدير",
+    "workWeek": "أسبوع العمل",
+    "bankName": "اسم البنك",
+    "iban": "IBAN",
+    "swift": "SWIFT/BIC",
+    "emergencyContactName": "اسم جهة الاتصال",
+    "emergencyContactPhone": "هاتف جهة الاتصال",
+    "edit": "تعديل"
+  },
+  "editEmployee": {
+    "title": "تعديل الموظف",
+    "personalInfo": "المعلومات الشخصية",
+    "jobDetails": "تفاصيل الوظيفة",
+    "bankDetails": "التفاصيل المصرفية",
+    "emergencyContact": "جهة اتصال الطوارئ",
+    "firstName": "الاسم الأول",
+    "lastName": "الاسم الأخير",
+    "phoneNumber": "رقم الهاتف",
+    "dateOfBirth": "تاريخ الميلاد",
+    "nationality": "الجنسية",
+    "maritalStatus": "الحالة الاجتماعية",
+    "jobTitle": "المسمى الوظيفي",
+    "department": "القسم",
+    "salary": "الراتب (درهم)",
+    "manager": "المدير",
+    "noManager": "بدون مدير",
+    "bankName": "اسم البنك",
+    "iban": "IBAN",
+    "swift": "SWIFT/BIC",
+    "emergencyContactName": "اسم جهة الاتصال",
+    "emergencyContactPhone": "هاتف جهة الاتصال",
+    "save": "حفظ التغييرات",
+    "saving": "جاري الحفظ...",
+    "success": "تم تحديث الموظف بنجاح",
+    "error": "فشل تحديث الموظف"
   },
   "employeesAdd": {
     "title": "إضافة موظف",
@@ -828,6 +882,27 @@
     "userNotFound": "المستخدم غير موجود",
     "passwordResetFailed": "فشل إعادة تعيين كلمة المرور",
     "passwordChanged": "تم تغيير كلمة المرور بنجاح"
+  },
+  "forgotPassword": {
+    "title": "نسيت كلمة المرور؟",
+    "subtitle": "أدخل بريدك الإلكتروني وسنولّد لك كلمة مرور جديدة.",
+    "emailLabel": "البريد الإلكتروني",
+    "submit": "إعادة تعيين كلمة المرور",
+    "submitting": "جاري إعادة التعيين...",
+    "success": "تم إنشاء كلمة مرور جديدة. استخدمها أدناه لتسجيل الدخول.",
+    "error": "فشل إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى.",
+    "newPasswordLabel": "كلمة المرور الجديدة"
+  },
+  "changePassword": {
+    "title": "تغيير كلمة المرور",
+    "currentPassword": "كلمة المرور الحالية",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور الجديدة",
+    "submit": "تغيير كلمة المرور",
+    "submitting": "جاري التغيير...",
+    "success": "تم تغيير كلمة المرور بنجاح",
+    "error": "فشل تغيير كلمة المرور. يرجى المحاولة مرة أخرى.",
+    "passwordMismatch": "كلمتا المرور غير متطابقتين"
   },
   "empty": {
     "noEmployees": {

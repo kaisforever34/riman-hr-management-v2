@@ -8,7 +8,8 @@
     "email": "Email",
     "password": "Password",
     "signingIn": "Signing in...",
-    "invalidCredentials": "Invalid email or password"
+    "invalidCredentials": "Invalid email or password",
+    "forgotPassword": "Forgot Password?"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -122,6 +123,59 @@
     "resetPasswordConfirm": "Reset this user's password? They will be asked to set a new one at next login.",
     "resetPasswordSuccess": "Password reset successfully",
     "resetPasswordFailed": "Could not reset password"
+  },
+  "employeeDetail": {
+    "personalInfo": "Personal Information",
+    "jobDetails": "Job Details",
+    "bankDetails": "Bank Details",
+    "emergencyContact": "Emergency Contact",
+    "employeeCode": "Code",
+    "email": "Email",
+    "phoneNumber": "Phone",
+    "dateOfBirth": "Date of Birth",
+    "nationality": "Nationality",
+    "maritalStatus": "Marital Status",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "jobTitle": "Job Title",
+    "department": "Department",
+    "salary": "Salary",
+    "manager": "Manager",
+    "workWeek": "Work Week",
+    "bankName": "Bank Name",
+    "iban": "IBAN",
+    "swift": "SWIFT/BIC",
+    "emergencyContactName": "Contact Name",
+    "emergencyContactPhone": "Contact Phone",
+    "edit": "Edit"
+  },
+  "editEmployee": {
+    "title": "Edit Employee",
+    "personalInfo": "Personal Information",
+    "jobDetails": "Job Details",
+    "bankDetails": "Bank Details",
+    "emergencyContact": "Emergency Contact",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phoneNumber": "Phone Number",
+    "dateOfBirth": "Date of Birth",
+    "nationality": "Nationality",
+    "maritalStatus": "Marital Status",
+    "jobTitle": "Job Title",
+    "department": "Department",
+    "salary": "Salary (AED)",
+    "manager": "Manager",
+    "noManager": "No manager",
+    "bankName": "Bank Name",
+    "iban": "IBAN",
+    "swift": "SWIFT/BIC",
+    "emergencyContactName": "Contact Name",
+    "emergencyContactPhone": "Contact Phone",
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "success": "Employee updated successfully",
+    "error": "Failed to update employee"
   },
   "employeesAdd": {
     "title": "Add Employee",
@@ -820,6 +874,27 @@
     "userNotFound": "User not found",
     "passwordResetFailed": "Password reset failed",
     "passwordChanged": "Password changed successfully"
+  },
+  "forgotPassword": {
+    "title": "Forgot Password?",
+    "subtitle": "Enter your email address and we will generate a new password for you.",
+    "emailLabel": "Email Address",
+    "submit": "Reset Password",
+    "submitting": "Resetting...",
+    "success": "A new password has been generated. Use it below to sign in.",
+    "error": "Failed to reset password. Please try again.",
+    "newPasswordLabel": "Your new password"
+  },
+  "changePassword": {
+    "title": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "submit": "Change Password",
+    "submitting": "Changing...",
+    "success": "Password changed successfully",
+    "error": "Failed to change password. Please try again.",
+    "passwordMismatch": "Passwords do not match"
   },
   "empty": {
     "noEmployees": {

@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
-import { randomBytes } from 'crypto'
 
 const prisma = new PrismaClient()
 
@@ -20,13 +19,12 @@ function isWeekend(d: Date): boolean {
   return day === 5 || day === 6
 }
 
-function randomPassword(): string {
-  return randomBytes(12).toString('hex')
-}
+const DEFAULT_ADMIN_PASSWORD = 'Admin@123'
+const DEFAULT_EMPLOYEE_PASSWORD = 'Employee@123'
 
 async function main() {
-  const passwordHash = await bcrypt.hash(randomPassword(), 10)
-  const empPasswordHash = await bcrypt.hash(randomPassword(), 10)
+  const passwordHash = await bcrypt.hash(DEFAULT_ADMIN_PASSWORD, 10)
+  const empPasswordHash = await bcrypt.hash(DEFAULT_EMPLOYEE_PASSWORD, 10)
 
   // ── Admin ──
   await prisma.user.upsert({
