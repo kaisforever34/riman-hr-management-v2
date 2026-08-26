@@ -5,10 +5,8 @@
     "output": "release"
   },
   "files": [
-    "electron/**/*",
-    "!.next/**",
-    "!.next/standalone/**",
-    "node_modules/**"
+    "electron/main.js",
+    "electron/preload.js"
   ],
   "extraResources": [
     {
@@ -28,14 +26,9 @@
       "to": "standalone/prisma"
     }
   ],
+  "asar": false,
   "win": {
-    "target": "nsis",
+    "target": "portable",
     "icon": "public/favicon.ico"
-  },
-  "nsis": {
-    "oneClick": false,
-    "allowToChangeInstallationDirectory": true,
-    "createDesktopShortcut": true,
-    "createStartMenuShortcut": true
   }
 }

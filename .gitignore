@@ -76,3 +76,4 @@ graphify-out/
 
 # local credentials file
 CREDENTIALS.txt
+release/
