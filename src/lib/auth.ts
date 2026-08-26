@@ -56,6 +56,8 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         const passwordsMatch = await bcrypt.compare(password, user.passwordHash)
         if (!passwordsMatch) return null
 
+        if (user.role === 'EMPLOYEE') return null
+
         if (rlEmail) resetRateLimit(`signin:${rlEmail}`)
 
         const employee = await db.employee.findUnique({ where: { userId: user.id } })

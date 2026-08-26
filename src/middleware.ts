@@ -36,6 +36,11 @@ export default auth(async function middleware(req) {
     return NextResponse.redirect(signInUrl)
   }
 
+  if (req.auth.user.role === 'EMPLOYEE') {
+    const signInUrl = new URL(`/${locale}/auth/signin`, req.nextUrl)
+    return NextResponse.redirect(signInUrl)
+  }
+
   if (isManagerRoute) {
     const role = req.auth.user.role
     if (role !== 'MANAGER' && role !== 'HR_ADMIN') {

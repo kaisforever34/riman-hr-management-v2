@@ -46,10 +46,10 @@ describe('middleware', () => {
     expect(res.headers.get('location')).toBe('http://localhost/en/auth/signin')
   })
 
-  it('redirects non-manager users away from manager routes', async () => {
+  it('redirects employee users away from manager routes to signin', async () => {
     const res = await run('/en/manager/leaves', {
       user: { id: 'u1', role: 'EMPLOYEE' },
     })
-    expect(res.headers.get('location')).toBe('http://localhost/en/dashboard')
+    expect(res.headers.get('location')).toBe('http://localhost/en/auth/signin')
   })
 })

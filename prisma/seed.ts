@@ -50,6 +50,31 @@ async function main() {
     },
   })
 
+  // ── Manager ──
+  const managerPasswordHash = await bcrypt.hash('Manager@123', 10)
+  await prisma.user.upsert({
+    where: { email: 'manager@riman.com' },
+    update: {},
+    create: {
+      email: 'manager@riman.com',
+      passwordHash: managerPasswordHash,
+      role: 'MANAGER',
+      employee: {
+        create: {
+          firstName: 'Test',
+          lastName: 'Manager',
+          employeeCode: 'MGR-001',
+          dateOfBirth: new Date('1985-06-15'),
+          nationality: 'AE',
+          jobTitle: 'Department Manager',
+          department: 'HR',
+          hireDate: new Date('2019-01-01'),
+          salary: 20000.00,
+        },
+      },
+    },
+  })
+
   // ── Leave Types ──
   const leaveTypes = [
     { name: 'Annual', nameAr: 'إجازة سنوية', defaultDays: 30, isPaid: true, requiresAttachment: false },
