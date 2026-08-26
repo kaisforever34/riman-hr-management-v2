@@ -342,7 +342,10 @@
       "clear": "مسح",
       "result": "{approved} تمت الموافقة، {failed} فشلت",
       "rejectResult": "{rejected} تم الرفض، {failed} فشلت"
-    }
+    },
+    "submitLeaveForEmployee": "تقديم إجازة للموظف",
+    "submitSuccess": "تم تقديم الإجازة بنجاح",
+    "submit": "إرسال"
   },
   "leaveTypes": {
     "title": "أنواع الإجازات",

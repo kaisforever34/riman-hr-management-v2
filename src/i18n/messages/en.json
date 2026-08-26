@@ -334,7 +334,10 @@
       "clear": "Clear",
       "result": "{approved} approved, {failed} failed",
       "rejectResult": "{rejected} rejected, {failed} failed"
-    }
+    },
+    "submitLeaveForEmployee": "Submit Leave for Employee",
+    "submitSuccess": "Leave submitted successfully",
+    "submit": "Submit"
   },
   "leaveTypes": {
     "title": "Leave Types",

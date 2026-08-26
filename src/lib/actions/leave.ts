@@ -396,3 +396,100 @@ export async function setAllocation(formData: FormData) {
 
   revalidatePath('/manager/leave-types')
 }
+
+export async function submitLeaveForEmployee(formData: FormData) {
+  const session = await auth()
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
+
+  const raw = {
+    employeeId: formData.get('employeeId') as string,
+    leaveTypeId: formData.get('leaveTypeId') as string,
+    startDate: formData.get('startDate') as string,
+    endDate: formData.get('endDate') as string,
+    isHalfDay: (formData.get('isHalfDay') ?? undefined) as string | undefined,
+    halfDayPeriod: (formData.get('halfDayPeriod') ?? undefined) as string | undefined,
+    reason: formData.get('reason') as string,
+  }
+
+  const parsed = submitLeaveSchema.safeParse(raw)
+  if (!parsed.success) return { error: await serverError('validationFailed'), fieldErrors: parsed.error.flatten().fieldErrors }
+
+  const data = parsed.data
+  const start = new Date(data.startDate)
+  const end = new Date(data.endDate)
+  const isHalfDay = data.isHalfDay === 'true'
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  if (start < today) return { error: await serverError('startDatePast') }
+  if (end < start) return { error: await serverError('endDateBeforeStart') }
+
+  const employee = await db.employee.findUnique({ where: { id: data.employeeId } })
+  if (!employee) return { error: await serverError('employeeNotFound') }
+
+  const holidays = await db.holiday.findMany({
+    where: { date: { gte: start, lte: end } },
+    select: { date: true },
+  })
+  const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
+  const workWeekArr = JSON.parse(employee.workWeek) as number[]
+  if (isHalfDay && !isWorkingDay(toUaeDateKey(start), workWeekArr, holidayKeys)) {
+    return { error: await serverError('noWorkingDays') }
+  }
+
+  const durationDays = isHalfDay
+    ? 0.5
+    : countWorkingDays(toUaeDateKey(start), toUaeDateKey(end), workWeekArr, holidayKeys)
+
+  if (!isHalfDay && durationDays === 0) return { error: await serverError('noWorkingDays') }
+  if (!isHalfDay && durationDays > 365) return { error: await serverError('durationExceeds365') }
+
+  const leaveType = await db.leaveType.findUnique({ where: { id: data.leaveTypeId } })
+  if (!leaveType || !leaveType.isActive) return { error: await serverError('invalidLeaveType') }
+
+  const overlapping = await db.leaveRequest.findFirst({
+    where: {
+      employeeId: employee.id,
+      status: { in: ['PENDING', 'APPROVED'] },
+      startDate: { lte: end },
+      endDate: { gte: start },
+    },
+  })
+  if (overlapping) return { error: await serverError('overlappingRequest') }
+
+  const created = await db.leaveRequest.create({
+    data: {
+      employeeId: employee.id,
+      leaveTypeId: data.leaveTypeId,
+      startDate: start,
+      endDate: end,
+      durationDays,
+      isHalfDay,
+      halfDayPeriod: isHalfDay ? data.halfDayPeriod : null,
+      reason: data.reason,
+      attachmentFile: null,
+      status: 'PENDING',
+    },
+  })
+
+  const approverIds = await getApproverUserIds(employee.id)
+  await createNotifications(
+    approverIds,
+    'LEAVE_SUBMITTED',
+    'New Leave Request',
+    `${employee.firstName} ${employee.lastName} requested ${leaveType.name} leave.`,
+    `/manager/leaves/${created.id}`,
+  )
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'LEAVE_SUBMITTED_FOR_EMPLOYEE',
+    entityType: 'LeaveRequest',
+    entityId: created.id,
+    detail: { employeeId: employee.id, submittedByAdmin: true },
+  })
+
+  revalidatePath('/manager/leaves')
+  return { success: true }
+}

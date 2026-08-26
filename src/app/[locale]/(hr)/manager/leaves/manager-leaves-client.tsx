@@ -17,8 +17,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import Link from 'next/link'
-import { Calendar, Check, X } from 'lucide-react'
+import { Calendar, Check, X, Plus } from 'lucide-react'
 import { bulkApproveLeaves, bulkRejectLeaves } from '@/lib/actions/leave'
+import SubmitLeaveDialog from '@/components/manager-leaves/SubmitLeaveDialog'
 
 interface ManagerLeavesClientProps {
   requests: any[]
@@ -45,6 +46,7 @@ export default function ManagerLeavesClient({
   const [busy, setBusy] = useState<string | null>(null)
   const [showReject, setShowReject] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
+  const [showSubmitLeave, setShowSubmitLeave] = useState(false)
 
   const pendingRequests = requests.filter((r) => r.status === 'PENDING')
   const allPendingSelected =
@@ -149,6 +151,10 @@ export default function ManagerLeavesClient({
             <Calendar className="me-2 h-4 w-4" />
             {t('calendar')}
           </Link>
+          <Button onClick={() => setShowSubmitLeave(true)} className="bg-[#22C55E] text-white hover:bg-[#1Fb053]">
+            <Plus className="me-2 h-4 w-4" />
+            {t('submitLeaveForEmployee')}
+          </Button>
         </div>
       </div>
 
@@ -313,6 +319,16 @@ export default function ManagerLeavesClient({
           )}
         </div>
       )}
+      <SubmitLeaveDialog
+        open={showSubmitLeave}
+        onOpenChange={setShowSubmitLeave}
+        employees={employees}
+        leaveTypes={leaveTypes}
+        onSuccess={() => {
+          setShowSubmitLeave(false)
+          router.refresh()
+        }}
+      />
     </div>
   )
 }
