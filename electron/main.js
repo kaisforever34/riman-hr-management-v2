@@ -22,13 +22,21 @@ function getDataPath() {
   return dataDir
 }
 
-function startServer() {
-  return new Promise((resolve, reject) => {
-    const resPath = getResourcesPath()
-    const serverPath = path.join(resPath, 'standalone', 'server.js')
-    const dbPath = path.join(getDataPath(), 'riman.db')
+function getNodeBinary() {
+  var resPath = getResourcesPath()
+  var bundled = path.join(resPath, 'node', 'node.exe')
+  if (fs.existsSync(bundled)) return bundled
+  return 'node'
+}
 
-    const env = Object.assign({}, process.env, {
+function startServer() {
+  return new Promise(function (resolve, reject) {
+    var resPath = getResourcesPath()
+    var serverPath = path.join(resPath, 'standalone', 'server.js')
+    var dbPath = path.join(getDataPath(), 'riman.db')
+    var nodeBin = getNodeBinary()
+
+    var env = Object.assign({}, process.env, {
       DATABASE_URL: 'file:' + dbPath,
       AUTH_SECRET: 'electron-riman-hr-secret-key-change-in-production-32chars!',
       AUTH_URL: 'http://localhost:' + PORT,
@@ -37,12 +45,22 @@ function startServer() {
       HOSTNAME: '127.0.0.1',
     })
 
-    serverProcess = spawn(process.execPath || 'node', [serverPath], {
+    serverProcess = spawn(nodeBin, [serverPath], {
       env: env,
       stdio: 'inherit',
     })
 
-    serverProcess.on('error', reject)
+    serverProcess.on('error', function (err) {
+      console.error('Server failed to start:', err)
+      reject(err)
+    })
+
+    serverProcess.on('exit', function (code) {
+      if (code && code !== 0) {
+        console.error('Server exited with code:', code)
+      }
+    })
+
     setTimeout(resolve, 4000)
   })
 }
@@ -64,8 +82,13 @@ function createWindow() {
 }
 
 app.whenReady().then(async function () {
-  await startServer()
-  createWindow()
+  try {
+    await startServer()
+    createWindow()
+  } catch (err) {
+    console.error('Failed to start:', err)
+    app.quit()
+  }
 })
 
 app.on('window-all-closed', function () {

@@ -24,6 +24,10 @@
     {
       "from": "prisma",
       "to": "standalone/prisma"
+    },
+    {
+      "from": "electron/node",
+      "to": "node"
     }
   ],
   "asar": false,
