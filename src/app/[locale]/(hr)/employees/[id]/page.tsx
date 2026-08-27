@@ -92,6 +92,10 @@ export default async function EmployeeDetailPage({
               <span>{employee.dateOfBirth.toLocaleDateString()}</span>
             </div>
             <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('gender')}</span>
+              <span>{employee.gender || '—'}</span>
+            </div>
+            <div className="flex justify-between">
               <span className="text-muted-foreground">{t('nationality')}</span>
               <span>{employee.nationality}</span>
             </div>
@@ -125,6 +129,22 @@ export default async function EmployeeDetailPage({
               <span className="text-muted-foreground">{t('salary')}</span>
               <span>{employee.salary.toLocaleString()} AED</span>
             </div>
+            <div className="flex justify-between border-t pt-3">
+              <span className="text-muted-foreground">{t('basicSalary')}</span>
+              <span>{(employee.basicSalary || 0).toLocaleString()} AED</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('housingAllowance')}</span>
+              <span>{(employee.housingAllowance || 0).toLocaleString()} AED</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('transportAllowance')}</span>
+              <span>{(employee.transportAllowance || 0).toLocaleString()} AED</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('otherAllowances')}</span>
+              <span>{(employee.otherAllowances || 0).toLocaleString()} AED</span>
+            </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t('manager')}</span>
               <span>{employee.manager ? `${employee.manager.firstName} ${employee.manager.lastName}` : '—'}</span>
@@ -132,6 +152,42 @@ export default async function EmployeeDetailPage({
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t('workWeek')}</span>
               <span>{workWeek.map((d) => dayNames[d]).join(', ')}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('contractVisa')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('contractType')}</span>
+              <span>{employee.contractType ? t(`contract_${employee.contractType.toLowerCase()}`) : '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('contractStartDate')}</span>
+              <span>{employee.contractStartDate ? employee.contractStartDate.toLocaleDateString() : '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('contractEndDate')}</span>
+              <span>{employee.contractEndDate ? employee.contractEndDate.toLocaleDateString() : '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('probationEndDate')}</span>
+              <span>{employee.probationEndDate ? employee.probationEndDate.toLocaleDateString() : '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('visaExpiryDate')}</span>
+              <span>{employee.visaExpiryDate ? employee.visaExpiryDate.toLocaleDateString() : '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('iqamaNumber')}</span>
+              <span>{employee.iqamaNumber || '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('iqamaExpiryDate')}</span>
+              <span>{employee.iqamaExpiryDate ? employee.iqamaExpiryDate.toLocaleDateString() : '—'}</span>
             </div>
           </CardContent>
         </Card>

@@ -17,12 +17,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { employeeFormSchema, type EmployeeFormData, departments, maritalStatuses, countries } from '@/lib/validations/employee'
+import { employeeFormSchema, type EmployeeFormData, departments, maritalStatuses, countries, genders, contractTypes } from '@/lib/validations/employee'
 import { createEmployee } from '@/lib/actions/employee'
 import { ArrowLeft, ChevronDown, ChevronUp, Save } from 'lucide-react'
 import Link from 'next/link'
 
-type SectionKey = 'personal' | 'job' | 'bank' | 'emergency'
+type SectionKey = 'personal' | 'job' | 'contract' | 'bank' | 'emergency'
 
 const DAYS = [
   { value: 0, key: 'sun' },
@@ -161,6 +161,15 @@ export default function AddEmployeePage() {
                   {errors.dateOfBirth && <p className="text-sm text-red-500">{errors.dateOfBirth.message}</p>}
                 </div>
                 <div className="space-y-2">
+                  <Label>{t('gender')}</Label>
+                  <Select onValueChange={(v) => setValue('gender', v ?? undefined)} value={watch('gender')} disabled={loading}>
+                    <SelectTrigger><SelectValue placeholder={t('gender')} /></SelectTrigger>
+                    <SelectContent>
+                      {genders.map((g) => <SelectItem key={g} value={g}>{t(`gender_${g.toLowerCase()}`)}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label>{t('nationality')} *</Label>
                   <Select onValueChange={(v) => setValue('nationality', v ?? '')} value={watch('nationality')} disabled={loading}>
                     <SelectTrigger><SelectValue placeholder={t('nationality')} /></SelectTrigger>
@@ -228,6 +237,26 @@ export default function AddEmployeePage() {
                   {errors.salary && <p className="text-sm text-red-500">{errors.salary.message}</p>}
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="basicSalary">{t('basicSalary')}</Label>
+                  <Input id="basicSalary" {...register('basicSalary')} placeholder="3000.00" disabled={loading} />
+                  {errors.basicSalary && <p className="text-sm text-red-500">{errors.basicSalary.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="housingAllowance">{t('housingAllowance')}</Label>
+                  <Input id="housingAllowance" {...register('housingAllowance')} placeholder="1000.00" disabled={loading} />
+                  {errors.housingAllowance && <p className="text-sm text-red-500">{errors.housingAllowance.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="transportAllowance">{t('transportAllowance')}</Label>
+                  <Input id="transportAllowance" {...register('transportAllowance')} placeholder="500.00" disabled={loading} />
+                  {errors.transportAllowance && <p className="text-sm text-red-500">{errors.transportAllowance.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="otherAllowances">{t('otherAllowances')}</Label>
+                  <Input id="otherAllowances" {...register('otherAllowances')} placeholder="500.00" disabled={loading} />
+                  {errors.otherAllowances && <p className="text-sm text-red-500">{errors.otherAllowances.message}</p>}
+                </div>
+                <div className="space-y-2">
                   <Label>{t('role')} *</Label>
                   <Select onValueChange={(v) => setValue('role', (v ?? 'EMPLOYEE') as 'HR_ADMIN' | 'MANAGER' | 'EMPLOYEE')} value={watch('role')} disabled={loading}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -261,7 +290,61 @@ export default function AddEmployeePage() {
           </CardContent>
         </Card>
 
-        {/* Section 3: Bank Details (optional) */}
+        {/* Section 3: Contract & Visa */}
+        <Card>
+          <CardContent className="p-0">
+            <button
+              type="button"
+              onClick={() => toggleSection('contract')}
+              className="flex w-full items-center justify-between p-4 font-medium"
+            >
+              <span className="flex items-center gap-2">
+                {t('contractVisa')}
+                <Badge variant="secondary" className="text-xs">{t('optional')}</Badge>
+              </span>
+              {expandedSections.has('contract') ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {expandedSections.has('contract') && (
+              <div className="grid gap-4 border-t p-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>{t('contractType')}</Label>
+                  <Select onValueChange={(v) => setValue('contractType', v ?? undefined)} value={watch('contractType')} disabled={loading}>
+                    <SelectTrigger><SelectValue placeholder={t('contractType')} /></SelectTrigger>
+                    <SelectContent>
+                      {contractTypes.map((c) => <SelectItem key={c} value={c}>{t(`contract_${c.toLowerCase()}`)}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contractStartDate">{t('contractStartDate')}</Label>
+                  <Input id="contractStartDate" type="date" {...register('contractStartDate')} disabled={loading} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contractEndDate">{t('contractEndDate')}</Label>
+                  <Input id="contractEndDate" type="date" {...register('contractEndDate')} disabled={loading} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="probationEndDate">{t('probationEndDate')}</Label>
+                  <Input id="probationEndDate" type="date" {...register('probationEndDate')} disabled={loading} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="visaExpiryDate">{t('visaExpiryDate')}</Label>
+                  <Input id="visaExpiryDate" type="date" {...register('visaExpiryDate')} disabled={loading} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="iqamaNumber">{t('iqamaNumber')}</Label>
+                  <Input id="iqamaNumber" {...register('iqamaNumber')} placeholder="784-..." disabled={loading} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="iqamaExpiryDate">{t('iqamaExpiryDate')}</Label>
+                  <Input id="iqamaExpiryDate" type="date" {...register('iqamaExpiryDate')} disabled={loading} />
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Section 4: Bank Details (optional) */}
         <Card>
           <CardContent className="p-0">
             <button

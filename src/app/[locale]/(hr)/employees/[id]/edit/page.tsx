@@ -37,6 +37,7 @@ export default async function EditEmployeePage({
         department: employee.department,
         nationality: employee.nationality,
         dateOfBirth: employee.dateOfBirth.toISOString().split('T')[0],
+        gender: employee.gender ?? '',
         maritalStatus: employee.maritalStatus ?? '',
         emergencyContactName: employee.emergencyContactName ?? '',
         emergencyContactPhone: employee.emergencyContactPhone ?? '',
@@ -45,6 +46,17 @@ export default async function EditEmployeePage({
         iban: employee.iban ?? '',
         swift: employee.swift ?? '',
         salary: employee.salary.toString(),
+        basicSalary: employee.basicSalary?.toString() ?? '',
+        housingAllowance: employee.housingAllowance?.toString() ?? '',
+        transportAllowance: employee.transportAllowance?.toString() ?? '',
+        otherAllowances: employee.otherAllowances?.toString() ?? '',
+        contractType: employee.contractType ?? '',
+        contractStartDate: employee.contractStartDate ? employee.contractStartDate.toISOString().split('T')[0] : '',
+        contractEndDate: employee.contractEndDate ? employee.contractEndDate.toISOString().split('T')[0] : '',
+        probationEndDate: employee.probationEndDate ? employee.probationEndDate.toISOString().split('T')[0] : '',
+        visaExpiryDate: employee.visaExpiryDate ? employee.visaExpiryDate.toISOString().split('T')[0] : '',
+        iqamaNumber: employee.iqamaNumber ?? '',
+        iqamaExpiryDate: employee.iqamaExpiryDate ? employee.iqamaExpiryDate.toISOString().split('T')[0] : '',
       }}
       managers={employees}
       locale={locale}

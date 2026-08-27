@@ -51,6 +51,8 @@ export default function DashboardContent({
   weeklyAttendance,
   leaveDistribution,
   payrollKpi,
+  contractExpiring,
+  visaExpiring,
 }: {
   totalEmployees: number
   presentCount: number
@@ -59,6 +61,8 @@ export default function DashboardContent({
   weeklyAttendance: { dayIndex: number; present: number; late: number; absent: number }[]
   leaveDistribution: { name: string; value: number }[]
   payrollKpi: { total: number; source: 'period' | 'salaries' }
+  contractExpiring: { id: string; firstName: string; lastName: string; jobTitle: string; daysUntilExpiry: number }[]
+  visaExpiring: { id: string; firstName: string; lastName: string; iqamaNumber: string | null; daysUntilExpiry: number | null }[]
 }) {
   const locale = useLocale()
   const t = useTranslations('dashboard')
@@ -86,6 +90,43 @@ export default function DashboardContent({
         <KPICard icon={Calendar} col={C.blue} label={t('kpiLeavesLabel')} value={String(pendingLeaves)} sub={t('kpiLeavesSub')} />
           <KPICard icon={CreditCard} col={C.teal} label={t('kpiPayrollLabel')} value={`AED ${payrollKpi.total.toLocaleString()}`} sub={payrollKpi.source === 'salaries' ? `${t('kpiPayrollSub')} · ${t('payrollEstimateNote')}` : t('kpiPayrollSub')} />
       </div>
+
+      {(contractExpiring.length > 0 || visaExpiring.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          {contractExpiring.length > 0 && (
+            <div className="rounded-xl bg-[#0D1028] border border-[rgba(245,158,11,0.25)] p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="font-syne text-[15px] font-bold text-[#E0E6F4]">{t('contractExpiringSoon')}</div>
+                <Badge variant="amber">{String(contractExpiring.length)}</Badge>
+              </div>
+              <div className="space-y-3">
+                {contractExpiring.map((emp) => (
+                  <Link key={emp.id} href={`/${locale}/employees/${emp.id}`} className="flex items-center justify-between rounded-md bg-[rgba(255,255,255,0.03)] px-3 py-2 text-[13px] hover:bg-[rgba(255,255,255,0.06)]">
+                    <span className="text-[#E0E6F4]">{emp.firstName} {emp.lastName} <span className="text-[#8B93A8]">· {emp.jobTitle}</span></span>
+                    <span className="font-semibold text-[#F59E0B]">{t('daysLeft', { n: emp.daysUntilExpiry })}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {visaExpiring.length > 0 && (
+            <div className="rounded-xl bg-[#0D1028] border border-[rgba(239,68,68,0.25)] p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="font-syne text-[15px] font-bold text-[#E0E6F4]">{t('visaExpiringSoon')}</div>
+                <Badge variant="red">{String(visaExpiring.length)}</Badge>
+              </div>
+              <div className="space-y-3">
+                {visaExpiring.map((emp) => (
+                  <Link key={emp.id} href={`/${locale}/employees/${emp.id}`} className="flex items-center justify-between rounded-md bg-[rgba(255,255,255,0.03)] px-3 py-2 text-[13px] hover:bg-[rgba(255,255,255,0.06)]">
+                    <span className="text-[#E0E6F4]">{emp.firstName} {emp.lastName} {emp.iqamaNumber ? <span className="text-[#8B93A8]">· {emp.iqamaNumber}</span> : null}</span>
+                    <span className="font-semibold text-[#EF4444]">{t('daysLeft', { n: emp.daysUntilExpiry ?? 0 })}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5">

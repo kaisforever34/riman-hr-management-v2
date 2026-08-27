@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { departments, maritalStatuses, countries } from '@/lib/validations/employee'
+import { departments, maritalStatuses, countries, genders, contractTypes } from '@/lib/validations/employee'
 import { updateEmployee } from '@/lib/actions/employee'
 import { ArrowLeft, ChevronDown, ChevronUp, Save } from 'lucide-react'
 import Link from 'next/link'
@@ -30,6 +30,7 @@ const editEmployeeSchema = z.object({
   department: z.string().min(1, 'Required'),
   nationality: z.string().min(1, 'Required'),
   dateOfBirth: z.string().min(1, 'Required'),
+  gender: z.string().optional(),
   maritalStatus: z.string().optional(),
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
@@ -38,11 +39,22 @@ const editEmployeeSchema = z.object({
   iban: z.string().optional(),
   swift: z.string().optional(),
   salary: z.string().min(1, 'Required').regex(/^\d+(\.\d{1,2})?$/, 'Invalid format'),
+  basicSalary: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
+  housingAllowance: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
+  transportAllowance: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
+  otherAllowances: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
+  contractType: z.string().optional(),
+  contractStartDate: z.string().optional(),
+  contractEndDate: z.string().optional(),
+  probationEndDate: z.string().optional(),
+  visaExpiryDate: z.string().optional(),
+  iqamaNumber: z.string().optional(),
+  iqamaExpiryDate: z.string().optional(),
 })
 
 type EditEmployeeFormData = z.infer<typeof editEmployeeSchema>
 
-type SectionKey = 'personal' | 'job' | 'bank' | 'emergency'
+type SectionKey = 'personal' | 'job' | 'contract' | 'bank' | 'emergency'
 
 interface EditEmployeeClientProps {
   employee: {
@@ -54,6 +66,7 @@ interface EditEmployeeClientProps {
     department: string
     nationality: string
     dateOfBirth: string
+    gender: string
     maritalStatus: string
     emergencyContactName: string
     emergencyContactPhone: string
@@ -62,6 +75,17 @@ interface EditEmployeeClientProps {
     iban: string
     swift: string
     salary: string
+    basicSalary: string
+    housingAllowance: string
+    transportAllowance: string
+    otherAllowances: string
+    contractType: string
+    contractStartDate: string
+    contractEndDate: string
+    probationEndDate: string
+    visaExpiryDate: string
+    iqamaNumber: string
+    iqamaExpiryDate: string
   }
   managers: { id: string; firstName: string; lastName: string }[]
   locale: string
@@ -92,6 +116,7 @@ export function EditEmployeeClient({ employee, managers, locale }: EditEmployeeC
       department: employee.department,
       nationality: employee.nationality,
       dateOfBirth: employee.dateOfBirth,
+      gender: employee.gender,
       maritalStatus: employee.maritalStatus,
       emergencyContactName: employee.emergencyContactName,
       emergencyContactPhone: employee.emergencyContactPhone,
@@ -100,6 +125,17 @@ export function EditEmployeeClient({ employee, managers, locale }: EditEmployeeC
       iban: employee.iban,
       swift: employee.swift,
       salary: employee.salary,
+      basicSalary: employee.basicSalary,
+      housingAllowance: employee.housingAllowance,
+      transportAllowance: employee.transportAllowance,
+      otherAllowances: employee.otherAllowances,
+      contractType: employee.contractType,
+      contractStartDate: employee.contractStartDate,
+      contractEndDate: employee.contractEndDate,
+      probationEndDate: employee.probationEndDate,
+      visaExpiryDate: employee.visaExpiryDate,
+      iqamaNumber: employee.iqamaNumber,
+      iqamaExpiryDate: employee.iqamaExpiryDate,
     },
   })
 
@@ -190,6 +226,15 @@ export function EditEmployeeClient({ employee, managers, locale }: EditEmployeeC
                   {errors.dateOfBirth && <p className="text-sm text-red-500">{errors.dateOfBirth.message}</p>}
                 </div>
                 <div className="space-y-2">
+                  <Label>{t('gender')}</Label>
+                  <Select onValueChange={(v) => setValue('gender', v ?? undefined)} value={watch('gender')} disabled={loading}>
+                    <SelectTrigger><SelectValue placeholder={t('gender')} /></SelectTrigger>
+                    <SelectContent>
+                      {genders.map((g) => <SelectItem key={g} value={g}>{t(`gender_${g.toLowerCase()}`)}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label>{t('nationality')} *</Label>
                   <Select onValueChange={(v) => setValue('nationality', v ?? '')} value={watch('nationality')} disabled={loading}>
                     <SelectTrigger><SelectValue placeholder={t('nationality')} /></SelectTrigger>
@@ -246,6 +291,26 @@ export function EditEmployeeClient({ employee, managers, locale }: EditEmployeeC
                   {errors.salary && <p className="text-sm text-red-500">{errors.salary.message}</p>}
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="basicSalary">{t('basicSalary')}</Label>
+                  <Input id="basicSalary" {...register('basicSalary')} placeholder="3000.00" disabled={loading} />
+                  {errors.basicSalary && <p className="text-sm text-red-500">{errors.basicSalary.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="housingAllowance">{t('housingAllowance')}</Label>
+                  <Input id="housingAllowance" {...register('housingAllowance')} placeholder="1000.00" disabled={loading} />
+                  {errors.housingAllowance && <p className="text-sm text-red-500">{errors.housingAllowance.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="transportAllowance">{t('transportAllowance')}</Label>
+                  <Input id="transportAllowance" {...register('transportAllowance')} placeholder="500.00" disabled={loading} />
+                  {errors.transportAllowance && <p className="text-sm text-red-500">{errors.transportAllowance.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="otherAllowances">{t('otherAllowances')}</Label>
+                  <Input id="otherAllowances" {...register('otherAllowances')} placeholder="500.00" disabled={loading} />
+                  {errors.otherAllowances && <p className="text-sm text-red-500">{errors.otherAllowances.message}</p>}
+                </div>
+                <div className="space-y-2">
                   <Label>{t('manager')}</Label>
                   <Select onValueChange={(v) => setValue('managerId', v === 'none' ? '' : v ?? '')} value={managerSelectValue} disabled={loading}>
                     <SelectTrigger><SelectValue placeholder={t('manager')} /></SelectTrigger>
@@ -256,6 +321,59 @@ export function EditEmployeeClient({ employee, managers, locale }: EditEmployeeC
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-0">
+            <button
+              type="button"
+              onClick={() => toggleSection('contract')}
+              className="flex w-full items-center justify-between p-4 font-medium"
+            >
+              <span className="flex items-center gap-2">
+                {t('contractVisa')}
+                <Badge variant="secondary" className="text-xs">{tc('optional') || 'Optional'}</Badge>
+              </span>
+              {expandedSections.has('contract') ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {expandedSections.has('contract') && (
+              <div className="grid gap-4 border-t p-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>{t('contractType')}</Label>
+                  <Select onValueChange={(v) => setValue('contractType', v ?? undefined)} value={watch('contractType')} disabled={loading}>
+                    <SelectTrigger><SelectValue placeholder={t('contractType')} /></SelectTrigger>
+                    <SelectContent>
+                      {contractTypes.map((c) => <SelectItem key={c} value={c}>{t(`contract_${c.toLowerCase()}`)}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contractStartDate">{t('contractStartDate')}</Label>
+                  <Input id="contractStartDate" type="date" {...register('contractStartDate')} disabled={loading} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contractEndDate">{t('contractEndDate')}</Label>
+                  <Input id="contractEndDate" type="date" {...register('contractEndDate')} disabled={loading} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="probationEndDate">{t('probationEndDate')}</Label>
+                  <Input id="probationEndDate" type="date" {...register('probationEndDate')} disabled={loading} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="visaExpiryDate">{t('visaExpiryDate')}</Label>
+                  <Input id="visaExpiryDate" type="date" {...register('visaExpiryDate')} disabled={loading} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="iqamaNumber">{t('iqamaNumber')}</Label>
+                  <Input id="iqamaNumber" {...register('iqamaNumber')} placeholder="784-..." disabled={loading} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="iqamaExpiryDate">{t('iqamaExpiryDate')}</Label>
+                  <Input id="iqamaExpiryDate" type="date" {...register('iqamaExpiryDate')} disabled={loading} />
                 </div>
               </div>
             )}

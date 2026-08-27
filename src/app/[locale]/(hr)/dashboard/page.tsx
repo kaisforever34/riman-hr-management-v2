@@ -8,6 +8,7 @@ import {
   getLeaveDistribution,
   getPayrollKpi,
 } from '@/lib/queries/dashboard'
+import { getContractExpiringSoon, getVisaExpiringSoon } from '@/lib/actions/employee'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,12 +36,14 @@ function DashboardSkeleton() {
 async function DashboardData() {
   const today = getTodayUaeDate()
 
-  const [totalEmployees, todayRecords, pendingLeavesCount] = await Promise.all([
+  const [totalEmployees, todayRecords, pendingLeavesCount, contractExpiring, visaExpiring] = await Promise.all([
     db.employee.count({ where: { user: { isActive: true } } }),
     db.attendanceRecord.findMany({
       where: { date: today, checkIn: { not: null } },
     }),
     db.leaveRequest.count({ where: { status: 'PENDING' } }),
+    getContractExpiringSoon(30),
+    getVisaExpiringSoon(30),
   ])
 
   const [payrollTrend, weeklyAttendance, leaveDistribution, payrollKpi] = await Promise.all([
@@ -52,6 +55,9 @@ async function DashboardData() {
 
   const presentCount = todayRecords.length
 
+  const contractExpiringList = Array.isArray(contractExpiring) ? contractExpiring : []
+  const visaExpiringList = Array.isArray(visaExpiring) ? visaExpiring : []
+
   return (
     <DashboardContent
       totalEmployees={totalEmployees}
@@ -61,6 +67,8 @@ async function DashboardData() {
       weeklyAttendance={weeklyAttendance}
       leaveDistribution={leaveDistribution}
       payrollKpi={payrollKpi}
+      contractExpiring={contractExpiringList}
+      visaExpiring={visaExpiringList}
     />
   )
 }

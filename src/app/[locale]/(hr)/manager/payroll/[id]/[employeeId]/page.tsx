@@ -50,10 +50,38 @@ export default async function PayslipDetailPage({ params }: { params: Promise<{ 
               <span>{t('period')}</span>
               <span className="font-medium">{monthName}</span>
             </div>
+
+            <div className="border-b py-1 text-sm font-semibold text-muted-foreground">{t('earnings')}</div>
             <div className="flex justify-between border-b py-2">
               <span>{t('basicSalary')}</span>
               <span className="font-medium">{Number(payslip.basicSalary).toFixed(2)}</span>
             </div>
+            <div className="flex justify-between border-b py-2">
+              <span>{t('housingAllowance')}</span>
+              <span>{Number(payslip.housingAllowance).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between border-b py-2">
+              <span>{t('transportAllowance')}</span>
+              <span>{Number(payslip.transportAllowance).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between border-b py-2">
+              <span>{t('otherAllowances')}</span>
+              <span>{Number(payslip.otherAllowances).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between border-b py-2">
+              <span>{t('overtimePay')}</span>
+              <span>{Number(payslip.overtimePay).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between border-b py-2">
+              <span>{t('bonusPay')}</span>
+              <span>{(payslip.bonusPay ?? 0) > 0 ? `+${Number(payslip.bonusPay).toFixed(2)}` : '0.00'}</span>
+            </div>
+            <div className="flex justify-between border-b py-2 font-medium">
+              <span>{t('totalGross')}</span>
+              <span>{Number(payslip.totalGross).toFixed(2)}</span>
+            </div>
+
+            <div className="border-b py-1 text-sm font-semibold text-muted-foreground">{t('deductions')}</div>
             <div className="flex justify-between border-b py-2 text-audit-red">
               <span>{t('transportDeduction')}</span>
               <span>{Number(payslip.transportationDeduction) > 0 ? `-${Number(payslip.transportationDeduction).toFixed(2)}` : '0.00'}</span>
@@ -66,6 +94,28 @@ export default async function PayslipDetailPage({ params }: { params: Promise<{ 
               <span>{t('lateDeduction')}</span>
               <span>{Number(payslip.lateDeduction) > 0 ? `-${Number(payslip.lateDeduction).toFixed(2)}` : '0.00'}</span>
             </div>
+            <div className="flex justify-between border-b py-2 text-audit-red">
+              <span>{t('gpssaEmployee')}</span>
+              <span>{Number(payslip.gpssaEmployee) > 0 ? `-${Number(payslip.gpssaEmployee).toFixed(2)}` : '0.00'}</span>
+            </div>
+            <div className="flex justify-between border-b py-2 text-audit-red">
+              <span>{t('totalDeductions')}</span>
+              <span>{Number(payslip.totalDeductions) > 0 ? `-${Number(payslip.totalDeductions).toFixed(2)}` : '0.00'}</span>
+            </div>
+
+            {Number(payslip.eosbAmount) > 0 && (
+              <div className="flex justify-between border-b py-2 font-medium">
+                <span>{t('eosbAmount')}</span>
+                <span>+{Number(payslip.eosbAmount).toFixed(2)}</span>
+              </div>
+            )}
+            {Number(payslip.gpssaEmployer) > 0 && (
+              <div className="flex justify-between border-b py-2 text-muted-foreground">
+                <span>{t('gpssaEmployer')} (Employer)</span>
+                <span>{Number(payslip.gpssaEmployer).toFixed(2)}</span>
+              </div>
+            )}
+
             <div className="flex justify-between py-2 text-lg font-bold">
               <span>{t('netPay')}</span>
               <span>{Number(payslip.netPay).toFixed(2)}</span>
