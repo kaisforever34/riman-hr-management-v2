@@ -102,18 +102,37 @@ export async function getPayrollKpi(): Promise<{
   const month = now.getUTCMonth() + 1
   const year = now.getUTCFullYear()
 
-  const period = await db.payrollPeriod.findFirst({ where: { month, year } })
+  const period = await db.payrollPeriod.findUnique({
+    where: { month_year: { year, month } },
+    include: { payslips: { select: { netPay: true } } },
+  })
+
   if (period) {
-    const agg = await db.payslip.aggregate({
-      where: { payrollPeriodId: period.id },
-      _sum: { netPay: true },
-    })
-    return { total: Number(agg._sum.netPay ?? 0), source: 'period' }
+    const total = period.payslips.reduce((sum: number, s: { netPay: unknown }) => sum + Number(s.netPay ?? 0), 0)
+    return { total, source: 'period' }
   }
 
-  const agg = await db.employee.aggregate({
-    _sum: { salary: true },
+  const salaries = await db.employee.aggregate({
     where: { isActive: true },
+    _sum: { salary: true },
   })
-  return { total: Number(agg._sum.salary ?? 0), source: 'salaries' }
+
+  return { total: Number(salaries._sum.salary ?? 0), source: 'salaries' }
+}
+
+/** Count active employees — used by dashboard and other pages. */
+export async function getActiveEmployeeCount(): Promise<number> {
+  return db.employee.count({ where: { user: { isActive: true } } })
+}
+
+/** Count pending leave requests — used by dashboard. */
+export async function getPendingLeaveCount(): Promise<number> {
+  return db.leaveRequest.count({ where: { status: 'PENDING' } })
+}
+
+/** Count today's present employees (has checkIn) — used by dashboard. */
+export async function getTodayPresentCount(today: Date): Promise<number> {
+  return db.attendanceRecord.count({
+    where: { date: today, checkIn: { not: null } },
+  })
 }

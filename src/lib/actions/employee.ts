@@ -2,7 +2,7 @@
 
 import { serverError } from '@/lib/errors'
 import { db } from '@/lib/db'
-import { employeeFormSchema } from '@/lib/validations/employee'
+import { employeeFormSchema, updateEmployeeSchema } from '@/lib/validations/employee'
 import { auth } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
@@ -175,7 +175,7 @@ export async function resetPassword(formData: FormData) {
 
   const passwordHash = newPassword
     ? await bcrypt.hash(newPassword, 10)
-    : await bcrypt.hash(Math.random().toString(36) + Date.now(), 10)
+    : await bcrypt.hash(crypto.randomBytes(12).toString('hex'), 10)
 
   await db.user.update({
     where: { id: targetUserId },
@@ -227,35 +227,7 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
 
   const raw = Object.fromEntries(formData.entries())
 
-  const parsed = z.object({
-    firstName: z.string().min(1).max(100),
-    lastName: z.string().min(1).max(100),
-    phoneNumber: z.string().optional(),
-    jobTitle: z.string().min(1).max(100),
-    department: z.string().min(1),
-    nationality: z.string().min(1),
-    dateOfBirth: z.string().min(1),
-    gender: z.string().optional(),
-    maritalStatus: z.string().optional(),
-    emergencyContactName: z.string().optional(),
-    emergencyContactPhone: z.string().optional(),
-    managerId: z.string().optional(),
-    bankName: z.string().optional(),
-    iban: z.string().optional(),
-    swift: z.string().optional(),
-    salary: z.string().min(1).regex(/^\d+(\.\d{1,2})?$/, 'Invalid format'),
-    basicSalary: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
-    housingAllowance: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
-    transportAllowance: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
-    otherAllowances: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
-    contractType: z.string().optional(),
-    contractStartDate: z.string().optional(),
-    contractEndDate: z.string().optional(),
-    probationEndDate: z.string().optional(),
-    visaExpiryDate: z.string().optional(),
-    iqamaNumber: z.string().optional(),
-    iqamaExpiryDate: z.string().optional(),
-  }).safeParse(raw)
+  const parsed = updateEmployeeSchema.safeParse(raw)
 
   if (!parsed.success) {
     return {
@@ -330,9 +302,7 @@ export async function createUser(formData: FormData) {
 
   const passwordHash = password
     ? await bcrypt.hash(password, 10)
-    : await bcrypt.hash(Math.random().toString(36) + Date.now(), 10)
-
-  const generatedPassword = password ? password : Math.random().toString(36).slice(2, 10)
+    : await bcrypt.hash(crypto.randomBytes(12).toString('hex'), 10)
 
   const user = await db.user.create({
     data: { email, passwordHash, role },
@@ -352,7 +322,7 @@ export async function createUser(formData: FormData) {
     entityId: user.id,
   })
 
-  return { id: user.id, email: user.email, role: user.role, generatedPassword, linkedEmployeeId }
+  return { id: user.id, email: user.email, role: user.role, linkedEmployeeId, passwordGenerated: !password }
 }
 
 export async function forgotPassword(email: string) {

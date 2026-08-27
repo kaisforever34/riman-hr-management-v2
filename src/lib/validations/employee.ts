@@ -37,6 +37,22 @@ export const employeeFormSchema = z.object({
 
 export type EmployeeFormData = z.infer<typeof employeeFormSchema>
 
+/** Subset of employeeFormSchema for updating existing employees.
+ *  Email, password, employeeCode, hireDate, and role are intentionally excluded
+ *  — they are managed through separate flows.
+ *  managerId is added here since it's only used during updates, not creation. */
+export const updateEmployeeSchema = employeeFormSchema.omit({
+  email: true,
+  password: true,
+  employeeCode: true,
+  hireDate: true,
+  role: true,
+}).extend({
+  managerId: z.string().optional(),
+})
+
+export type UpdateEmployeeData = z.infer<typeof updateEmployeeSchema>
+
 export const departments = ['HR', 'Finance', 'IT', 'Operations', 'Sales', 'Marketing', 'Legal', 'Executive'] as const
 
 export const maritalStatuses = ['Single', 'Married', 'Divorced', 'Widowed'] as const

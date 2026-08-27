@@ -35,7 +35,6 @@ import { createPayrollPeriod, finalizePayroll } from '@/lib/actions/payroll'
 import { terminateEmployee, createUser } from '@/lib/actions/employee'
 import { autoClockout, markAbsent } from '@/lib/actions/attendance'
 import { computeEosb } from '@/lib/eosb'
-import bcrypt from 'bcryptjs'
 
 function makeFormData(data: Record<string, string>): FormData {
   const fd = new FormData()
@@ -471,18 +470,16 @@ describe('AUDIT: data integrity', () => {
     ).rejects.toThrow() // AUDIT: unhandled RangeError from toISOString(), not a graceful {error}
   })
 
-  it('createUser without password returns a generatedPassword that does NOT match the stored hash', async () => {
+  it('createUser without password returns passwordGenerated=true; does NOT expose the hash', async () => {
     mockSession.user.role = 'HR_ADMIN'
     mockDb.user.findUnique = vi.fn().mockResolvedValue(null)
-    let storedHash = ''
-    mockDb.user.create = vi.fn().mockImplementation(async ({ data }: { data: { passwordHash: string } }) => {
-      storedHash = data.passwordHash
-      return { id: 'u2', email: 'new@x.com', role: 'EMPLOYEE', employee: null }
+    mockDb.user.create = vi.fn().mockResolvedValue({
+      id: 'u2', email: 'new@x.com', role: 'EMPLOYEE', employee: null,
     })
 
-    const result = await createUser(makeFormData({ email: 'new@x.com', role: 'EMPLOYEE' })) as { generatedPassword: string }
-    const matches = await bcrypt.compare(result.generatedPassword, storedHash)
-    expect(matches).toBe(false) // AUDIT: two different Math.random() values; the shown password can never log in
+    const result = await createUser(makeFormData({ email: 'new@x.com', role: 'EMPLOYEE' })) as { passwordGenerated: boolean }
+    expect(result.passwordGenerated).toBe(true)
+    expect(result).not.toHaveProperty('generatedPassword') // security: plaintext password never returned
   })
 })
 

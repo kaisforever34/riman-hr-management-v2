@@ -59,8 +59,8 @@ export default function AddUserPage() {
     setLoading(false)
     if (result?.error) {
       setServerError(result.error)
-    } else if (result?.generatedPassword) {
-      setCreatedPassword(result.generatedPassword)
+    } else if (result?.passwordGenerated) {
+      // password was auto-generated but not returned for security — user must set one
     }
   }
 

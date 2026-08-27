@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('@/lib/db', () => ({
   db: {
-    payrollPeriod: {},
+    payrollPeriod: { findUnique: vi.fn() },
     attendanceRecord: {},
     leaveRequest: {},
     leaveType: {},
@@ -169,14 +169,16 @@ describe('getLeaveDistribution', () => {
 
 describe('getPayrollKpi', () => {
   it('uses period payslips when current-month period exists', async () => {
-    db.payrollPeriod.findFirst = vi.fn().mockResolvedValue({ id: 'p1' })
+    db.payrollPeriod.findUnique = vi.fn().mockResolvedValue({
+      id: 'p1', payslips: [{ netPay: 1234.56 }],
+    })
     db.payslip.aggregate = vi.fn().mockResolvedValue({ _sum: { netPay: 1234.56 } })
     const result = await getPayrollKpi()
     expect(result).toEqual({ total: 1234.56, source: 'period' })
   })
 
   it('falls back to active salaries', async () => {
-    db.payrollPeriod.findFirst = vi.fn().mockResolvedValue(null)
+    db.payrollPeriod.findUnique = vi.fn().mockResolvedValue(null)
     db.employee.aggregate = vi
       .fn()
       .mockResolvedValue({ _sum: { salary: 5000 } })

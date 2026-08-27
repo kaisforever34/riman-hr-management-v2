@@ -1,5 +1,4 @@
 import { Suspense } from 'react'
-import { db } from '@/lib/db'
 import DashboardContent from '@/components/dashboard/content'
 import { getTodayUaeDate } from '@/lib/schedule'
 import {
@@ -7,6 +6,9 @@ import {
   getWeeklyAttendance,
   getLeaveDistribution,
   getPayrollKpi,
+  getActiveEmployeeCount,
+  getPendingLeaveCount,
+  getTodayPresentCount,
 } from '@/lib/queries/dashboard'
 import { getContractExpiringSoon, getVisaExpiringSoon } from '@/lib/actions/employee'
 
@@ -16,17 +18,17 @@ function DashboardSkeleton() {
   return (
     <div className="animate-pulse space-y-6">
       <div className="space-y-2">
-        <div className="h-7 w-48 rounded-md bg-[rgba(255,255,255,0.05)]" />
-        <div className="h-4 w-72 rounded-md bg-[rgba(255,255,255,0.03)]" />
+        <div className="h-7 w-48 rounded-md bg-muted" />
+        <div className="h-4 w-72 rounded-md bg-muted/60" />
       </div>
       <div className="grid grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-28 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.04)]" />
+          <div key={i} className="h-28 rounded-xl bg-card border border-border" />
         ))}
       </div>
       <div className="grid grid-cols-2 gap-4">
         {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="h-64 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.04)]" />
+          <div key={i} className="h-64 rounded-xl bg-card border border-border" />
         ))}
       </div>
     </div>
@@ -36,12 +38,16 @@ function DashboardSkeleton() {
 async function DashboardData() {
   const today = getTodayUaeDate()
 
-  const [totalEmployees, todayRecords, pendingLeavesCount, contractExpiring, visaExpiring] = await Promise.all([
-    db.employee.count({ where: { user: { isActive: true } } }),
-    db.attendanceRecord.findMany({
-      where: { date: today, checkIn: { not: null } },
-    }),
-    db.leaveRequest.count({ where: { status: 'PENDING' } }),
+  const [
+    totalEmployees,
+    presentCount,
+    pendingLeavesCount,
+    contractExpiring,
+    visaExpiring,
+  ] = await Promise.all([
+    getActiveEmployeeCount(),
+    getTodayPresentCount(today),
+    getPendingLeaveCount(),
     getContractExpiringSoon(30),
     getVisaExpiringSoon(30),
   ])
@@ -52,8 +58,6 @@ async function DashboardData() {
     getLeaveDistribution(new Date().getFullYear()),
     getPayrollKpi(),
   ])
-
-  const presentCount = todayRecords.length
 
   const contractExpiringList = Array.isArray(contractExpiring) ? contractExpiring : []
   const visaExpiringList = Array.isArray(visaExpiring) ? visaExpiring : []
