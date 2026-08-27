@@ -5,7 +5,7 @@ import { submitLeaveSchema, approveLeaveSchema, rejectLeaveSchema, cancelLeaveSc
 import { auth } from '@/lib/auth'
 import type { Session } from 'next-auth'
 import { uploadLeaveAttachment } from '@/lib/upload'
-import { getOrCreateLeaveBalance } from '@/lib/queries/leave'
+import { getOrCreateLeaveBalance, getOrCreateLeaveBalanceForDate, getPeriodStartForDate, getPeriodEndForStart } from '@/lib/queries/leave'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createNotifications, createNotification, getApproverUserIds } from './notifications'
@@ -39,11 +39,7 @@ async function calculateCarryover(
   tx?: typeof db,
 ): Promise<number> {
   const client = tx ?? db
-  const now = new Date()
-  const currentYearStart = new Date(Date.UTC(now.getFullYear(), hireDate.getMonth(), hireDate.getDate()))
-  if (currentYearStart > now) {
-    currentYearStart.setFullYear(currentYearStart.getFullYear() - 1)
-  }
+  const currentYearStart = getPeriodStartForDate(hireDate, new Date())
 
   const previousYearStart = new Date(currentYearStart)
   previousYearStart.setFullYear(previousYearStart.getFullYear() - 1)
@@ -198,7 +194,7 @@ async function approveOne(
 
   try {
     await db.$transaction(async (tx) => {
-      const balance = await getOrCreateLeaveBalance(request.employeeId, request.leaveTypeId, request.employee.hireDate, tx)
+      const balance = await getOrCreateLeaveBalanceForDate(request.employeeId, request.leaveTypeId, request.employee.hireDate, request.startDate, tx)
 
       const remaining = balance.allocated + balance.carriedOver - balance.used
       if (request.durationDays > remaining) {
@@ -437,12 +433,8 @@ export async function setAllocation(formData: FormData) {
   const employee = await db.employee.findUnique({ where: { id: parsed.data.employeeId } })
   if (!employee) return { error: await serverError('employeeNotFound') }
 
-  const now = new Date()
-  const yearStart = new Date(Date.UTC(now.getFullYear(), employee.hireDate.getMonth(), employee.hireDate.getDate()))
-  if (yearStart > now) yearStart.setFullYear(yearStart.getFullYear() - 1)
-  const yearEnd = new Date(yearStart)
-  yearEnd.setFullYear(yearEnd.getFullYear() + 1)
-  yearEnd.setDate(yearEnd.getDate() - 1)
+  const yearStart = getPeriodStartForDate(employee.hireDate, new Date())
+  const yearEnd = getPeriodEndForStart(yearStart)
 
   await db.leaveBalance.upsert({
     where: { employeeId_leaveTypeId_yearStart: { employeeId: parsed.data.employeeId, leaveTypeId: parsed.data.leaveTypeId, yearStart } },
@@ -630,46 +622,57 @@ export async function updateLeave(formData: FormData) {
   const durationChanged = request.durationDays !== durationDays
   const typeChanged = request.leaveTypeId !== data.leaveTypeId
 
-  await db.$transaction(async (tx) => {
-    if (wasApproved && (durationChanged || typeChanged || !willBeApproved)) {
-      const oldBalance = await tx.leaveBalance.findFirst({
-        where: {
-          employeeId: request.employeeId,
-          leaveTypeId: request.leaveTypeId,
-          yearStart: { lte: request.startDate },
-          yearEnd: { gte: request.startDate },
+  try {
+    await db.$transaction(async (tx) => {
+      if (wasApproved && (durationChanged || typeChanged || !willBeApproved)) {
+        const oldBalance = await tx.leaveBalance.findFirst({
+          where: {
+            employeeId: request.employeeId,
+            leaveTypeId: request.leaveTypeId,
+            yearStart: { lte: request.startDate },
+            yearEnd: { gte: request.startDate },
+          },
+        })
+        if (oldBalance) {
+          await tx.leaveBalance.update({
+            where: { id: oldBalance.id },
+            data: { used: { decrement: request.durationDays } },
+          })
+        }
+      }
+
+      await tx.leaveRequest.update({
+        where: { id: request.id },
+        data: {
+          leaveTypeId: data.leaveTypeId,
+          startDate: start,
+          endDate: end,
+          durationDays,
+          isHalfDay,
+          halfDayPeriod: isHalfDay ? data.halfDayPeriod : null,
+          reason: data.reason || '',
+          status: newStatus,
         },
       })
-      if (oldBalance) {
+
+      if (willBeApproved && (durationChanged || typeChanged || !wasApproved)) {
+        const newBalance = await getOrCreateLeaveBalanceForDate(request.employeeId, data.leaveTypeId, request.employee.hireDate, start, tx)
+        const remaining = newBalance.allocated + newBalance.carriedOver - newBalance.used
+        if (durationDays > remaining) {
+          throw new LeaveActionError('INSUFFICIENT_BALANCE')
+        }
         await tx.leaveBalance.update({
-          where: { id: oldBalance.id },
-          data: { used: { decrement: request.durationDays } },
+          where: { id: newBalance.id },
+          data: { used: { increment: durationDays } },
         })
       }
-    }
-
-    await tx.leaveRequest.update({
-      where: { id: request.id },
-      data: {
-        leaveTypeId: data.leaveTypeId,
-        startDate: start,
-        endDate: end,
-        durationDays,
-        isHalfDay,
-        halfDayPeriod: isHalfDay ? data.halfDayPeriod : null,
-        reason: data.reason || '',
-        status: newStatus,
-      },
     })
-
-    if (willBeApproved && (durationChanged || typeChanged || !wasApproved)) {
-      const newBalance = await getOrCreateLeaveBalance(request.employeeId, data.leaveTypeId, request.employee.hireDate, tx)
-      await tx.leaveBalance.update({
-        where: { id: newBalance.id },
-        data: { used: { increment: durationDays } },
-      })
+  } catch (e) {
+    if (e instanceof LeaveActionError && e.reason === 'INSUFFICIENT_BALANCE') {
+      return { error: await serverError('insufficientBalance') }
     }
-  })
+    throw e
+  }
 
   await logAudit({
     actorId: session.user.id,

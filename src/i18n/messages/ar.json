@@ -1102,7 +1102,9 @@
     "alreadyCompleted": "مكتمل بالفعل",
     "userNotFound": "المستخدم غير موجود",
     "passwordResetFailed": "فشل إعادة تعيين كلمة المرور",
-    "passwordChanged": "تم تغيير كلمة المرور بنجاح"
+    "passwordChanged": "تم تغيير كلمة المرور بنجاح",
+    "employeeAlreadyTerminated": "تم إنهاء خدمة هذا الموظف بالفعل",
+    "terminationDateBeforeHire": "لا يمكن أن يكون تاريخ إنهاء الخدمة قبل تاريخ التعيين"
   },
   "forgotPassword": {
     "title": "نسيت كلمة المرور؟",

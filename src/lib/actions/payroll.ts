@@ -427,54 +427,6 @@ export async function finalizePayroll(formData: FormData) {
   revalidatePath(`/manager/payroll/${periodId}`)
 }
 
-export async function calculateEOSB(employeeId: string) {
-  const employee = await db.employee.findUnique({ where: { id: employeeId } })
-  if (!employee) return { error: await serverError('employeeNotFound') }
-  if (!employee.terminationDate) return { error: await serverError('invalidInput') }
-
-  const hireDate = new Date(employee.hireDate)
-  const terminationDate = new Date(employee.terminationDate)
-  const yearsOfService =
-    (terminationDate.getTime() - hireDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25)
-
-  const lastSalary = employee.salary
-  const dailyRate = lastSalary / DAILY_RATE_DIVISOR
-
-  let totalDays = 0
-  let remainingYears = yearsOfService
-
-  const firstFiveYears = Math.min(remainingYears, 5)
-  totalDays += firstFiveYears * 21
-  remainingYears -= firstFiveYears
-
-  if (remainingYears > 0) {
-    totalDays += remainingYears * 30
-  }
-
-  let eosbAmount = totalDays * dailyRate
-
-  const eosbCapSetting = await getAppSetting('EOSB_CAP_MONTHS')
-  const capMonths = eosbCapSetting ? parseFloat(eosbCapSetting) : 24
-  const twoYearSalaryCap = lastSalary * capMonths
-  if (eosbAmount > twoYearSalaryCap) {
-    eosbAmount = twoYearSalaryCap
-  }
-
-  eosbAmount = round2(eosbAmount)
-
-  const record = await db.eosbRecord.create({
-    data: {
-      employeeId,
-      terminationDate,
-      yearsOfService: round2(yearsOfService),
-      lastSalary,
-      eosbAmount,
-    },
-  })
-
-  return { record, eosbAmount }
-}
-
 export async function getOvertimePayrollData(
   employeeId: string,
   month: number,

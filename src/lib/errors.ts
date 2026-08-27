@@ -70,6 +70,8 @@ export type ErrorKey =
   | 'reviewNotSubmitted'
   | 'notFound'
   | 'invalidOvertimeMinutes'
+  | 'employeeAlreadyTerminated'
+  | 'terminationDateBeforeHire'
 
 export async function serverError(key: ErrorKey): Promise<string> {
   const t = await getTranslations('errors')

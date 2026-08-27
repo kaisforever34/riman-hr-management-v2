@@ -1102,7 +1102,9 @@
     "alreadyCompleted": "Already completed",
     "userNotFound": "User not found",
     "passwordResetFailed": "Password reset failed",
-    "passwordChanged": "Password changed successfully"
+    "passwordChanged": "Password changed successfully",
+    "employeeAlreadyTerminated": "This employee has already been terminated",
+    "terminationDateBeforeHire": "Termination date cannot be before the hire date"
   },
   "forgotPassword": {
     "title": "Forgot Password?",

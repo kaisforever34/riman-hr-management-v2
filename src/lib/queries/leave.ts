@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { isUniqueConstraintError } from '@/lib/db-errors'
+import { toUaeDateKey } from '@/lib/working-days'
 import type { LeaveRequest, LeaveBalance, LeaveType, Prisma } from '@prisma/client'
 import type { LeaveStatus } from '@/lib/types'
 
@@ -59,21 +60,41 @@ export async function getEmployeeLeaveBalances(employeeId: string): Promise<(Lea
   })
 }
 
+export function getPeriodStartForDate(hireDate: Date, target: Date): Date {
+  const year = Number(toUaeDateKey(target).slice(0, 4))
+  const yearStart = new Date(Date.UTC(year, hireDate.getUTCMonth(), hireDate.getUTCDate()))
+  if (yearStart > target) {
+    yearStart.setFullYear(yearStart.getFullYear() - 1)
+  }
+  return yearStart
+}
+
+export function getPeriodEndForStart(yearStart: Date): Date {
+  const yearEnd = new Date(yearStart)
+  yearEnd.setFullYear(yearEnd.getFullYear() + 1)
+  yearEnd.setDate(yearEnd.getDate() - 1)
+  return yearEnd
+}
+
 export async function getOrCreateLeaveBalance(
   employeeId: string,
   leaveTypeId: string,
   hireDate: Date,
   tx?: DbClient,
 ): Promise<LeaveBalance> {
+  return getOrCreateLeaveBalanceForDate(employeeId, leaveTypeId, hireDate, new Date(), tx)
+}
+
+export async function getOrCreateLeaveBalanceForDate(
+  employeeId: string,
+  leaveTypeId: string,
+  hireDate: Date,
+  target: Date,
+  tx?: DbClient,
+): Promise<LeaveBalance> {
   const client = tx ?? db
-  const now = new Date()
-  const yearStart = new Date(Date.UTC(now.getFullYear(), hireDate.getMonth(), hireDate.getDate()))
-  if (yearStart > now) {
-    yearStart.setFullYear(yearStart.getFullYear() - 1)
-  }
-  const yearEnd = new Date(yearStart)
-  yearEnd.setFullYear(yearEnd.getFullYear() + 1)
-  yearEnd.setDate(yearEnd.getDate() - 1)
+  const yearStart = getPeriodStartForDate(hireDate, target)
+  const yearEnd = getPeriodEndForStart(yearStart)
 
   const existing = await client.leaveBalance.findUnique({
     where: { employeeId_leaveTypeId_yearStart: { employeeId, leaveTypeId, yearStart } },

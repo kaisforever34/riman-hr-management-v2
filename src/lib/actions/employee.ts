@@ -13,6 +13,7 @@ import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
 import { isUniqueConstraintError } from '@/lib/db-errors'
 import { getAppSetting } from '@/lib/queries/payroll'
+import { computeEosb } from '@/lib/eosb'
 
 export async function createEmployee(formData: FormData) {
   const session = await auth()
@@ -513,29 +514,25 @@ export async function terminateEmployee(employeeId: string, terminationDate: str
 
   const employee = await db.employee.findUnique({ where: { id: employeeId } })
   if (!employee) return { error: await serverError('employeeNotFound') }
+  if (employee.terminationDate) return { error: await serverError('employeeAlreadyTerminated') }
 
   const termDate = new Date(terminationDate)
+  if (isNaN(termDate.getTime())) return { error: await serverError('invalidInput') }
+
   const hireDate = new Date(employee.hireDate)
-  const yearsOfService = (termDate.getTime() - hireDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25)
+  if (termDate < hireDate) return { error: await serverError('terminationDateBeforeHire') }
 
   const monthlySalary = employee.basicSalary || employee.salary
-  const dailySalary = monthlySalary / 30
 
   const eosbCapMonths = await getAppSetting('EOSB_CAP_MONTHS')
   const maxEosbMonths = eosbCapMonths ? parseFloat(eosbCapMonths) : 24
 
-  let eosbAmount = 0
-  if (yearsOfService > 0) {
-    if (yearsOfService <= 5) {
-      eosbAmount = dailySalary * 21 * yearsOfService
-    } else {
-      const firstFiveYears = dailySalary * 21 * 5
-      const remainingYears = yearsOfService - 5
-      const additionalDays = dailySalary * 30 * remainingYears
-      const maxEosb = monthlySalary * maxEosbMonths
-      eosbAmount = Math.min(firstFiveYears + additionalDays, maxEosb)
-    }
-  }
+  const { yearsOfService, eosbAmount } = computeEosb({
+    hireDate,
+    terminationDate: termDate,
+    basicSalary: monthlySalary,
+    capMonths: maxEosbMonths,
+  })
 
   const totalSalary = (employee.basicSalary || 0) +
     (employee.housingAllowance || 0) +
@@ -555,9 +552,9 @@ export async function terminateEmployee(employeeId: string, terminationDate: str
       data: {
         employeeId,
         terminationDate: termDate,
-        yearsOfService: Math.round(yearsOfService * 100) / 100,
+        yearsOfService,
         lastSalary: totalSalary,
-        eosbAmount: Math.round(eosbAmount * 100) / 100,
+        eosbAmount,
       },
     }),
   ])
@@ -576,5 +573,5 @@ export async function terminateEmployee(employeeId: string, terminationDate: str
   revalidatePath('/payroll')
   revalidatePath('/manager/terminations')
 
-  return { success: true, eosbAmount, yearsOfService: Math.round(yearsOfService * 100) / 100 }
+  return { success: true, eosbAmount, yearsOfService }
 }
