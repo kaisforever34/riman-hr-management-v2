@@ -534,11 +534,6 @@ export async function terminateEmployee(employeeId: string, terminationDate: str
     capMonths: maxEosbMonths,
   })
 
-  const totalSalary = (employee.basicSalary || 0) +
-    (employee.housingAllowance || 0) +
-    (employee.transportAllowance || 0) +
-    (employee.otherAllowances || 0)
-
   await db.$transaction([
     db.employee.update({
       where: { id: employeeId },
@@ -553,7 +548,7 @@ export async function terminateEmployee(employeeId: string, terminationDate: str
         employeeId,
         terminationDate: termDate,
         yearsOfService,
-        lastSalary: totalSalary,
+        lastSalary: monthlySalary,
         eosbAmount,
       },
     }),

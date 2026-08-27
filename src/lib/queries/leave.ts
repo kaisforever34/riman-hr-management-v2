@@ -62,17 +62,28 @@ export async function getEmployeeLeaveBalances(employeeId: string): Promise<(Lea
 
 export function getPeriodStartForDate(hireDate: Date, target: Date): Date {
   const year = Number(toUaeDateKey(target).slice(0, 4))
-  const yearStart = new Date(Date.UTC(year, hireDate.getUTCMonth(), hireDate.getUTCDate()))
+  const month = hireDate.getUTCMonth()
+  const date = hireDate.getUTCDate()
+  let yearStart = new Date(Date.UTC(year, month, date))
+  // Normalize Feb 29 hires: if the date overflows (e.g., Feb 29 in non-leap year → Mar 1),
+  // fall back to the last day of the hire month to keep the anniversary on the correct day.
+  if (yearStart.getUTCDate() !== date) {
+    yearStart = new Date(Date.UTC(year, month + 1, 0)) // last day of hire month (Feb 28/29)
+  }
   if (yearStart > target) {
-    yearStart.setFullYear(yearStart.getFullYear() - 1)
+    yearStart.setUTCFullYear(yearStart.getUTCFullYear() - 1)
+    // Re-normalize after year shift (Feb 29 → Feb 28 in non-leap target year)
+    if (yearStart.getUTCDate() !== date) {
+      yearStart = new Date(Date.UTC(yearStart.getUTCFullYear(), month + 1, 0))
+    }
   }
   return yearStart
 }
 
 export function getPeriodEndForStart(yearStart: Date): Date {
   const yearEnd = new Date(yearStart)
-  yearEnd.setFullYear(yearEnd.getFullYear() + 1)
-  yearEnd.setDate(yearEnd.getDate() - 1)
+  yearEnd.setUTCFullYear(yearEnd.getUTCFullYear() + 1)
+  yearEnd.setUTCDate(yearEnd.getUTCDate() - 1)
   return yearEnd
 }
 

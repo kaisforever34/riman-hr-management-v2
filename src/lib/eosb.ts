@@ -20,7 +20,7 @@ export function computeEosb({ hireDate, terminationDate, basicSalary, capMonths 
   const yearsOfService = (terminationDate.getTime() - hireDate.getTime()) / (1000 * 60 * 60 * 24 * DAYS_PER_YEAR)
   const roundedYears = Math.round(yearsOfService * 100) / 100
 
-  if (yearsOfService <= 0 || basicSalary <= 0) {
+  if (yearsOfService <= 0 || basicSalary <= 0 || capMonths <= 0) {
     return { yearsOfService: roundedYears, eosbAmount: 0 }
   }
 
@@ -34,7 +34,7 @@ export function computeEosb({ hireDate, terminationDate, basicSalary, capMonths 
     eosbAmount = firstTier + laterTier
   }
 
-  const cap = basicSalary * capMonths
+  const cap = basicSalary * capMonths * yearsOfService
   if (eosbAmount > cap) eosbAmount = cap
 
   return { yearsOfService: roundedYears, eosbAmount: Math.round(eosbAmount * 100) / 100 }

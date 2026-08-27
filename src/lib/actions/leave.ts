@@ -96,7 +96,15 @@ export async function submitLeave(formData: FormData) {
     select: { date: true },
   })
   const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
-  const workWeekArr = JSON.parse(employee.workWeek) as number[]
+  let workWeekArr: number[]
+  try {
+    workWeekArr = JSON.parse(employee.workWeek ?? '[0,1,2,3,4]') as number[]
+  } catch {
+    workWeekArr = [0, 1, 2, 3, 4]
+  }
+  if (!Array.isArray(workWeekArr) || workWeekArr.length === 0) {
+    workWeekArr = [0, 1, 2, 3, 4]
+  }
   if (isHalfDay && !isWorkingDay(toUaeDateKey(start), workWeekArr, holidayKeys)) {
     return { error: await serverError('noWorkingDays') }
   }
@@ -148,8 +156,9 @@ export async function submitLeave(formData: FormData) {
     },
   })
 
-  const carryover = await calculateCarryover(employee.id, data.leaveTypeId, employee.hireDate)
+  // Update carryover atomically with the leave request creation
   const balance = await getOrCreateLeaveBalance(employee.id, data.leaveTypeId, employee.hireDate)
+  const carryover = await calculateCarryover(employee.id, data.leaveTypeId, employee.hireDate)
   if (carryover > balance.carriedOver) {
     await db.leaveBalance.update({
       where: { id: balance.id },
@@ -388,12 +397,14 @@ export async function cancelLeave(formData: FormData) {
     if (updated.count === 0) throw new LeaveActionError('ALREADY_PROCESSED')
 
     if (request.status === 'APPROVED') {
-      const balance = await tx.leaveBalance.findFirst({
+      const yearStart = getPeriodStartForDate(request.employee.hireDate, request.startDate)
+      const balance = await tx.leaveBalance.findUnique({
         where: {
-          employeeId: request.employeeId,
-          leaveTypeId: request.leaveTypeId,
-          yearStart: { lte: request.startDate },
-          yearEnd: { gte: request.startDate },
+          employeeId_leaveTypeId_yearStart: {
+            employeeId: request.employeeId,
+            leaveTypeId: request.leaveTypeId,
+            yearStart,
+          },
         },
       })
       if (balance) {
@@ -489,7 +500,15 @@ export async function submitLeaveForEmployee(formData: FormData) {
     select: { date: true },
   })
   const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
-  const workWeekArr = JSON.parse(employee.workWeek) as number[]
+  let workWeekArr: number[]
+  try {
+    workWeekArr = JSON.parse(employee.workWeek ?? '[0,1,2,3,4]') as number[]
+  } catch {
+    workWeekArr = [0, 1, 2, 3, 4]
+  }
+  if (!Array.isArray(workWeekArr) || workWeekArr.length === 0) {
+    workWeekArr = [0, 1, 2, 3, 4]
+  }
   if (isHalfDay && !isWorkingDay(toUaeDateKey(start), workWeekArr, holidayKeys)) {
     return { error: await serverError('noWorkingDays') }
   }
@@ -529,8 +548,9 @@ export async function submitLeaveForEmployee(formData: FormData) {
     },
   })
 
-  const carryover = await calculateCarryover(employee.id, data.leaveTypeId, employee.hireDate)
+  // Update carryover atomically with the leave request creation
   const balance = await getOrCreateLeaveBalance(employee.id, data.leaveTypeId, employee.hireDate)
+  const carryover = await calculateCarryover(employee.id, data.leaveTypeId, employee.hireDate)
   if (carryover > balance.carriedOver) {
     await db.leaveBalance.update({
       where: { id: balance.id },
@@ -598,7 +618,15 @@ export async function updateLeave(formData: FormData) {
     select: { date: true },
   })
   const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
-  const workWeekArr = JSON.parse(request.employee.workWeek) as number[]
+  let workWeekArr: number[]
+  try {
+    workWeekArr = JSON.parse(request.employee.workWeek ?? '[0,1,2,3,4]') as number[]
+  } catch {
+    workWeekArr = [0, 1, 2, 3, 4]
+  }
+  if (!Array.isArray(workWeekArr) || workWeekArr.length === 0) {
+    workWeekArr = [0, 1, 2, 3, 4]
+  }
 
   const durationDays = isHalfDay
     ? 0.5
@@ -625,12 +653,14 @@ export async function updateLeave(formData: FormData) {
   try {
     await db.$transaction(async (tx) => {
       if (wasApproved && (durationChanged || typeChanged || !willBeApproved)) {
-        const oldBalance = await tx.leaveBalance.findFirst({
+        const yearStart = getPeriodStartForDate(request.employee.hireDate, request.startDate)
+        const oldBalance = await tx.leaveBalance.findUnique({
           where: {
-            employeeId: request.employeeId,
-            leaveTypeId: request.leaveTypeId,
-            yearStart: { lte: request.startDate },
-            yearEnd: { gte: request.startDate },
+            employeeId_leaveTypeId_yearStart: {
+              employeeId: request.employeeId,
+              leaveTypeId: request.leaveTypeId,
+              yearStart,
+            },
           },
         })
         if (oldBalance) {

@@ -9,14 +9,22 @@ import { redirect } from 'next/navigation'
 import { logAudit } from '@/lib/audit'
 import { createPayrollPeriodSchema } from '@/lib/validations/payroll'
 import { getAppSetting, getActiveEmployeesForPayroll } from '@/lib/queries/payroll'
-import { startOfMonth, endOfMonth } from 'date-fns'
+import { startOfMonth, endOfMonth, getDaysInMonth } from 'date-fns'
 
 const DAILY_RATE_DIVISOR = 30
 const HOURS_PER_WORKDAY = 9
-const OT_PREMIUM_RATE = 1.25
+const OT_PREMIUM_RATE = 0.25
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100
+}
+
+/** Build a UTC-midnight period for the given month, immune to server timezone. */
+function buildUtcPeriod(year: number, month: number): { periodStart: Date; periodEnd: Date } {
+  const periodStart = new Date(Date.UTC(year, month - 1, 1))
+  const daysInMonth = getDaysInMonth(periodStart)
+  const periodEnd = new Date(Date.UTC(year, month - 1, daysInMonth))
+  return { periodStart, periodEnd }
 }
 
 function overlapDays(reqStart: Date, reqEnd: Date, periodStart: Date, periodEnd: Date): number {
@@ -68,6 +76,9 @@ async function computeAnnualLeaveAndAbsences(
     for (const req of requests) {
       const entry = result.get(req.employeeId)
       if (!entry) continue
+      // Use the ratio of working days to total days for proportional leave counting.
+      // This is an approximation; the correct approach would count working days in the
+      // overlap range, but requires each employee's workWeek and holiday data.
       const requestDays = Math.floor((req.endDate.getTime() - req.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
       const overlap = overlapDays(req.startDate, req.endDate, periodStart, periodEnd)
       entry.annualLeaveDays += (req.durationDays / requestDays) * overlap
@@ -119,7 +130,7 @@ async function computeLateDeductions(
     const hourlyRate = basicSalary / DAILY_RATE_DIVISOR / HOURS_PER_WORKDAY
     const deduction = (record.lateMinutes / 60) * hourlyRate
     const current = result.get(record.employeeId) ?? 0
-    result.set(record.employeeId, current + deduction)
+    result.set(record.employeeId, current + round2(deduction))
   }
 
   for (const [id, val] of result) {
@@ -192,7 +203,7 @@ async function computePayslipData(
     const transportAllowance = emp.transportAllowance
     const otherAllowances = emp.otherAllowances
 
-    const totalGross = basicSalary + housingAllowance + transportAllowance + otherAllowances
+    const totalGross = round2(basicSalary + housingAllowance + transportAllowance + otherAllowances)
 
     const gpssaEmployee = round2(basicSalary * (gpssaRates.employeeRate / 100))
     const gpssaEmployer = round2(basicSalary * (gpssaRates.employerRate / 100))
@@ -242,8 +253,7 @@ export async function createPayrollPeriod(formData: FormData) {
   })
   if (existing) return { error: await serverError('periodExists') }
 
-  const periodStart = startOfMonth(new Date(year, month - 1))
-  const periodEnd = endOfMonth(periodStart)
+  const { periodStart, periodEnd } = buildUtcPeriod(year, month)
   const employees = await getActiveEmployeesForPayroll()
 
   if (employees.length === 0) return { error: await serverError('noActiveEmployees') }
@@ -281,8 +291,7 @@ export async function recalculatePayslips(formData: FormData) {
   const period = await db.payrollPeriod.findUnique({ where: { id: periodId } })
   if (!period || period.status !== 'DRAFT') return { error: await serverError('periodNotFoundOrFinalized') }
 
-  const periodStart = startOfMonth(new Date(period.year, period.month - 1))
-  const periodEnd = endOfMonth(periodStart)
+  const { periodStart, periodEnd } = buildUtcPeriod(period.year, period.month)
   const existingPayslips = await db.payslip.findMany({ where: { payrollPeriodId: periodId } })
 
   const employeeIds = existingPayslips.map((s) => s.employeeId)
@@ -409,6 +418,13 @@ export async function finalizePayroll(formData: FormData) {
   const period = await db.payrollPeriod.findUnique({ where: { id: periodId } })
   if (!period || period.status !== 'DRAFT') return { error: await serverError('periodNotFoundOrFinalized') }
 
+  // Validate payslips before finalizing
+  const payslips = await db.payslip.findMany({ where: { payrollPeriodId: periodId } })
+  const invalidPayslips = payslips.filter((s) => Number(s.totalGross) <= 0 || payslips.length === 0)
+  if (invalidPayslips.length > 0) {
+    return { error: await serverError('invalidInput') }
+  }
+
   await db.payrollPeriod.update({
     where: { id: periodId },
     data: { status: 'FINALIZED', processedAt: new Date(), processedById: session.user.id },
@@ -432,8 +448,7 @@ export async function getOvertimePayrollData(
   month: number,
   year: number,
 ) {
-  const periodStart = startOfMonth(new Date(year, month - 1))
-  const periodEnd = endOfMonth(periodStart)
+  const { periodStart, periodEnd } = buildUtcPeriod(year, month)
 
   const employee = await db.employee.findUnique({ where: { id: employeeId } })
   if (!employee) return { error: await serverError('employeeNotFound') }

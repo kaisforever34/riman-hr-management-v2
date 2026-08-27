@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 import { manualCheckInSchema, managerOverrideSchema } from '@/lib/validations/attendance'
 import { submitOvertimeSchema, approveOvertimeSchema } from '@/lib/validations/leave'
 import { auth } from '@/lib/auth'
-import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes, getGracePeriodMinutes, getOvertimeMinutes, WORK_START_HOUR, WORK_START_MINUTE, WORK_END_HOUR, WORK_END_MINUTE } from '@/lib/schedule'
+import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes, getGracePeriodMinutes, getOvertimeMinutes, getAutoClockoutTime, WORK_START_HOUR, WORK_START_MINUTE, WORK_END_HOUR, WORK_END_MINUTE } from '@/lib/schedule'
 import { revalidatePath } from 'next/cache'
 import type { AttendanceStatus, OvertimeStatus } from '@/lib/types'
 import { logAudit } from '@/lib/audit'
@@ -188,6 +188,19 @@ export async function submitOvertime(formData: FormData) {
     return { success: true }
   } catch (e) {
     if (isUniqueConstraintError(e)) {
+      // Allow resubmission if the existing record was rejected
+      const existing = await db.overtimeRecord.findFirst({
+        where: { employeeId, date: overtimeDate },
+      })
+      if (existing && existing.status === 'REJECTED') {
+        await db.overtimeRecord.update({
+          where: { id: existing.id },
+          data: { minutes, reason, status: 'PENDING', approvedById: null, approvedAt: null },
+        })
+        revalidatePath('/attendance')
+        revalidatePath('/overtime')
+        return { success: true }
+      }
       return { error: await serverError('overtimeAlreadySubmitted') }
     }
     throw e
@@ -248,8 +261,11 @@ export async function autoClockout() {
   if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
 
   const today = getTodayUaeDate()
-  const shiftEnd = new Date(today)
-  shiftEnd.setHours(WORK_END_HOUR, WORK_END_MINUTE, 0, 0)
+  const { hour: autoHour, minute: autoMinute } = await getAutoClockoutTime()
+  const shiftEnd = new Date(Date.UTC(
+    today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(),
+    autoHour, autoMinute, 0, 0,
+  ))
 
   const records = await db.attendanceRecord.findMany({
     where: {
@@ -313,7 +329,11 @@ export async function managerOverrideAttendance(formData: FormData) {
 
   if (data.checkOut) {
     const overtimeMinutes = getOvertimeMinutes(new Date(data.checkOut))
-    updateData.overtimeMinutes = data.overtimeMinutes ?? overtimeMinutes
+    // Preserve explicit overtimeMinutes (including 0) from the manager's override;
+    // only fall back to calculated if the field was not provided.
+    if (data.overtimeMinutes === undefined) {
+      updateData.overtimeMinutes = overtimeMinutes
+    }
   }
 
   if (data.checkIn) updateData.checkInMethod = 'MANAGER'
@@ -359,8 +379,16 @@ export async function markAbsent(employeeIds: string[], date?: string) {
   const note = `Auto-marked absent. Expected shift: ${shiftStart}-${shiftEnd}`
 
   const results = await Promise.all(
-    employeeIds.map((employeeId) =>
-      db.attendanceRecord.upsert({
+    employeeIds.map(async (employeeId) => {
+      // Only mark absent if no check-in has been recorded for this employee on this date.
+      // This prevents overwriting a valid PRESENT/LATE record with ABSENT.
+      const existing = await db.attendanceRecord.findUnique({
+        where: { employeeId_date: { employeeId, date: targetDate } },
+        select: { id: true, checkIn: true },
+      })
+      if (existing?.checkIn) return existing // skip — already checked in
+
+      return db.attendanceRecord.upsert({
         where: { employeeId_date: { employeeId, date: targetDate } },
         update: { status: 'ABSENT', checkInNote: note, adjustedById: session.user.id },
         create: {
@@ -371,7 +399,7 @@ export async function markAbsent(employeeIds: string[], date?: string) {
           adjustedById: session.user.id,
         },
       })
-    )
+    })
   )
 
   revalidatePath('/attendance')

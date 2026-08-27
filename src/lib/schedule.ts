@@ -47,7 +47,7 @@ export function isWithinSchedule(date: Date, graceMinutes?: number): { isLate: b
   const startMinutes = WORK_START_HOUR * 60 + WORK_START_MINUTE
   const grace = graceMinutes ?? DEFAULT_GRACE_MINUTES
   if (totalMinutes <= startMinutes + grace) return { isLate: false, lateMinutes: 0 }
-  return { isLate: true, lateMinutes: totalMinutes - startMinutes }
+  return { isLate: true, lateMinutes: totalMinutes - startMinutes - grace }
 }
 
 export function getEarlyLeaveMinutes(checkOut: Date): number {

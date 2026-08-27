@@ -229,13 +229,15 @@ describe('cancelLeave', () => {
     mockDb.$transaction.mockImplementationOnce(async (fn: (t: unknown) => Promise<unknown>) => {
       const t = {
         leaveRequest: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
-        leaveBalance: { findFirst: vi.fn().mockResolvedValue({ id: 'bal1' }), update: vi.fn().mockResolvedValue({}) },
+        leaveBalance: { findUnique: vi.fn().mockResolvedValue({ id: 'bal1' }), update: vi.fn().mockResolvedValue({}) },
       }
       await fn(t)
-      expect(t.leaveBalance.findFirst).toHaveBeenCalledWith({
+      expect(t.leaveBalance.findUnique).toHaveBeenCalledWith({
         where: expect.objectContaining({
-          yearStart: { lte: pendingRequest.startDate },
-          yearEnd: { gte: pendingRequest.startDate },
+          employeeId_leaveTypeId_yearStart: expect.objectContaining({
+            employeeId: pendingRequest.employeeId,
+            leaveTypeId: pendingRequest.leaveTypeId,
+          }),
         }),
       })
       expect(t.leaveBalance.update).toHaveBeenCalledWith({

@@ -114,8 +114,8 @@ model LeaveBalance {
   leaveTypeId String
   yearStart   DateTime
   yearEnd     DateTime
-  allocated   Int       @default(0)
-  carriedOver Int       @default(0)
+  allocated   Float     @default(0)
+  carriedOver Float     @default(0)
   used        Float     @default(0)
   employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id])
