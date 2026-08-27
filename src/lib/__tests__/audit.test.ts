@@ -31,7 +31,7 @@ import { countWorkingDays, isWorkingDay, toUaeDateKey } from '@/lib/working-days
 import { isWithinSchedule, getOvertimeMinutes, getEarlyLeaveMinutes } from '@/lib/schedule'
 import { getOrCreateLeaveBalance } from '@/lib/queries/leave'
 import { approveLeave, cancelLeave, updateLeave, submitLeave } from '@/lib/actions/leave'
-import { createPayrollPeriod } from '@/lib/actions/payroll'
+import { createPayrollPeriod, finalizePayroll } from '@/lib/actions/payroll'
 import { terminateEmployee, createUser } from '@/lib/actions/employee'
 import { autoClockout, markAbsent } from '@/lib/actions/attendance'
 import { computeEosb } from '@/lib/eosb'
@@ -483,5 +483,47 @@ describe('AUDIT: data integrity', () => {
     const result = await createUser(makeFormData({ email: 'new@x.com', role: 'EMPLOYEE' })) as { generatedPassword: string }
     const matches = await bcrypt.compare(result.generatedPassword, storedHash)
     expect(matches).toBe(false) // AUDIT: two different Math.random() values; the shown password can never log in
+  })
+})
+
+describe('FIX VERIFIED: finalizePayroll requires at least one payslip', () => {
+  beforeEach(() => {
+    mockSession.user.role = 'MANAGER'
+  })
+
+  it('rejects a DRAFT period with zero payslips (dead-code bug in original filter)', async () => {
+    mockDb.payrollPeriod.findUnique.mockResolvedValue({ id: 'p1', status: 'DRAFT', month: 1, year: 2026 })
+    mockDb.payslip.findMany.mockResolvedValue([])
+    const update = vi.fn()
+    ;(mockDb.payrollPeriod as Record<string, unknown>).update = update
+
+    const r = await finalizePayroll(makeFormData({ periodId: 'p1' }))
+
+    expect(r).toHaveProperty('error') // rejected as invalidInput
+    expect(update).not.toHaveBeenCalled() // period was NOT finalized
+  })
+
+  it('rejects a DRAFT period with a NaN/gross<=0 payslip', async () => {
+    mockDb.payrollPeriod.findUnique.mockResolvedValue({ id: 'p1', status: 'DRAFT', month: 1, year: 2026 })
+    mockDb.payslip.findMany.mockResolvedValue([{ id: 's1', totalGross: 'abc' }])
+    const update = vi.fn()
+    ;(mockDb.payrollPeriod as Record<string, unknown>).update = update
+
+    const r = await finalizePayroll(makeFormData({ periodId: 'p1' }))
+
+    expect(r).toHaveProperty('error')
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it('finalizes a DRAFT period with valid payslips', async () => {
+    mockDb.payrollPeriod.findUnique.mockResolvedValue({ id: 'p1', status: 'DRAFT', month: 1, year: 2026 })
+    mockDb.payslip.findMany.mockResolvedValue([{ id: 's1', totalGross: 5000 }])
+    const update = vi.fn().mockResolvedValue({})
+    ;(mockDb.payrollPeriod as Record<string, unknown>).update = update
+
+    const r = await finalizePayroll(makeFormData({ periodId: 'p1' }))
+
+    expect(r).toBeUndefined() // success path returns undefined
+    expect(update).toHaveBeenCalled()
   })
 })

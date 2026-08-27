@@ -42,7 +42,7 @@ async function calculateCarryover(
   const currentYearStart = getPeriodStartForDate(hireDate, new Date())
 
   const previousYearStart = new Date(currentYearStart)
-  previousYearStart.setFullYear(previousYearStart.getFullYear() - 1)
+  previousYearStart.setUTCFullYear(previousYearStart.getUTCFullYear() - 1)
 
   const previousYearBalance = await client.leaveBalance.findUnique({
     where: { employeeId_leaveTypeId_yearStart: { employeeId, leaveTypeId, yearStart: previousYearStart } },
@@ -649,10 +649,11 @@ export async function updateLeave(formData: FormData) {
   const willBeApproved = newStatus === 'APPROVED'
   const durationChanged = request.durationDays !== durationDays
   const typeChanged = request.leaveTypeId !== data.leaveTypeId
+  const startChanged = request.startDate.getTime() !== start.getTime()
 
   try {
     await db.$transaction(async (tx) => {
-      if (wasApproved && (durationChanged || typeChanged || !willBeApproved)) {
+      if (wasApproved && (durationChanged || typeChanged || startChanged || !willBeApproved)) {
         const yearStart = getPeriodStartForDate(request.employee.hireDate, request.startDate)
         const oldBalance = await tx.leaveBalance.findUnique({
           where: {
@@ -685,7 +686,7 @@ export async function updateLeave(formData: FormData) {
         },
       })
 
-      if (willBeApproved && (durationChanged || typeChanged || !wasApproved)) {
+      if (willBeApproved && (durationChanged || typeChanged || startChanged || !wasApproved)) {
         const newBalance = await getOrCreateLeaveBalanceForDate(request.employeeId, data.leaveTypeId, request.employee.hireDate, start, tx)
         const remaining = newBalance.allocated + newBalance.carriedOver - newBalance.used
         if (durationDays > remaining) {

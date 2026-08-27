@@ -10,6 +10,7 @@ import { logAudit } from '@/lib/audit'
 import { createPayrollPeriodSchema } from '@/lib/validations/payroll'
 import { getAppSetting, getActiveEmployeesForPayroll } from '@/lib/queries/payroll'
 import { getDaysInMonth } from 'date-fns'
+import { countWorkingDays, toUaeDateKey } from '@/lib/working-days'
 
 const DAILY_RATE_DIVISOR = 30
 const HOURS_PER_WORKDAY = 9
@@ -25,13 +26,6 @@ function buildUtcPeriod(year: number, month: number): { periodStart: Date; perio
   const daysInMonth = getDaysInMonth(periodStart)
   const periodEnd = new Date(Date.UTC(year, month - 1, daysInMonth))
   return { periodStart, periodEnd }
-}
-
-function overlapDays(reqStart: Date, reqEnd: Date, periodStart: Date, periodEnd: Date): number {
-  const overlapStart = reqStart > periodStart ? reqStart : periodStart
-  const overlapEnd = reqEnd < periodEnd ? reqEnd : periodEnd
-  const ms = overlapEnd.getTime() - overlapStart.getTime()
-  return Math.floor(ms / (1000 * 60 * 60 * 24)) + 1
 }
 
 async function getNumericAppSetting(key: string, fallback: number): Promise<number> {
@@ -59,6 +53,33 @@ async function computeAnnualLeaveAndAbsences(
   const result = new Map<string, { annualLeaveDays: number; absentDays: number }>()
   for (const id of employeeIds) result.set(id, { annualLeaveDays: 0, absentDays: 0 })
 
+  // Build a per-employee workWeek map with a safe fallback
+  const employees = await db.employee.findMany({
+    where: { id: { in: employeeIds } },
+    select: { id: true, workWeek: true },
+  })
+  const workWeekMap = new Map<string, number[]>()
+  const DEFAULT_WORK_WEEK = [0, 1, 2, 3, 4]
+  for (const emp of employees) {
+    let workWeek = DEFAULT_WORK_WEEK
+    try {
+      const parsed = JSON.parse(emp.workWeek ?? '') as unknown
+      if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((d) => typeof d === 'number')) {
+        workWeek = parsed as number[]
+      }
+    } catch {
+      // fall back to default
+    }
+    workWeekMap.set(emp.id, workWeek)
+  }
+
+  // Fetch holidays overlapping the period once (UAE date keys)
+  const holidays = await db.holiday.findMany({
+    where: { date: { gte: periodStart, lte: periodEnd } },
+    select: { date: true },
+  })
+  const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
+
   const annualLeaveType = await db.leaveType.findUnique({ where: { name: 'Annual' } })
 
   if (annualLeaveType) {
@@ -76,12 +97,18 @@ async function computeAnnualLeaveAndAbsences(
     for (const req of requests) {
       const entry = result.get(req.employeeId)
       if (!entry) continue
-      // Use the ratio of working days to total days for proportional leave counting.
-      // This is an approximation; the correct approach would count working days in the
-      // overlap range, but requires each employee's workWeek and holiday data.
-      const requestDays = Math.floor((req.endDate.getTime() - req.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
-      const overlap = overlapDays(req.startDate, req.endDate, periodStart, periodEnd)
-      entry.annualLeaveDays += (req.durationDays / requestDays) * overlap
+      // Count the actual working days in the overlap between the leave request and
+      // the payroll period, using the employee's workWeek and period holidays.
+      const overlapStart = req.startDate > periodStart ? req.startDate : periodStart
+      const overlapEnd = req.endDate < periodEnd ? req.endDate : periodEnd
+      const workWeek = workWeekMap.get(req.employeeId) ?? DEFAULT_WORK_WEEK
+      const workingDaysInOverlap = countWorkingDays(
+        toUaeDateKey(overlapStart),
+        toUaeDateKey(overlapEnd),
+        workWeek,
+        holidayKeys,
+      )
+      entry.annualLeaveDays += workingDaysInOverlap
     }
   }
 
@@ -324,7 +351,7 @@ export async function recalculatePayslips(formData: FormData) {
       const transportAllowance = emp.transportAllowance
       const otherAllowances = emp.otherAllowances
 
-      const totalGross = basicSalary + housingAllowance + transportAllowance + otherAllowances
+      const totalGross = round2(basicSalary + housingAllowance + transportAllowance + otherAllowances)
 
       const gpssaEmployee = round2(basicSalary * (gpssaRates.employeeRate / 100))
       const gpssaEmployer = round2(basicSalary * (gpssaRates.employerRate / 100))
@@ -420,7 +447,13 @@ export async function finalizePayroll(formData: FormData) {
 
   // Validate payslips before finalizing
   const payslips = await db.payslip.findMany({ where: { payrollPeriodId: periodId } })
-  const invalidPayslips = payslips.filter((s) => Number(s.totalGross) <= 0 || payslips.length === 0)
+  if (payslips.length === 0) {
+    return { error: await serverError('invalidInput') }
+  }
+  const invalidPayslips = payslips.filter((s) => {
+    const gross = Number(s.totalGross)
+    return Number.isNaN(gross) || gross <= 0
+  })
   if (invalidPayslips.length > 0) {
     return { error: await serverError('invalidInput') }
   }

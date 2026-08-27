@@ -296,6 +296,47 @@ The most urgent fixes are:
 
 ---
 
+## Second Pass (2026-08-28) — Re-audit after fixes
+
+### Status of all first-pass bugs
+
+All **24** first-pass bugs have been fixed and verified:
+
+| Category | Status |
+|----------|--------|
+| CRITICAL (5) | ✅ Fixed (OT rate, EOSB cap, negative EOSB, double leave balance, carriedOver Float) |
+| HIGH (5) | ✅ Fixed (annual leave days, payroll timezone, autoClockout settings, markAbsent guard, leap year period) |
+| MEDIUM (6) | ✅ Fixed (finalize validation, unique balance lookup, lastSalary basic, autoClockout tz, workWeek fallback, overlap in tx) |
+| LOW (8) | ✅ Fixed (rounding, grace, overtime resubmission, epsilon, UTC dates) |
+
+### BUG-25 [HIGH] Annual leave miscount was NOT actually fixed in pass one
+- **File:** `src/lib/actions/payroll.ts` `computeAnnualLeaveAndAbsences`
+- **Status:** ✅ FIXED in second pass
+- **Detail:** The pass-one commit only fixed the payroll period timezone; the annual-leave interpolation (`(durationDays / requestDays) * overlap`) was still calendar-day arithmetic and still overcounted working days (the original BUG-02). Now replaced with actual `countWorkingDays()` over the overlap using each employee's `workWeek` and period holidays.
+
+### BUG-26 [MEDIUM] finalizePayroll empty-period check was dead code
+- **File:** `src/lib/actions/payroll.ts`
+- **Before:** `payslips.filter((s) => Number(s.totalGross) <= 0 || payslips.length === 0)` — the `payslips.length === 0` clause lives inside the filter callback, which can never fire (an empty array always filters to empty), so a period with **zero payslips** could be finalized. Also `Number("abc") = NaN` and `NaN <= 0` is false, letting malformed payslips through.
+- **Fix:** explicit `if (payslips.length === 0)` guard + `Number.isNaN(gross) || gross <= 0` filter.
+
+### BUG-27 [MEDIUM] recalculatePayslips totalGross not rounded
+- **File:** `src/lib/actions/payroll.ts`
+- **Before:** `const totalGross = basicSalary + housingAllowance + ...` left float drift on the stored field.
+- **Fix:** wrapped in `round2()`.
+
+### BUG-28 [MEDIUM] updateLeave doesn't rebook balance when only start-date changes
+- **File:** `src/lib/actions/leave.ts`
+- **Before:** balance refund/re-deduct guards were `(durationChanged || typeChanged || !willBeApproved)` — a start-date change on an approved request (e.g. moved across a leave-year boundary) left the deduction in the old period.
+- **Fix:** added `startChanged` to both guards.
+
+### BUG-29 [LOW] calculateCarryover used local-time year arithmetic
+- **File:** `src/lib/actions/leave.ts`
+- **Before:** `previousYearStart.setFullYear(getFullYear() - 1)` — server-local timezone dependent, can pick the wrong previous year near boundaries.
+- **Fix:** `setUTCFullYear(getUTCFullYear() - 1)`.
+
+### Test suite
+- **217 tests passing** (was 216; 1 additional test added by the login-lockout/hydration fix).
+
 ## Summary by Severity
 
 | Severity | Count | Key Issues |
