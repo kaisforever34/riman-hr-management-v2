@@ -9,10 +9,10 @@ import Link from 'next/link'
 
 type Employee = { id: string; firstName: string; lastName: string; jobTitle: string; department: string; employeeCode: string }
 
-export default function NewOffboardingClient({ employees, locale }: { employees: Employee[]; locale: string }) {
+export default function NewOffboardingClient({ employees, locale, defaultEmployeeId }: { employees: Employee[]; locale: string; defaultEmployeeId: string }) {
   const t = useTranslations('onboarding')
   const router = useRouter()
-  const [selectedId, setSelectedId] = useState('')
+  const [selectedId, setSelectedId] = useState(defaultEmployeeId)
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')

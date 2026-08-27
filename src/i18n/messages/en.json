@@ -646,7 +646,14 @@
     "eosbAmount": "EOSB Amount",
     "eosb": "End of Service Benefit",
     "eosbEligible": "EOSB Eligible",
-    "eosbCalculation": "EOSB Calculation"
+    "eosbCalculation": "EOSB Calculation",
+    "selectEmployee": "Select Employee",
+    "employeePayslips": "Employee Payslips",
+    "payslipsFor": "Payslips for",
+    "noPayslips": "No payslips for this employee yet",
+    "period": "Period",
+    "netPay": "Net Pay",
+    "viewPayslip": "View"
   },
   "managerPayroll": {
     "title": "Payroll Period",
@@ -852,7 +859,8 @@
     "rating1to5": "Rating (1-5)",
     "multipleChoice": "Multiple Choice",
     "text": "Text",
-    "optionsPlaceholder": "Option1, Option2"
+    "optionsPlaceholder": "Option1, Option2",
+    "selectEmployee": "Select Employee"
   },
   "assets": {
     "title": "Assets",

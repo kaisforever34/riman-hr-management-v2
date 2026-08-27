@@ -646,7 +646,14 @@
     "eosbAmount": "مبلغ مكافأة نهاية الخدمة",
     "eosb": "مكافأة نهاية الخدمة",
     "eosbEligible": "مستحق لمكافأة نهاية الخدمة",
-    "eosbCalculation": "حساب مكافأة نهاية الخدمة"
+    "eosbCalculation": "حساب مكافأة نهاية الخدمة",
+    "selectEmployee": "اختر الموظف",
+    "employeePayslips": "كشوف رواتب الموظف",
+    "payslipsFor": "كشوف الرواتب لـ",
+    "noPayslips": "لا توجد كشوف رواتب لهذا الموظف بعد",
+    "period": "الفترة",
+    "netPay": "صافي الراتب",
+    "viewPayslip": "عرض"
   },
   "managerPayroll": {
     "title": "فترة الرواتب",
@@ -852,7 +859,8 @@
     "rating1to5": "تقييم (1-5)",
     "multipleChoice": "اختيار متعدد",
     "text": "نص",
-    "optionsPlaceholder": "خيار1، خيار2"
+    "optionsPlaceholder": "خيار1، خيار2",
+    "selectEmployee": "اختر الموظف"
   },
   "assets": {
     "title": "الأصول",

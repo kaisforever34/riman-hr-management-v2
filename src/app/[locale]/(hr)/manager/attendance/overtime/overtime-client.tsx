@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { submitOvertime, approveOvertime } from '@/lib/actions/attendance'
+import { EmployeePicker } from '@/components/employee-picker'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Plus, Check, X } from 'lucide-react'
@@ -13,7 +14,6 @@ interface EmployeeData {
   id: string
   firstName: string
   lastName: string
-  department: string
 }
 
 interface RecordData {
@@ -30,16 +30,21 @@ interface RecordData {
 
 interface Props {
   employees: EmployeeData[]
+  employeeId: string
   records: RecordData[]
 }
 
-export function OvertimeClient({ employees, records }: Props) {
+export function OvertimeClient({ employees, employeeId, records }: Props) {
   const t = useTranslations('overtime')
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL')
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ employeeId: '', date: new Date().toISOString().split('T')[0], minutes: '60', reason: '' })
+  const [form, setForm] = useState({ employeeId, date: new Date().toISOString().split('T')[0], minutes: '60', reason: '' })
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState('')
+
+  useEffect(() => {
+    setForm(f => ({ ...f, employeeId }))
+  }, [employeeId])
 
   const statusBadge: Record<string, string> = {
     PENDING: 'bg-[rgba(245,158,11,0.1)] text-[#F59E0B]',
@@ -63,7 +68,7 @@ export function OvertimeClient({ employees, records }: Props) {
     } else {
       setMessage(t('submitSuccess'))
       setShowForm(false)
-      setForm({ employeeId: '', date: new Date().toISOString().split('T')[0], minutes: '60', reason: '' })
+      setForm({ employeeId, date: new Date().toISOString().split('T')[0], minutes: '60', reason: '' })
     }
     setLoading('')
   }
@@ -90,10 +95,13 @@ export function OvertimeClient({ employees, records }: Props) {
           <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-sm text-[#8B93A8]">{t('subtitle')}</p>
         </div>
-        <Button onClick={() => setShowForm(s => !s)}>
-          <Plus className="me-2 h-4 w-4" />
-          {t('addOvertime')}
-        </Button>
+        <div className="flex items-center gap-4">
+          <EmployeePicker employees={employees} employeeId={employeeId} label={t('selectEmployee')} />
+          <Button onClick={() => setShowForm(s => !s)}>
+            <Plus className="me-2 h-4 w-4" />
+            {t('addOvertime')}
+          </Button>
+        </div>
       </div>
 
       {message && (
@@ -118,7 +126,7 @@ export function OvertimeClient({ employees, records }: Props) {
                 >
                   <option value="">{t('selectEmployee')}</option>
                   {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName} — {emp.department}</option>
+                    <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName}</option>
                   ))}
                 </select>
               </div>

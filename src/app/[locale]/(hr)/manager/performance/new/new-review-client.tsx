@@ -22,6 +22,7 @@ interface EmployeeData {
 }
 
 interface Props {
+  defaultEmployeeId: string
   criteria: CriteriaData[]
   employees: EmployeeData[]
 }
@@ -41,11 +42,11 @@ interface GoalEntry {
 const currentYear = new Date().getFullYear()
 const currentQuarter = Math.floor(new Date().getMonth() / 3) + 1
 
-export function NewReviewClient({ criteria, employees }: Props) {
+export function NewReviewClient({ defaultEmployeeId, criteria, employees }: Props) {
   const t = useTranslations('performance')
   const router = useRouter()
   const { locale } = useParams<{ locale: string }>()
-  const [employeeId, setEmployeeId] = useState('')
+  const [employeeId, setEmployeeId] = useState(defaultEmployeeId)
   const [year, setYear] = useState(currentYear)
   const [quarter, setQuarter] = useState(currentQuarter)
   const [comments, setComments] = useState('')

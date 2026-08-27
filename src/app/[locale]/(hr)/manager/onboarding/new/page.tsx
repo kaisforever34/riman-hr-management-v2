@@ -7,8 +7,10 @@ export const dynamic = 'force-dynamic'
 
 export default async function NewOnboardingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>
+  searchParams: Promise<{ employee?: string }>
 }) {
   const { locale } = await params
   const session = await auth()
@@ -16,6 +18,7 @@ export default async function NewOnboardingPage({
     redirect(`/${locale}/auth/signin`)
   }
 
+  const { employee: employeeParam } = await searchParams
   const employees = await getActiveEmployees()
-  return <NewOnboardingClient employees={JSON.parse(JSON.stringify(employees))} locale={locale} />
+  return <NewOnboardingClient employees={JSON.parse(JSON.stringify(employees))} locale={locale} defaultEmployeeId={employeeParam ?? ''} />
 }

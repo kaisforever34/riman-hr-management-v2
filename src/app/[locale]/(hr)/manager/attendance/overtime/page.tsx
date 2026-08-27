@@ -1,28 +1,30 @@
 import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
 import { getOvertimeRecords } from '@/lib/actions/attendance'
+import { resolveSelectedEmployee } from '@/lib/queries/employee-picker'
 import { OvertimeClient } from './overtime-client'
 
 export const dynamic = 'force-dynamic'
 
-export default async function OvertimePage() {
+export default async function OvertimePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ employee?: string }>
+}) {
   const session = await auth()
   if (!session?.user || (session.user.role !== 'MANAGER' && session.user.role !== 'HR_ADMIN')) return null
 
-  const [allEmployees, overtimeResult] = await Promise.all([
-    db.employee.findMany({
-      where: { isActive: true },
-      select: { id: true, firstName: true, lastName: true, department: true },
-      orderBy: { firstName: 'asc' },
-    }),
-    getOvertimeRecords(),
-  ])
+  const { employee: employeeParam } = await searchParams
+  const { employee, employees } = await resolveSelectedEmployee(employeeParam)
+  if (!employee) return null
+
+  const overtimeResult = await getOvertimeRecords({ employeeId: employee.id })
 
   const records = 'data' in overtimeResult && Array.isArray(overtimeResult.data) ? overtimeResult.data : []
 
   return (
     <OvertimeClient
-      employees={allEmployees.map(e => ({ id: e.id, firstName: e.firstName, lastName: e.lastName, department: e.department }))}
+      employees={employees}
+      employeeId={employee.id}
       records={records.map(r => ({
         id: r.id,
         employeeId: r.employeeId,

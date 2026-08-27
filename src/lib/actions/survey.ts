@@ -58,7 +58,7 @@ export async function getSurveys() {
     include: {
       createdBy: { select: { email: true } },
       _count: { select: { assignments: true, questions: true } },
-      assignments: { select: { status: true } },
+      assignments: { select: { status: true, employeeId: true } },
     },
     orderBy: { createdAt: 'desc' },
   })

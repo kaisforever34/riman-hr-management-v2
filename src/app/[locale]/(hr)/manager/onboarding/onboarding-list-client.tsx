@@ -3,9 +3,11 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Plus, Eye } from 'lucide-react'
+import { EmployeePicker } from '@/components/employee-picker'
 
 type OnboardingRecord = {
   id: string
+  employeeId: string
   employee: { firstName: string; lastName: string; jobTitle: string; department: string }
   status: string
   startedAt: string
@@ -13,21 +15,25 @@ type OnboardingRecord = {
   tasks: { status: string }[]
 }
 
-export default function OnboardingListClient({ records, type, locale }: { records: OnboardingRecord[]; type: string; locale: string }) {
+export default function OnboardingListClient({ records, type, locale, employees, employeeId }: { records: OnboardingRecord[]; type: string; locale: string; employees: { id: string; firstName: string; lastName: string }[]; employeeId: string }) {
   const t = useTranslations('onboarding')
   const basePath = `/${locale}/manager/${type.toLowerCase()}`
+  const visibleRecords = employeeId ? records.filter((r) => r.employeeId === employeeId) : records
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-syne font-bold text-[#E0E6F4]">{type === 'ONBOARDING' ? t('listTitle') : t('offboardListTitle')}</h1>
-        <Link
-          href={`${basePath}/new`}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#D4A843] text-[#07091A] rounded-lg text-sm font-medium hover:bg-[#C49A3A] transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {type === 'ONBOARDING' ? t('newOnboarding') : t('newOffboarding')}
-        </Link>
+        <div className="flex items-center gap-3">
+          <EmployeePicker employees={employees} employeeId={employeeId} label={t('selectEmployee')} />
+          <Link
+            href={`${basePath}/new?employee=${employeeId}`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#D4A843] text-[#07091A] rounded-lg text-sm font-medium hover:bg-[#C49A3A] transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {type === 'ONBOARDING' ? t('newOnboarding') : t('newOffboarding')}
+          </Link>
+        </div>
       </div>
 
       <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl overflow-hidden">
@@ -43,12 +49,12 @@ export default function OnboardingListClient({ records, type, locale }: { record
             </tr>
           </thead>
           <tbody>
-            {records.length === 0 && (
+            {visibleRecords.length === 0 && (
               <tr>
                 <td colSpan={6} className="py-8 text-center text-[#8B93A8]">{t('noRecords')}</td>
               </tr>
             )}
-            {records.map((r) => {
+            {visibleRecords.map((r) => {
               const total = r.tasks.length
               const done = r.tasks.filter((t) => t.status === 'COMPLETED').length
               const statusColors: Record<string, string> = {

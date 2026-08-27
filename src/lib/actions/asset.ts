@@ -74,7 +74,7 @@ export async function getAssets() {
     include: {
       assignments: {
         where: { returnedAt: null },
-        include: { employee: { select: { firstName: true, lastName: true } } },
+        include: { employee: { select: { id: true, firstName: true, lastName: true } } },
         take: 1,
       },
       _count: { select: { assignments: true } },

@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { reviewExpense, createExpense, deleteExpense } from '@/lib/actions/expense'
 import { expenseCategories } from '@/lib/validations/expense'
+import { EmployeePicker } from '@/components/employee-picker'
 import { Receipt, Eye, Check, X, Filter, Plus, Trash2 } from 'lucide-react'
 
 type ExpenseItem = {
@@ -30,10 +31,12 @@ const statusColors: Record<string, string> = {
 export default function ExpensesListClient({
   expenses,
   employees,
+  employeeId,
   locale,
 }: {
   expenses: ExpenseItem[]
   employees: { id: string; firstName: string; lastName: string }[]
+  employeeId: string
   locale: string
 }) {
   const t = useTranslations('expenses')
@@ -44,12 +47,16 @@ export default function ExpensesListClient({
   const [showCreate, setShowCreate] = useState(false)
   const [creating, setCreating] = useState(false)
   const [newExpense, setNewExpense] = useState({
-    employeeId: '',
+    employeeId,
     title: '',
     amount: '',
     category: 'MATERIALS',
     description: '',
   })
+
+  useEffect(() => {
+    setNewExpense((d) => ({ ...d, employeeId }))
+  }, [employeeId])
 
   const filtered = filter === 'ALL' ? expenses : expenses.filter((e) => e.status === filter)
 
@@ -89,7 +96,7 @@ export default function ExpensesListClient({
     }
     toast.success(t('created'))
     setShowCreate(false)
-    setNewExpense({ employeeId: '', title: '', amount: '', category: 'MATERIALS', description: '' })
+    setNewExpense({ employeeId, title: '', amount: '', category: 'MATERIALS', description: '' })
     router.refresh()
   }
 
@@ -98,6 +105,7 @@ export default function ExpensesListClient({
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-syne font-bold text-[#E0E6F4]">{t('title')}</h1>
         <div className="flex items-center gap-2">
+          <EmployeePicker employees={employees} employeeId={employeeId} label={t('selectEmployee')} />
           <button
             onClick={() => setShowCreate(!showCreate)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#22A854] text-white hover:bg-[#1d9048] transition-colors"

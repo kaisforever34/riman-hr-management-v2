@@ -9,6 +9,21 @@ export async function getPayrollPeriods() {
   })
 }
 
+export async function getEmployeePayslips(employeeId: string) {
+  return db.payslip.findMany({
+    where: { employeeId },
+    include: {
+      payrollPeriod: {
+        select: { id: true, month: true, year: true, status: true },
+      },
+    },
+    orderBy: [
+      { payrollPeriod: { year: 'desc' } },
+      { payrollPeriod: { month: 'desc' } },
+    ],
+  })
+}
+
 export async function getPayrollPeriod(id: string) {
   return db.payrollPeriod.findUnique({
     where: { id },

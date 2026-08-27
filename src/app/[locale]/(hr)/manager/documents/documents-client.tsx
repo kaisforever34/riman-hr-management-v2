@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { uploadEmployeeDoc, uploadCompanyDoc, deleteDocument } from '@/lib/actions/document'
+import { EmployeePicker } from '@/components/employee-picker'
 import { cn } from '@/lib/utils'
 import { Upload, Trash2, Download } from 'lucide-react'
 
@@ -38,6 +39,7 @@ interface EmployeeData {
 }
 
 interface Props {
+  employeeId: string
   employeeDocs: EmployeeDocData[]
   companyDocs: CompanyDocData[]
   employees: EmployeeData[]
@@ -52,15 +54,14 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function DocumentsClient({ employeeDocs, companyDocs, employees }: Props) {
+export function DocumentsClient({ employeeId, employeeDocs, companyDocs, employees }: Props) {
   const t = useTranslations('documents')
   const [tab, setTab] = useState<'employee' | 'company'>('employee')
-  const [selectedEmployee, setSelectedEmployee] = useState('')
   const [showUpload, setShowUpload] = useState(false)
   const [message, setMessage] = useState('')
 
   const filteredDocs = tab === 'employee'
-    ? employeeDocs.filter(d => !selectedEmployee || d.employeeId === selectedEmployee)
+    ? employeeDocs.filter(d => !employeeId || d.employeeId === employeeId)
     : companyDocs
 
   const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -89,12 +90,15 @@ export function DocumentsClient({ employeeDocs, companyDocs, employees }: Props)
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <Button onClick={() => setShowUpload(true)}>
-          <Upload className="me-2 h-4 w-4" />
-          {t('upload')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <EmployeePicker employees={employees} employeeId={employeeId} label={t('selectEmployee')} />
+          <Button onClick={() => setShowUpload(true)}>
+            <Upload className="me-2 h-4 w-4" />
+            {t('upload')}
+          </Button>
+        </div>
       </div>
 
       {message && (
@@ -118,19 +122,6 @@ export function DocumentsClient({ employeeDocs, companyDocs, employees }: Props)
         </button>
       </div>
 
-      {tab === 'employee' && (
-        <select
-          className="w-full max-w-xs rounded border bg-[#0D1028] px-3 py-2 text-sm"
-          value={selectedEmployee}
-          onChange={e => setSelectedEmployee(e.target.value)}
-        >
-          <option value="">{t('allEmployees')}</option>
-          {employees.map(e => (
-            <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
-          ))}
-        </select>
-      )}
-
       {showUpload && (
         <Card>
           <CardHeader>
@@ -141,7 +132,7 @@ export function DocumentsClient({ employeeDocs, companyDocs, employees }: Props)
               {tab === 'employee' && (
                 <div>
                   <label className="text-xs font-medium text-[#8B93A8]">{t('selectEmployee')}</label>
-                  <select name="employeeId" className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm" required>
+                  <select name="employeeId" defaultValue={employeeId} className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm" required>
                     <option value="">{t('selectEmployee')}</option>
                     {employees.map(e => (
                       <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>

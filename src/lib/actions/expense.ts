@@ -129,13 +129,14 @@ export async function getMyExpenses() {
   return expenses.map((e) => ({ ...e, amount: Number(e.amount) }))
 }
 
-export async function getExpenses() {
+export async function getExpenses(employeeId?: string) {
   const session = await auth()
   if (!session?.user || (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER')) {
     return []
   }
 
   const expenses = await db.expense.findMany({
+    where: employeeId ? { employeeId } : undefined,
     include: {
       employee: { select: { firstName: true, lastName: true, department: true } },
       reviewedBy: { select: { email: true } },

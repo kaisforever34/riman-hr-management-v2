@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { deleteReview } from '@/lib/actions/performance'
+import { EmployeePicker } from '@/components/employee-picker'
 import { Plus, Trash2, Eye } from 'lucide-react'
 import { useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -28,15 +29,15 @@ interface EmployeeData {
 }
 
 interface Props {
+  employeeId: string
   reviews: ReviewData[]
   employees: EmployeeData[]
 }
 
-export function PerformanceClient({ reviews, employees }: Props) {
+export function PerformanceClient({ employeeId, reviews, employees }: Props) {
   const t = useTranslations('performance')
   const router = useRouter()
   const { locale } = useParams<{ locale: string }>()
-  const [filterEmployee, setFilterEmployee] = useState('')
   const [filterQuarter, setFilterQuarter] = useState('')
   const [filterYear, setFilterYear] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
@@ -45,7 +46,7 @@ export function PerformanceClient({ reviews, employees }: Props) {
   const currentYear = new Date().getFullYear()
 
   const filtered = reviews.filter(r => {
-    if (filterEmployee && r.employeeId !== filterEmployee) return false
+    if (employeeId && r.employeeId !== employeeId) return false
     if (filterQuarter && r.quarter !== parseInt(filterQuarter)) return false
     if (filterYear && r.year !== parseInt(filterYear)) return false
     if (filterStatus && r.status !== filterStatus) return false
@@ -62,12 +63,15 @@ export function PerformanceClient({ reviews, employees }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <Button onClick={() => router.push(`/${locale}/manager/performance/new`)}>
-          <Plus className="me-2 h-4 w-4" />
-          {t('newReview')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <EmployeePicker employees={employees} employeeId={employeeId} label={t('selectEmployee')} />
+          <Button onClick={() => router.push(`/${locale}/manager/performance/new?employee=${employeeId}`)}>
+            <Plus className="me-2 h-4 w-4" />
+            {t('newReview')}
+          </Button>
+        </div>
       </div>
 
       {message && (
@@ -75,12 +79,6 @@ export function PerformanceClient({ reviews, employees }: Props) {
       )}
 
       <div className="flex flex-wrap gap-2">
-        <select className="rounded border bg-[#0D1028] px-3 py-2 text-sm" value={filterEmployee} onChange={e => setFilterEmployee(e.target.value)}>
-          <option value="">{t('allEmployees')}</option>
-          {employees.map(e => (
-            <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
-          ))}
-        </select>
         <select className="rounded border bg-[#0D1028] px-3 py-2 text-sm" value={filterQuarter} onChange={e => setFilterQuarter(e.target.value)}>
           <option value="">{t('allQuarters')}</option>
           {[1, 2, 3, 4].map(q => (
