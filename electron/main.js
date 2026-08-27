@@ -3,7 +3,8 @@ const path = require('path')
 const { spawn } = require('child_process')
 const fs = require('fs')
 
-const PORT = 3000
+const PORT = 3999
+const HOST = '127.0.0.1'
 let mainWindow = null
 let serverProcess = null
 
@@ -39,10 +40,10 @@ function startServer() {
     var env = Object.assign({}, process.env, {
       DATABASE_URL: 'file:' + dbPath,
       AUTH_SECRET: 'electron-riman-hr-secret-key-change-in-production-32chars!',
-      AUTH_URL: 'http://localhost:' + PORT,
+      AUTH_URL: 'http://' + HOST + ':' + PORT,
       NODE_ENV: 'production',
       PORT: String(PORT),
-      HOSTNAME: '127.0.0.1',
+      HOSTNAME: HOST,
     })
 
     serverProcess = spawn(nodeBin, [serverPath], {
@@ -77,7 +78,7 @@ function createWindow() {
     },
   })
 
-  mainWindow.loadURL('http://localhost:' + PORT + '/en/dashboard')
+  mainWindow.loadURL('http://' + HOST + ':' + PORT + '/en/dashboard')
   mainWindow.on('closed', function () { mainWindow = null })
 }
 
