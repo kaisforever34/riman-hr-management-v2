@@ -6,7 +6,50 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+type CollectedItem = { label: React.ReactNode; value: unknown }
+
+function extractText(node: React.ReactNode): string {
+  if (node == null || typeof node === "boolean") return ""
+  if (typeof node === "string" || typeof node === "number") return String(node)
+  if (Array.isArray(node)) return node.map(extractText).join("")
+  if (React.isValidElement(node)) {
+    return extractText((node.props as { children?: React.ReactNode }).children)
+  }
+  return ""
+}
+
+function collectSelectItems(children: React.ReactNode): CollectedItem[] {
+  const items: CollectedItem[] = []
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement(child)) return
+    if (child.type === SelectItem) {
+      const p = child.props as { value?: unknown; label?: React.ReactNode; children?: React.ReactNode }
+      if (p.value !== undefined) {
+        items.push({ value: p.value, label: p.label ?? extractText(p.children) })
+      }
+    } else {
+      const p = child.props as { children?: React.ReactNode } | undefined
+      if (p && p.children != null) items.push(...collectSelectItems(p.children))
+    }
+  })
+  return items
+}
+
+function Select<Value, Multiple extends boolean | undefined = false>({
+  items,
+  children,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  const collected = React.useMemo(
+    () => items ?? collectSelectItems(children),
+    [items, children],
+  )
+  return (
+    <SelectPrimitive.Root<Value, Multiple> items={collected} {...props}>
+      {children}
+    </SelectPrimitive.Root>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
