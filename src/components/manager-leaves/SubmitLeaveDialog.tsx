@@ -66,7 +66,7 @@ export default function SubmitLeaveDialog({ open, onOpenChange, employees, leave
     <Dialog.Root open={open} onOpenChange={(isOpen) => onOpenChange(isOpen)}>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60" />
-        <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#11152E] p-6 shadow-xl">
+        <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-xl">
           <Dialog.Title className="text-lg font-semibold mb-4">Submit Leave for Employee</Dialog.Title>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -127,7 +127,7 @@ export default function SubmitLeaveDialog({ open, onOpenChange, employees, leave
                 type="checkbox"
                 checked={isHalfDay}
                 onChange={(e) => setIsHalfDay(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 accent-[#22C55E]"
+                className="h-4 w-4 rounded border-gray-300 accent-statement-green"
               />
               <Label>Half Day</Label>
             </div>
@@ -161,7 +161,7 @@ export default function SubmitLeaveDialog({ open, onOpenChange, employees, leave
               <Button type="button" variant="outline" disabled={submitBusy} onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={submitBusy} className="bg-[#22C55E] text-white hover:bg-[#1Fb053]">
+              <Button type="submit" disabled={submitBusy} className="bg-statement-green text-white hover:bg-statement-green/90">
                 {submitBusy ? 'Submitting...' : 'Submit'}
               </Button>
             </div>

@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Syne, DM_Sans } from 'next/font/google'
+import { ThemeProvider } from 'next-themes'
 
 const syne = Syne({
   subsets: ['latin'],
@@ -28,8 +29,15 @@ export default function RootLayout({
 }) {
   return (
     <html className={`${syne.variable} ${dmSans.variable}`} suppressHydrationWarning>
-      <body className="bg-[#07091A] text-[#E0E6F4] antialiased">
-        {children}
+      <body className="bg-background text-foreground antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )

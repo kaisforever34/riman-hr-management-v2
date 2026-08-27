@@ -9,25 +9,25 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-[rgba(255,255,255,0.05)] text-[#8B93A8] border border-[rgba(255,255,255,0.065)]",
+          "bg-white/5 text-ledger-text-secondary border border-border",
         secondary:
-          "bg-[#131830] text-[#E0E6F4] border border-[rgba(255,255,255,0.065)]",
+          "bg-secondary text-ledger-text border border-border",
         gold:
-          "bg-[rgba(212,168,67,0.12)] text-[#D4A843] border border-[rgba(212,168,67,0.2)]",
+          "bg-gold/10 text-gold border border-gold/20",
         green:
-          "bg-[rgba(34,197,94,0.1)] text-[#22C55E] border border-[rgba(34,197,94,0.2)]",
+          "bg-statement-green/10 text-statement-green border border-statement-green/20",
         red:
-          "bg-[rgba(239,68,68,0.08)] text-[#EF4444] border border-[rgba(239,68,68,0.15)]",
+          "bg-audit-red/10 text-audit-red border border-audit-red/15",
         blue:
-          "bg-[rgba(75,139,240,0.1)] text-[#4B8BF0] border border-[rgba(75,139,240,0.2)]",
+          "bg-inquiry-blue/10 text-inquiry-blue border border-inquiry-blue/20",
         teal:
-          "bg-[rgba(15,200,186,0.1)] text-[#0FC8BA] border border-[rgba(15,200,186,0.2)]",
+          "bg-statement-teal/10 text-statement-teal border border-statement-teal/20",
         amber:
-          "bg-[rgba(245,158,11,0.1)] text-[#F59E0B] border border-[rgba(245,158,11,0.2)]",
+          "bg-warning-amber/10 text-warning-amber border border-warning-amber/20",
         purple:
-          "bg-[rgba(139,92,246,0.1)] text-[#8B5CF6] border border-[rgba(139,92,246,0.2)]",
+          "bg-authority-purple/10 text-authority-purple border border-authority-purple/20",
         outline:
-          "bg-transparent text-[#8B93A8] border border-[rgba(255,255,255,0.065)]",
+          "bg-transparent text-ledger-text-secondary border border-border",
       },
     },
     defaultVariants: {

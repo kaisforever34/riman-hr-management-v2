@@ -61,22 +61,22 @@ export default function NotificationBell() {
       <button
         onClick={() => setOpen(!open)}
         aria-label={count > 0 ? `${t('title')} ${t('unreadSuffix', { count })}` : t('title')}
-        className="relative p-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+        className="relative p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
       >
-        <Bell className="w-4 h-4 text-[#8B93A8]" />
+        <Bell className="w-4 h-4 text-ledger-text-secondary" />
         {count > 0 && (
-          <span className="absolute -top-0.5 -end-0.5 w-4 h-4 rounded-full bg-[#D4A843] text-[#07091A] text-[10px] font-bold flex items-center justify-center">
+          <span className="absolute -top-0.5 -end-0.5 w-4 h-4 rounded-full bg-gold text-midnight-well text-[10px] font-bold flex items-center justify-center">
             {count > 9 ? '9+' : count}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute end-0 top-full mt-2 w-80 bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.35)] overflow-hidden z-50">
-          <div className="p-3 border-b border-[rgba(255,255,255,0.065)] flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-[#E0E6F4]">{t('title')}</span>
+        <div className="absolute end-0 top-full mt-2 w-80 bg-popover border border-border rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.35)] overflow-hidden z-50">
+          <div className="p-3 border-b border-border flex items-center justify-between">
+            <span className="text-[13px] font-semibold text-ledger-text">{t('title')}</span>
             {count > 0 && (
-              <button onClick={handleMarkAllRead} className="text-[12px] text-[#D4A843] hover:text-[#EFC254] transition-colors">
+              <button onClick={handleMarkAllRead} className="text-[12px] text-gold hover:text-gold-bright transition-colors">
                 {t('markAllRead')}
               </button>
             )}
@@ -85,8 +85,8 @@ export default function NotificationBell() {
           <div className="max-h-80 overflow-y-auto">
             {recent.length === 0 && (
               <div className="p-8 text-center">
-                <Bell className="w-8 h-8 text-[#4A5168] mx-auto mb-2" />
-                <p className="text-[13px] text-[#8B93A8]">{t('noNew')}</p>
+                <Bell className="w-8 h-8 text-ledger-text-muted mx-auto mb-2" />
+                <p className="text-[13px] text-ledger-text-secondary">{t('noNew')}</p>
               </div>
             )}
             {recent.map((n) => (
@@ -94,11 +94,11 @@ export default function NotificationBell() {
                 key={n.id}
                 href={`/${locale}${n.link || '#'}`}
                 onClick={() => setOpen(false)}
-                className="block p-3 border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                className="block p-3 border-b border-border/60 hover:bg-muted/40 transition-colors"
               >
-                <div className="text-[13px] text-[#E0E6F4] font-medium">{n.title}</div>
-                {n.message && <div className="text-[12px] text-[#8B93A8] mt-0.5 line-clamp-2">{n.message}</div>}
-                <div className="text-[11px] text-[#4A5168] mt-1">
+                <div className="text-[13px] text-ledger-text font-medium">{n.title}</div>
+                {n.message && <div className="text-[12px] text-ledger-text-secondary mt-0.5 line-clamp-2">{n.message}</div>}
+                <div className="text-[11px] text-ledger-text-muted mt-1">
                   {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                 </div>
               </Link>
@@ -108,7 +108,7 @@ export default function NotificationBell() {
           <Link
             href={`/${locale}/notifications`}
             onClick={() => setOpen(false)}
-            className="block p-3 text-center text-[13px] font-medium text-[#D4A843] hover:text-[#EFC254] hover:bg-[rgba(212,168,67,0.05)] border-t border-[rgba(255,255,255,0.065)] transition-colors"
+            className="block p-3 text-center text-[13px] font-medium text-gold hover:text-gold-bright hover:bg-gold/5 border-t border-border transition-colors"
           >
             {t('viewAll')}
           </Link>

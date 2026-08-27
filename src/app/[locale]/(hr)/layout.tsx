@@ -15,7 +15,7 @@ export default async function HrLayout({
   if (!session?.user) redirect(`/${locale}/auth/signin`)
 
   return (
-    <div className="min-h-screen bg-[#07091A]">
+    <div className="min-h-screen bg-background">
       <Sidebar role={session.user.role} />
       <div className="ms-0 md:ms-60 min-h-screen flex flex-col">
         <Header />

@@ -9,33 +9,41 @@ import { KPICard, Badge } from '@/components/shared'
 import { buttonVariants } from '@/components/ui/button'
 import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
+import { useMemo } from 'react'
+import { useTheme } from 'next-themes'
 
-const C = {
-  gold: '#D4A843',
-  text: '#E0E6F4',
-  textSub: '#8B93A8',
-  textMuted: '#4A5168',
-  border: 'rgba(255,255,255,0.065)',
-  surf: '#0D1028',
-  surf2: '#131830',
-  surf3: '#181E38',
-  green: '#22C55E',
-  red: '#EF4444',
-  amber: '#F59E0B',
-  blue: '#4B8BF0',
-  purple: '#8B5CF6',
-  teal: '#0FC8BA',
+/* ------------------------------------------------------------------ */
+/* Read CSS custom properties so chart colors adapt to the active theme */
+/* ------------------------------------------------------------------ */
+function cssVar(name: string, fallback: string) {
+  if (typeof document === 'undefined') return fallback
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
 }
 
+function useChartColors() {
+  const { resolvedTheme } = useTheme()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => ({
+    gold:        cssVar('--gold',        '#D4A843'),
+    text:        cssVar('--ledger-text', '#E0E6F4'),
+    textSub:     cssVar('--ledger-text-secondary', '#8B93A8'),
+    textMuted:   cssVar('--ledger-text-muted', '#4A5168'),
+    green:       cssVar('--statement-green', '#22C55E'),
+    red:         cssVar('--audit-red',  '#EF4444'),
+    blue:        cssVar('--inquiry-blue', '#4B8BF0'),
+    purple:      cssVar('--authority-purple', '#8B5CF6'),
+    teal:        cssVar('--statement-teal', '#0FC8BA'),
+    amber:       cssVar('--warning-amber', '#F59E0B'),
+  }), [resolvedTheme])
+}
 
-
-function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { name: string; dataKey?: string; value: number; color?: string }[]; label?: string }) {
+function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { name: string; dataKey?: string; value: number; color?: string }[]; label?: string; colors: ReturnType<typeof useChartColors> }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-lg bg-[#181E38] border border-[rgba(255,255,255,0.065)] px-3.5 py-2.5">
-      <div className="text-[12px] text-[#8B93A8] mb-1">{label}</div>
+    <div className="rounded-lg bg-accent border border-border px-3.5 py-2.5">
+      <div className="text-[12px] text-muted-foreground mb-1">{label}</div>
       {payload.map((p, i) => (
-        <div key={i} className="text-[13px] font-semibold" style={{ color: p.color || C.gold }}>
+        <div key={i} className="text-[13px] font-semibold" style={{ color: p.color || colors.gold }}>
           {p.name}: {p.dataKey === 'total' ? `AED ${Number(p.value).toLocaleString()}` : p.value}
         </div>
       ))}
@@ -73,13 +81,15 @@ export default function DashboardContent({
     ['Annual', 'Sick', 'Personal', 'Maternity', 'Paternity', 'Hajj/Umrah', 'Compassionate', 'Unpaid', 'Other'].includes(name)
       ? t(`leaveTypes.${name === 'Hajj/Umrah' ? 'HajjUmrah' : name}`)
       : name
+
+  const C = useChartColors()
   const pieColors = [C.green, C.red, C.purple, C.blue, C.amber]
 
   return (
     <div className="fi">
       <div className="mb-7">
-        <h1 className="font-syne text-2xl font-bold text-[#E0E6F4] tracking-tight">{t('hrTitle')}</h1>
-        <p className="text-[13px] text-[#8B93A8] mt-1">
+        <h1 className="font-syne text-2xl font-bold text-ledger-text tracking-tight">{t('hrTitle')}</h1>
+        <p className="text-[13px] text-muted-foreground mt-1">
           {new Date().toLocaleDateString(dateLocale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · {t('location')}
         </p>
       </div>
@@ -88,38 +98,38 @@ export default function DashboardContent({
         <KPICard icon={Users} col={C.gold} label={t('totalEmployees')} value={String(totalEmployees)} sub={t('kpiTotalSub')} />
         <KPICard icon={UserCheck} col={C.green} label={t('todayAttendance')} value={`${presentCount} / ${totalEmployees}`} sub={t('kpiPresentSub')} trend={`${presentRate}%`} up={presentRate > 50} />
         <KPICard icon={Calendar} col={C.blue} label={t('kpiLeavesLabel')} value={String(pendingLeaves)} sub={t('kpiLeavesSub')} />
-          <KPICard icon={CreditCard} col={C.teal} label={t('kpiPayrollLabel')} value={`AED ${payrollKpi.total.toLocaleString()}`} sub={payrollKpi.source === 'salaries' ? `${t('kpiPayrollSub')} · ${t('payrollEstimateNote')}` : t('kpiPayrollSub')} />
+        <KPICard icon={CreditCard} col={C.teal} label={t('kpiPayrollLabel')} value={`AED ${payrollKpi.total.toLocaleString()}`} sub={payrollKpi.source === 'salaries' ? `${t('kpiPayrollSub')} · ${t('payrollEstimateNote')}` : t('kpiPayrollSub')} />
       </div>
 
       {(contractExpiring.length > 0 || visaExpiring.length > 0) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           {contractExpiring.length > 0 && (
-            <div className="rounded-xl bg-[#0D1028] border border-[rgba(245,158,11,0.25)] p-5">
+            <div className="rounded-xl bg-card border border-warning-amber/25 p-5">
               <div className="flex items-center justify-between mb-4">
-                <div className="font-syne text-[15px] font-bold text-[#E0E6F4]">{t('contractExpiringSoon')}</div>
+                <div className="font-syne text-[15px] font-bold text-ledger-text">{t('contractExpiringSoon')}</div>
                 <Badge variant="amber">{String(contractExpiring.length)}</Badge>
               </div>
               <div className="space-y-3">
                 {contractExpiring.map((emp) => (
-                  <Link key={emp.id} href={`/${locale}/employees/${emp.id}`} className="flex items-center justify-between rounded-md bg-[rgba(255,255,255,0.03)] px-3 py-2 text-[13px] hover:bg-[rgba(255,255,255,0.06)]">
-                    <span className="text-[#E0E6F4]">{emp.firstName} {emp.lastName} <span className="text-[#8B93A8]">· {emp.jobTitle}</span></span>
-                    <span className="font-semibold text-[#F59E0B]">{t('daysLeft', { n: emp.daysUntilExpiry })}</span>
+                  <Link key={emp.id} href={`/${locale}/employees/${emp.id}`} className="flex items-center justify-between rounded-md bg-white/3 px-3 py-2 text-[13px] hover:bg-muted/50 transition-colors">
+                    <span className="text-ledger-text">{emp.firstName} {emp.lastName} <span className="text-muted-foreground">· {emp.jobTitle}</span></span>
+                    <span className="font-semibold text-warning-amber">{t('daysLeft', { n: emp.daysUntilExpiry })}</span>
                   </Link>
                 ))}
               </div>
             </div>
           )}
           {visaExpiring.length > 0 && (
-            <div className="rounded-xl bg-[#0D1028] border border-[rgba(239,68,68,0.25)] p-5">
+            <div className="rounded-xl bg-card border border-audit-red/25 p-5">
               <div className="flex items-center justify-between mb-4">
-                <div className="font-syne text-[15px] font-bold text-[#E0E6F4]">{t('visaExpiringSoon')}</div>
+                <div className="font-syne text-[15px] font-bold text-ledger-text">{t('visaExpiringSoon')}</div>
                 <Badge variant="red">{String(visaExpiring.length)}</Badge>
               </div>
               <div className="space-y-3">
                 {visaExpiring.map((emp) => (
-                  <Link key={emp.id} href={`/${locale}/employees/${emp.id}`} className="flex items-center justify-between rounded-md bg-[rgba(255,255,255,0.03)] px-3 py-2 text-[13px] hover:bg-[rgba(255,255,255,0.06)]">
-                    <span className="text-[#E0E6F4]">{emp.firstName} {emp.lastName} {emp.iqamaNumber ? <span className="text-[#8B93A8]">· {emp.iqamaNumber}</span> : null}</span>
-                    <span className="font-semibold text-[#EF4444]">{t('daysLeft', { n: emp.daysUntilExpiry ?? 0 })}</span>
+                  <Link key={emp.id} href={`/${locale}/employees/${emp.id}`} className="flex items-center justify-between rounded-md bg-white/3 px-3 py-2 text-[13px] hover:bg-muted/50 transition-colors">
+                    <span className="text-ledger-text">{emp.firstName} {emp.lastName} {emp.iqamaNumber ? <span className="text-muted-foreground">· {emp.iqamaNumber}</span> : null}</span>
+                    <span className="font-semibold text-audit-red">{t('daysLeft', { n: emp.daysUntilExpiry ?? 0 })}</span>
                   </Link>
                 ))}
               </div>
@@ -129,16 +139,16 @@ export default function DashboardContent({
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5">
+        <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex justify-between items-center mb-5">
             <div>
-              <div className="font-syne text-[15px] font-bold text-[#E0E6F4]">{t('payrollTrend')}</div>
-              <div className="text-[12px] text-[#8B93A8] mt-0.5">{t('payrollTrendRange')}</div>
+              <div className="font-syne text-[15px] font-bold text-ledger-text">{t('payrollTrend')}</div>
+              <div className="text-[12px] text-muted-foreground mt-0.5">{t('payrollTrendRange')}</div>
             </div>
             <Badge variant="gold">{t('aedPerMonth')}</Badge>
           </div>
           {payrollTrend.length === 0 ? (
-            <div className="py-12 text-center text-[13px] text-[#8B93A8]">{t('noData')}</div>
+            <div className="py-12 text-center text-[13px] text-muted-foreground">{t('noData')}</div>
           ) : (
           <ResponsiveContainer width="100%" height={175}>
             <AreaChart data={payrollTrend}>
@@ -148,29 +158,29 @@ export default function DashboardContent({
                   <stop offset="95%" stopColor={C.gold} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={cssVar('--border', 'rgba(255,255,255,0.065)')} />
               <XAxis dataKey="monthKey" tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v / 1000}K`} />
-              <Tooltip content={<ChartTooltip />} />
+              <Tooltip content={<ChartTooltip colors={C} />} />
               <Area type="monotone" dataKey="total" name={t('series.total')} stroke={C.gold} strokeWidth={2} fill="url(#pg)" />
             </AreaChart>
           </ResponsiveContainer>
           )}
         </div>
 
-        <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5">
+        <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex justify-between items-center mb-5">
             <div>
-              <div className="font-syne text-[15px] font-bold text-[#E0E6F4]">{t('weeklyAttendance')}</div>
-              <div className="text-[12px] text-[#8B93A8] mt-0.5">{t('currentWeek')}</div>
+              <div className="font-syne text-[15px] font-bold text-ledger-text">{t('weeklyAttendance')}</div>
+              <div className="text-[12px] text-muted-foreground mt-0.5">{t('currentWeek')}</div>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={175}>
             <BarChart data={weeklyAttendance} barGap={2}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={cssVar('--border', 'rgba(255,255,255,0.065)')} />
               <XAxis dataKey="dayIndex" tickFormatter={(d: number) => dayFormatter.format(new Date(2024, 0, 7 + d))} tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<ChartTooltip />} />
+              <Tooltip content={<ChartTooltip colors={C} />} />
               <Bar dataKey="present" name={t('present')} fill={C.green} radius={[4, 4, 0, 0]} />
               <Bar dataKey="late" name={t('series.late')} fill={C.amber} radius={[4, 4, 0, 0]} />
               <Bar dataKey="absent" name={t('series.absent')} fill={C.red} radius={[4, 4, 0, 0]} />
@@ -180,10 +190,10 @@ export default function DashboardContent({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5">
-          <div className="font-syne text-[15px] font-bold text-[#E0E6F4] mb-5">{t('leaveDistribution')}</div>
+        <div className="rounded-xl bg-card border border-border p-5">
+          <div className="font-syne text-[15px] font-bold text-ledger-text mb-5">{t('leaveDistribution')}</div>
           {leaveDistribution.length === 0 ? (
-            <div className="py-12 text-center text-[13px] text-[#8B93A8]">{t('noData')}</div>
+            <div className="py-12 text-center text-[13px] text-muted-foreground">{t('noData')}</div>
           ) : (
           <div className="flex items-center gap-5">
             <PieChart width={140} height={140}>
@@ -196,9 +206,9 @@ export default function DashboardContent({
                 <div key={i} className="flex justify-between items-center mb-2">
                   <div className="flex items-center gap-2">
                     <div className="w-[7px] h-[7px] rounded-full" style={{ background: pieColors[i % pieColors.length] }} />
-                    <span className="text-[12.5px] text-[#8B93A8]">{ltLabel(d.name)}</span>
+                    <span className="text-[12.5px] text-muted-foreground">{ltLabel(d.name)}</span>
                   </div>
-                  <span className="text-[12.5px] font-semibold text-[#E0E6F4]">{d.value}</span>
+                  <span className="text-[12.5px] font-semibold text-ledger-text">{d.value}</span>
                 </div>
               ))}
             </div>
@@ -206,12 +216,12 @@ export default function DashboardContent({
           )}
         </div>
 
-        <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5">
+        <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex justify-between items-center mb-4">
-            <div className="font-syne text-[15px] font-bold text-[#E0E6F4]">{t('pendingActions')}</div>
+            <div className="font-syne text-[15px] font-bold text-ledger-text">{t('pendingActions')}</div>
             <Badge variant="amber">{t('nPending', { n: pendingLeaves })}</Badge>
           </div>
-          <div className="flex items-center justify-center py-8 text-[#8B93A8] text-[13px]">
+          <div className="flex items-center justify-center py-8 text-muted-foreground text-[13px]">
             {pendingLeaves > 0
               ? t('leaveRequestsAwaiting', { count: pendingLeaves })
               : t('noPendingActions')}

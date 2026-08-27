@@ -20,7 +20,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b border-[rgba(255,255,255,0.065)]", className)}
+      className={cn("[&_tr]:border-b border-border", className)}
       {...props}
     />
   )
@@ -41,7 +41,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
     <tfoot
       data-slot="table-footer"
       className={cn(
-        "border-t border-[rgba(255,255,255,0.065)]",
+        "border-t border-border",
         className
       )}
       {...props}
@@ -54,7 +54,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b border-[rgba(255,255,255,0.04)] transition-colors hover:bg-[rgba(255,255,255,0.018)]",
+        "border-b border-border/60 transition-colors hover:bg-[rgba(255,255,255,0.018)]",
         className
       )}
       {...props}
@@ -67,7 +67,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "px-3.5 py-2.5 text-start align-middle text-[11px] font-bold tracking-[0.08em] uppercase text-[#4A5168] whitespace-nowrap",
+        "px-3.5 py-2.5 text-start align-middle text-[11px] font-bold tracking-[0.08em] uppercase text-ledger-text-muted whitespace-nowrap",
         className
       )}
       {...props}
@@ -80,7 +80,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "px-3.5 py-3 align-middle whitespace-nowrap border-b border-[rgba(255,255,255,0.04)]",
+        "px-3.5 py-3 align-middle whitespace-nowrap border-b border-border/60",
         className
       )}
       {...props}
@@ -95,7 +95,7 @@ function TableCaption({
   return (
     <caption
       data-slot="table-caption"
-      className={cn("mt-3 text-[12px] text-[#8B93A8]", className)}
+      className={cn("mt-3 text-[12px] text-ledger-text-secondary", className)}
       {...props}
     />
   )

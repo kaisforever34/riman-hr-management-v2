@@ -92,7 +92,7 @@ const FormLabel = React.forwardRef<
   return (
     <Label
       ref={ref}
-      className={cn(error && "text-[#EF4444]", className)}
+      className={cn(error && "text-audit-red", className)}
       htmlFor={formItemId}
       {...props}
     />
@@ -132,7 +132,7 @@ const FormDescription = React.forwardRef<
     <p
       ref={ref}
       id={formDescriptionId}
-      className={cn("text-[12px] text-[#8B93A8]", className)}
+      className={cn("text-[12px] text-ledger-text-secondary", className)}
       {...props}
     />
   )
@@ -154,7 +154,7 @@ const FormMessage = React.forwardRef<
     <p
       ref={ref}
       id={formMessageId}
-      className={cn("flex items-center gap-1.5 text-[12px] font-medium text-[#EF4444] mt-1.5", className)}
+      className={cn("flex items-center gap-1.5 text-[12px] font-medium text-audit-red mt-1.5", className)}
       {...props}
     >
       <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 16 16" fill="currentColor">

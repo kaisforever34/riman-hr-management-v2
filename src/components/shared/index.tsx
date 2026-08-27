@@ -62,15 +62,15 @@ export type BadgeVariant = 'default' | 'secondary' | 'gold' | 'green' | 'red' | 
 
 export function Badge({ variant = 'default', children }: { variant?: BadgeVariant; children: React.ReactNode }) {
   const variants: Record<string, string> = {
-    default: 'bg-[rgba(255,255,255,0.05)] text-[#8B93A8] border border-[rgba(255,255,255,0.065)]',
-    secondary: 'bg-[#131830] text-[#E0E6F4] border border-[rgba(255,255,255,0.065)]',
-    gold: 'bg-[rgba(212,168,67,0.12)] text-[#D4A843] border border-[rgba(212,168,67,0.2)]',
-    green: 'bg-[rgba(34,197,94,0.1)] text-[#22C55E] border border-[rgba(34,197,94,0.2)]',
-    red: 'bg-[rgba(239,68,68,0.08)] text-[#EF4444] border border-[rgba(239,68,68,0.15)]',
-    blue: 'bg-[rgba(75,139,240,0.1)] text-[#4B8BF0] border border-[rgba(75,139,240,0.2)]',
-    teal: 'bg-[rgba(15,200,186,0.1)] text-[#0FC8BA] border border-[rgba(15,200,186,0.2)]',
-    amber: 'bg-[rgba(245,158,11,0.1)] text-[#F59E0B] border border-[rgba(245,158,11,0.2)]',
-    purple: 'bg-[rgba(139,92,246,0.1)] text-[#8B5CF6] border border-[rgba(139,92,246,0.2)]',
+    default: 'bg-white/5 text-ledger-text-secondary border border-border',
+    secondary: 'bg-upper-stratum text-ledger-text border border-border',
+    gold: 'bg-gold/10 text-gold border border-gold/20',
+    green: 'bg-statement-green/10 text-statement-green border border-statement-green/20',
+    red: 'bg-audit-red/10 text-audit-red border border-audit-red/15',
+    blue: 'bg-inquiry-blue/10 text-inquiry-blue border border-inquiry-blue/20',
+    teal: 'bg-statement-teal/10 text-statement-teal border border-statement-teal/20',
+    amber: 'bg-warning-amber/10 text-warning-amber border border-warning-amber/20',
+    purple: 'bg-authority-purple/10 text-authority-purple border border-authority-purple/20',
   }
   return (
     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold whitespace-nowrap ${variants[variant] || variants.default}`}>
@@ -97,7 +97,7 @@ export function KPICard({
   up?: boolean
 }) {
   return (
-    <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-5 relative overflow-hidden group">
+    <div className="rounded-xl bg-card border border-border p-5 relative overflow-hidden group">
       {/* Subtle ambient glow */}
       <div
         className="absolute -top-8 -end-8 w-24 h-24 rounded-full opacity-[0.06] transition-opacity duration-300 group-hover:opacity-[0.1]"
@@ -111,18 +111,18 @@ export function KPICard({
           <Icon size={18} color={col} />
         </div>
         {trend && (
-          <div className={`flex items-center gap-1 text-[12px] font-semibold ${up ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
+          <div className={`flex items-center gap-1 text-[12px] font-semibold ${up ? 'text-statement-green' : 'text-audit-red'}`}>
             {up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
             {trend}
           </div>
         )}
       </div>
       <div className="mt-4">
-        <div className="font-syne text-[26px] font-bold text-[#E0E6F4] tracking-tight">
+        <div className="font-syne text-[26px] font-bold text-ledger-text tracking-tight">
           {value}
         </div>
-        <div className="text-[13px] text-[#8B93A8] mt-1">{label}</div>
-        {sub && <div className="text-[11.5px] text-[#4A5168] mt-0.5">{sub}</div>}
+        <div className="text-[13px] text-ledger-text-secondary mt-1">{label}</div>
+        {sub && <div className="text-[11.5px] text-ledger-text-muted mt-0.5">{sub}</div>}
       </div>
     </div>
   )

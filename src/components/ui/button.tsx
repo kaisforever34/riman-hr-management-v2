@@ -3,21 +3,21 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center text-[13px] font-semibold whitespace-nowrap transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-[#D4A843] focus-visible:ring-offset-2 focus-visible:ring-offset-[#07091A] select-none disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center text-[13px] font-semibold whitespace-nowrap transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
-          "bg-[#D4A843] text-[#0D0B07] hover:bg-[#EFC254] hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]",
+          "bg-gold text-primary-foreground hover:bg-gold-bright hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]",
         outline:
-          "bg-transparent border text-[#8B93A8] hover:border-[rgba(255,255,255,0.13)] hover:text-[#E0E6F4]",
+          "bg-transparent border text-ledger-text-secondary hover:border-border hover:text-ledger-text",
         secondary:
-          "bg-[#131830] text-[#E0E6F4] hover:bg-[#181E38]",
+          "bg-secondary text-ledger-text hover:bg-accent",
         ghost:
-          "bg-transparent text-[#8B93A8] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#E0E6F4]",
+          "bg-transparent text-ledger-text-secondary hover:bg-white/5 hover:text-ledger-text",
         destructive:
-          "bg-[rgba(239,68,68,0.1)] text-[#EF4444] hover:bg-[rgba(239,68,68,0.15)]",
-        link: "text-[#D4A843] underline-offset-4 hover:underline",
+          "bg-[rgba(239,68,68,0.1)] text-audit-red hover:bg-audit-red/20",
+        link: "text-gold underline-offset-4 hover:underline",
       },
       size: {
         default: "gap-1.5 px-4 py-2 rounded-lg",

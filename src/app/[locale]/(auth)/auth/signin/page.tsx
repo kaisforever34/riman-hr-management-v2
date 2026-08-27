@@ -45,12 +45,12 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="rounded-xl bg-[#0D1028] border border-[rgba(255,255,255,0.065)] p-6 fi">
+    <div className="rounded-xl bg-card border border-border p-6 fi">
       <div className="mb-6">
-        <h2 className="font-syne text-lg font-bold text-[#E0E6F4]">
+        <h2 className="font-syne text-lg font-bold text-ledger-text">
           {t('signIn')}
         </h2>
-        <p className="mt-1 text-[13px] text-[#8B93A8]">
+        <p className="mt-1 text-[13px] text-muted-foreground">
           {t('enterCredentials')}
         </p>
       </div>
@@ -58,8 +58,8 @@ export default function SignInPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="flex items-start gap-2.5 rounded-lg bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.15)] px-3.5 py-2.5">
-            <AlertCircle className="h-4 w-4 text-[#EF4444] mt-0.5 flex-shrink-0" />
-            <span className="text-[13px] text-[#EF4444]">{error}</span>
+            <AlertCircle className="h-4 w-4 text-audit-red mt-0.5 flex-shrink-0" />
+            <span className="text-[13px] text-audit-red">{error}</span>
           </div>
         )}
 
@@ -96,7 +96,7 @@ export default function SignInPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8B93A8] hover:text-[#E0E6F4] transition-colors"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-ledger-text transition-colors"
               tabIndex={-1}
             >
               {showPassword ? (
@@ -121,7 +121,7 @@ export default function SignInPage() {
       <div className="mt-4 text-center">
         <Link
           href={`/${locale}/auth/forgot-password`}
-          className="text-[13px] text-[#8B93A8] hover:text-[#D4A843] transition-colors"
+          className="text-[13px] text-muted-foreground hover:text-gold transition-colors"
         >
           {t('forgotPassword')}
         </Link>

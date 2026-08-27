@@ -75,12 +75,12 @@ export default function Sidebar({ role }: { role: string }) {
 
   const sidebarContent = (
     <>
-      <div className={cn("flex items-center h-14 border-b border-[rgba(255,255,255,0.065)]", collapsed ? "justify-center px-0" : "px-5")}>
+      <div className={cn("flex items-center h-14 border-b border-sidebar-border", collapsed ? "justify-center px-0" : "px-5")}>
         <Link href={`/${locale}/dashboard`} className={cn("flex items-center gap-2.5", collapsed && "justify-center")}>
-          <div className="w-7 h-7 rounded-md bg-[#D4A843] flex items-center justify-center flex-shrink-0">
-            <span className="text-[11px] font-bold text-[#0D0B07] font-syne">R</span>
+          <div className="w-7 h-7 rounded-md bg-gold flex items-center justify-center flex-shrink-0">
+            <span className="text-[11px] font-bold text-primary-foreground font-syne">R</span>
           </div>
-          {!collapsed && <span className="font-syne text-[15px] font-bold text-[#E0E6F4] tracking-tight">Riman HR</span>}
+          {!collapsed && <span className="font-syne text-[15px] font-bold text-ledger-text tracking-tight">Riman HR</span>}
         </Link>
       </div>
 
@@ -95,8 +95,8 @@ export default function Sidebar({ role }: { role: string }) {
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer",
                   collapsed && "justify-center px-2",
                   isActive
-                    ? "bg-[rgba(212,168,67,0.12)] text-[#EFC254] border border-[rgba(212,168,67,0.2)]"
-                    : "text-[#8B93A8] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#E0E6F4] border border-transparent"
+                    ? "bg-gold/10 text-gold-bright border border-gold/20"
+                    : "text-ledger-text-secondary hover:bg-sidebar-accent hover:text-ledger-text border border-transparent"
                 )}
               >
                 <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
@@ -107,12 +107,12 @@ export default function Sidebar({ role }: { role: string }) {
         })}
       </nav>
 
-      <div className="border-t border-[rgba(255,255,255,0.065)] py-2 px-2 space-y-0.5">
+      <div className="border-t border-sidebar-border py-2 px-2 space-y-0.5">
         <button
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? t('expandSidebar') : t('collapseSidebar')}
           className={cn(
-            "hidden md:flex items-center gap-3 w-full px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 text-[#8B93A8] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#E0E6F4]",
+            "hidden md:flex items-center gap-3 w-full px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 text-ledger-text-secondary hover:bg-sidebar-accent hover:text-ledger-text",
             collapsed && "justify-center px-2"
           )}
         >
@@ -123,7 +123,7 @@ export default function Sidebar({ role }: { role: string }) {
           onClick={() => signOut({ callbackUrl: `/${locale}/auth/signin` })}
           aria-label={t('signOut')}
           className={cn(
-            "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 text-[#EF4444] hover:bg-[rgba(239,68,68,0.08)]",
+            "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 text-audit-red hover:bg-destructive/10",
             collapsed && "justify-center px-2"
           )}
         >
@@ -140,7 +140,7 @@ export default function Sidebar({ role }: { role: string }) {
       <button
         onClick={() => setMobileOpen(true)}
         aria-label={t('openMenu')}
-        className="fixed top-3 start-3 z-50 md:hidden flex items-center justify-center w-9 h-9 rounded-lg bg-[#0D1028] border border-[rgba(255,255,255,0.065)] text-[#8B93A8] hover:text-[#E0E6F4] transition-colors"
+        className="fixed top-3 start-3 z-50 md:hidden flex items-center justify-center w-9 h-9 rounded-lg bg-sidebar border border-sidebar-border text-ledger-text-secondary hover:text-ledger-text transition-colors"
       >
         <Menu className="w-5 h-5" />
       </button>
@@ -156,7 +156,7 @@ export default function Sidebar({ role }: { role: string }) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 start-0 h-screen z-50 flex flex-col bg-[#0D1028] border-r border-[rgba(255,255,255,0.065)] transition-all duration-200",
+          "fixed top-0 start-0 h-screen z-50 flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-200",
           // Desktop
           "hidden md:flex",
           collapsed ? "md:w-16" : "md:w-60",
@@ -169,7 +169,7 @@ export default function Sidebar({ role }: { role: string }) {
           <button
             onClick={() => setMobileOpen(false)}
             aria-label={t('closeMenu')}
-            className="absolute top-3 end-3 md:hidden flex items-center justify-center w-7 h-7 rounded-md text-[#8B93A8] hover:text-[#E0E6F4] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+            className="absolute top-3 end-3 md:hidden flex items-center justify-center w-7 h-7 rounded-md text-ledger-text-secondary hover:text-ledger-text hover:bg-sidebar-accent transition-colors"
           >
             <X className="w-4 h-4" />
           </button>

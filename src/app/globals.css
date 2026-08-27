@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-html {
+:root {
   color-scheme: dark;
 }
 
@@ -10,21 +10,21 @@ html {
   --font-dm-sans: "DM Sans", sans-serif;
   --font-sans: var(--font-dm-sans);
 
-  --color-midnight-well: #07091A;
-  --color-deep-stratum: #0D1028;
-  --color-upper-stratum: #131830;
-  --color-crest-stratum: #181E38;
-  --color-gold: #D4A843;
-  --color-gold-bright: #EFC254;
-  --color-ledger-text: #E0E6F4;
-  --color-ledger-text-secondary: #8B93A8;
-  --color-ledger-text-muted: #4A5168;
-  --color-statement-green: #22C55E;
-  --color-audit-red: #EF4444;
-  --color-inquiry-blue: #4B8BF0;
-  --color-statement-teal: #0FC8BA;
-  --color-warning-amber: #F59E0B;
-  --color-authority-purple: #8B5CF6;
+  --color-midnight-well: var(--midnight-well);
+  --color-deep-stratum: var(--deep-stratum);
+  --color-upper-stratum: var(--upper-stratum);
+  --color-crest-stratum: var(--crest-stratum);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-ledger-text: var(--ledger-text);
+  --color-ledger-text-secondary: var(--ledger-text-secondary);
+  --color-ledger-text-muted: var(--ledger-text-muted);
+  --color-statement-green: var(--statement-green);
+  --color-audit-red: var(--audit-red);
+  --color-inquiry-blue: var(--inquiry-blue);
+  --color-statement-teal: var(--statement-teal);
+  --color-warning-amber: var(--warning-amber);
+  --color-authority-purple: var(--authority-purple);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -64,6 +64,22 @@ html {
 }
 
 :root {
+  --midnight-well: #07091A;
+  --deep-stratum: #0D1028;
+  --upper-stratum: #131830;
+  --crest-stratum: #181E38;
+  --gold: #D4A843;
+  --gold-bright: #EFC254;
+  --ledger-text: #E0E6F4;
+  --ledger-text-secondary: #8B93A8;
+  --ledger-text-muted: #4A5168;
+  --statement-green: #22C55E;
+  --audit-red: #EF4444;
+  --inquiry-blue: #4B8BF0;
+  --statement-teal: #0FC8BA;
+  --warning-amber: #F59E0B;
+  --authority-purple: #8B5CF6;
+
   --background: #07091A;
   --foreground: #E0E6F4;
   --card: #0D1028;
@@ -98,6 +114,61 @@ html {
   --chart-5: #F59E0B;
 }
 
+/* ------------------------------------------------------------------ */
+/* Light mode — warm paper + gold                                      */
+/* ------------------------------------------------------------------ */
+.light {
+  color-scheme: light;
+
+  --midnight-well: #FBF8F1;
+  --deep-stratum: #F6F1E6;
+  --upper-stratum: #EFE7D6;
+  --crest-stratum: #E7DCC6;
+  --gold: #A87E1E;
+  --gold-bright: #B8891F;
+  --ledger-text: #26241E;
+  --ledger-text-secondary: #6E695C;
+  --ledger-text-muted: #9A9484;
+  --statement-green: #1C9B4C;
+  --audit-red: #D93028;
+  --inquiry-blue: #2E6BD8;
+  --statement-teal: #0B7F76;
+  --warning-amber: #B0700A;
+  --authority-purple: #6D3DE8;
+
+  --background: #FBF8F1;
+  --foreground: #26241E;
+  --card: #F6F1E6;
+  --card-foreground: #26241E;
+  --popover: #F6F1E6;
+  --popover-foreground: #26241E;
+  --primary: #A87E1E;
+  --primary-foreground: #FBF8F1;
+  --secondary: #EFE7D6;
+  --secondary-foreground: #26241E;
+  --muted: #EFE7D6;
+  --muted-foreground: #6E695C;
+  --accent: #E7DCC6;
+  --accent-foreground: #26241E;
+  --destructive: #D93028;
+  --border: rgba(38,36,30,0.1);
+  --input: rgba(38,36,30,0.1);
+  --ring: rgba(168,126,30,0.35);
+  --sidebar: #F6F1E6;
+  --sidebar-foreground: #26241E;
+  --sidebar-primary: #A87E1E;
+  --sidebar-primary-foreground: #FBF8F1;
+  --sidebar-accent: rgba(38,36,30,0.06);
+  --sidebar-accent-foreground: #26241E;
+  --sidebar-border: rgba(38,36,30,0.1);
+  --sidebar-ring: rgba(168,126,30,0.35);
+  --chart-1: #A87E1E;
+  --chart-2: #1C9B4C;
+  --chart-3: #2E6BD8;
+  --chart-4: #6D3DE8;
+  --chart-5: #B0700A;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -107,8 +178,8 @@ html {
     font-family: "DM Sans", sans-serif;
   }
   ::selection {
-    background: rgba(212,168,67,0.25);
-    color: #E0E6F4;
+    background: color-mix(in srgb, var(--gold) 25%, transparent);
+    color: var(--ledger-text);
   }
 }
 
@@ -120,11 +191,11 @@ html {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(212,168,67,0.2);
+  background: color-mix(in srgb, var(--gold) 20%, transparent);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(212,168,67,0.4);
+  background: color-mix(in srgb, var(--gold) 40%, transparent);
 }
 
 @keyframes fade-in {
