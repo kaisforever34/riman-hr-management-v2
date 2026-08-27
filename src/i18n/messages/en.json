@@ -39,7 +39,8 @@
     "openMenu": "Open navigation menu",
     "closeMenu": "Close navigation menu",
     "expandSidebar": "Expand sidebar",
-    "collapseSidebar": "Collapse sidebar"
+    "collapseSidebar": "Collapse sidebar",
+    "overtime": "Overtime"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1072,5 +1073,35 @@
     "title": "Something went wrong",
     "description": "An unexpected error occurred. Please try again.",
     "retry": "Try again"
+  },
+  "overtime": {
+    "title": "Overtime Management",
+    "subtitle": "Review and manage overtime records",
+    "addOvertime": "Add Overtime",
+    "employee": "Employee",
+    "selectEmployee": "Select employee",
+    "department": "Department",
+    "date": "Date",
+    "minutes": "Minutes",
+    "hours": "Hours",
+    "reason": "Reason",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "actions": "Actions",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noRecords": "No overtime records",
+    "submitSuccess": "Overtime submitted successfully",
+    "approved": "Overtime approved",
+    "rejected": "Overtime rejected",
+    "filter": {
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
   }
 }

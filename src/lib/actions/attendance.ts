@@ -130,9 +130,6 @@ export async function submitOvertime(formData: FormData) {
   const session = await auth()
   if (!session?.user?.id) return { error: await serverError('unauthorized') }
 
-  const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
-  if (!employee) return { error: await serverError('employeeRecordNotFound') }
-
   if (!isApprover(session.user.role)) {
     return { error: await serverError('unauthorized') }
   }
@@ -140,7 +137,11 @@ export async function submitOvertime(formData: FormData) {
   const parsed = submitOvertimeSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: await serverError('invalidInput'), fieldErrors: parsed.error.flatten().fieldErrors }
 
-  const { date, minutes, reason } = parsed.data
+  const { employeeId, date, minutes, reason } = parsed.data
+
+  const employee = await db.employee.findUnique({ where: { id: employeeId } })
+  if (!employee) return { error: await serverError('employeeRecordNotFound') }
+
   const overtimeDate = new Date(date)
 
   try {

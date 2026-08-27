@@ -39,7 +39,8 @@
     "openMenu": "فتح قائمة التنقل",
     "closeMenu": "إغلاق قائمة التنقل",
     "expandSidebar": "توسيع الشريط الجانبي",
-    "collapseSidebar": "طي الشريط الجانبي"
+    "collapseSidebar": "طي الشريط الجانبي",
+    "overtime": "العمل الإضافي"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -1072,5 +1073,35 @@
     "title": "حدث خطأ ما",
     "description": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
     "retry": "حاول مجدداً"
+  },
+  "overtime": {
+    "title": "إدارة العمل الإضافي",
+    "subtitle": "مراجعة وإدارة سجلات العمل الإضافي",
+    "addOvertime": "إضافة عمل إضافي",
+    "employee": "الموظف",
+    "selectEmployee": "اختر الموظف",
+    "department": "القسم",
+    "date": "التاريخ",
+    "minutes": "الدقائق",
+    "hours": "الساعات",
+    "reason": "السبب",
+    "status": {
+      "pending": "قيد الانتظار",
+      "approved": "معتمد",
+      "rejected": "مرفوض"
+    },
+    "actions": "إجراءات",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "noRecords": "لا توجد سجلات عمل إضافي",
+    "submitSuccess": "تم تقديم العمل الإضافي بنجاح",
+    "approved": "تمت الموافقة على العمل الإضافي",
+    "rejected": "تم رفض العمل الإضافي",
+    "filter": {
+      "all": "الكل",
+      "pending": "قيد الانتظار",
+      "approved": "معتمد",
+      "rejected": "مرفوض"
+    }
   }
 }
