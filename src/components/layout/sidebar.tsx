@@ -131,6 +131,20 @@ export default function Sidebar({ role }: { role: string }) {
           {!collapsed && <span>{t('signOut')}</span>}
         </button>
       </div>
+
+      {/* Signature — always visible at sidebar bottom */}
+      <div className={cn(
+        "px-3 py-2.5 border-t border-sidebar-border",
+        collapsed ? "text-center" : "flex items-center gap-2"
+      )}>
+        {collapsed ? (
+          <span className="text-[10px] font-bold text-gold leading-none" title="Powered by KAIS">K</span>
+        ) : (
+          <span className="text-[10.5px] leading-none text-ledger-text-muted">
+            Powered by <span className="font-semibold text-gold">KAIS</span>
+          </span>
+        )}
+      </div>
     </>
   )
 
