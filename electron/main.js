@@ -3,6 +3,10 @@ const path = require('path')
 const { spawn } = require('child_process')
 const fs = require('fs')
 
+// Force a stable userData location so the packaged app always reads the same
+// database, regardless of the package.json "name" Electron resolves.
+app.setPath('userData', path.join(app.getPath('appData'), 'Riman HR Management'))
+
 const PORT = 3999
 const HOST = '127.0.0.1'
 let mainWindow = null
