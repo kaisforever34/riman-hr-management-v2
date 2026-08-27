@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 import { manualCheckInSchema, managerOverrideSchema } from '@/lib/validations/attendance'
 import { submitOvertimeSchema, approveOvertimeSchema } from '@/lib/validations/leave'
 import { auth } from '@/lib/auth'
-import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes, getGracePeriodMinutes, getOvertimeMinutes, getAutoClockoutTime, WORK_START_HOUR, WORK_START_MINUTE, WORK_END_HOUR, WORK_END_MINUTE } from '@/lib/schedule'
+import { getTodayUaeDate, isWithinSchedule, getEarlyLeaveMinutes, getGracePeriodMinutes, getOvertimeMinutes, getAutoClockoutTime, getWorkSchedule } from '@/lib/schedule'
 import { revalidatePath } from 'next/cache'
 import type { AttendanceStatus, OvertimeStatus } from '@/lib/types'
 import { logAudit } from '@/lib/audit'
@@ -28,7 +28,8 @@ export async function checkIn(employeeId?: string) {
   const today = getTodayUaeDate()
   const now = new Date()
   const gracePeriod = await getGracePeriodMinutes()
-  const { isLate, lateMinutes } = isWithinSchedule(now, gracePeriod)
+  const workSchedule = await getWorkSchedule()
+  const { isLate, lateMinutes } = isWithinSchedule(now, gracePeriod, workSchedule)
 
   const data = {
     checkIn: now,
@@ -78,7 +79,8 @@ export async function manualCheckIn(formData: FormData) {
 
   const today = getTodayUaeDate()
   const gracePeriod = await getGracePeriodMinutes()
-  const { isLate, lateMinutes } = isWithinSchedule(checkInTime, gracePeriod)
+  const workSchedule = await getWorkSchedule()
+  const { isLate, lateMinutes } = isWithinSchedule(checkInTime, gracePeriod, workSchedule)
 
   const data = {
     checkIn: checkInTime,
@@ -127,8 +129,9 @@ export async function checkOut(employeeId?: string) {
   if (record?.checkOut) return { error: await serverError('alreadyCheckedOut') }
 
   const now = new Date()
-  const earlyLeaveMinutes = getEarlyLeaveMinutes(now)
-  const overtimeMinutes = getOvertimeMinutes(now)
+  const workSchedule = await getWorkSchedule()
+  const earlyLeaveMinutes = getEarlyLeaveMinutes(now, workSchedule)
+  const overtimeMinutes = getOvertimeMinutes(now, workSchedule)
 
   const updated = await db.attendanceRecord.updateMany({
     where: { id: record.id, checkOut: null },
@@ -261,6 +264,7 @@ export async function autoClockout() {
   if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
 
   const today = getTodayUaeDate()
+  const workSchedule = await getWorkSchedule()
   const { hour: autoHour, minute: autoMinute } = await getAutoClockoutTime()
   const shiftEnd = new Date(Date.UTC(
     today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(),
@@ -278,7 +282,7 @@ export async function autoClockout() {
 
   let count = 0
   for (const record of records) {
-    const overtimeMinutes = getOvertimeMinutes(shiftEnd)
+    const overtimeMinutes = getOvertimeMinutes(shiftEnd, workSchedule)
     await db.attendanceRecord.update({
       where: { id: record.id },
       data: {
@@ -321,14 +325,16 @@ export async function managerOverrideAttendance(formData: FormData) {
 
   if (data.checkIn) {
     const gracePeriod = await getGracePeriodMinutes()
-    const { isLate, lateMinutes } = isWithinSchedule(new Date(data.checkIn), gracePeriod)
+    const workSchedule = await getWorkSchedule()
+    const { isLate, lateMinutes } = isWithinSchedule(new Date(data.checkIn), gracePeriod, workSchedule)
     updateData.status = data.status || ((isLate ? 'LATE' : 'PRESENT') as AttendanceStatus)
     updateData.lateMinutes = lateMinutes
     updateData.graceMinutes = gracePeriod
   }
 
   if (data.checkOut) {
-    const overtimeMinutes = getOvertimeMinutes(new Date(data.checkOut))
+    const workSchedule = await getWorkSchedule()
+    const overtimeMinutes = getOvertimeMinutes(new Date(data.checkOut), workSchedule)
     // Preserve explicit overtimeMinutes (including 0) from the manager's override;
     // only fall back to calculated if the field was not provided.
     if (data.overtimeMinutes === undefined) {
@@ -374,8 +380,9 @@ export async function markAbsent(employeeIds: string[], date?: string) {
   if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
 
   const targetDate = date ? new Date(date) : getTodayUaeDate()
-  const shiftStart = `${String(WORK_START_HOUR).padStart(2, '0')}:${String(WORK_START_MINUTE).padStart(2, '0')}`
-  const shiftEnd = `${String(WORK_END_HOUR).padStart(2, '0')}:${String(WORK_END_MINUTE).padStart(2, '0')}`
+  const workSchedule = await getWorkSchedule()
+  const shiftStart = `${String(workSchedule.startHour).padStart(2, '0')}:${String(workSchedule.startMinute).padStart(2, '0')}`
+  const shiftEnd = `${String(workSchedule.endHour).padStart(2, '0')}:${String(workSchedule.endMinute).padStart(2, '0')}`
   const note = `Auto-marked absent. Expected shift: ${shiftStart}-${shiftEnd}`
 
   const results = await Promise.all(

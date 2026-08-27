@@ -1193,7 +1193,12 @@
     "maxConsecutive": "Max Consecutive Leave Days",
     "save": "Save Settings",
     "saving": "Saving...",
-    "saved": "Settings saved successfully"
+    "saved": "Settings saved successfully",
+    "workShift": "Work Shift",
+    "workStart": "Start Time",
+    "workEnd": "End Time",
+    "breakStart": "Break Start",
+    "breakEnd": "Break End"
   },
   "terminations": {
     "title": "Terminations & EOSB History",
