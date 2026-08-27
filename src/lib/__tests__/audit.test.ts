@@ -12,7 +12,7 @@ const { mockSession, mockDb, mockRedirect } = vi.hoisted(() => {
     notification: { createMany: vi.fn(), create: vi.fn() },
     payrollPeriod: { findUnique: vi.fn(), create: vi.fn() },
     payslip: { findMany: vi.fn(), update: vi.fn(), createMany: vi.fn(), aggregate: vi.fn() },
-    attendanceRecord: { groupBy: vi.fn().mockResolvedValue([]), findMany: vi.fn().mockResolvedValue([]), update: vi.fn(), upsert: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
+    attendanceRecord: { groupBy: vi.fn().mockResolvedValue([]), findMany: vi.fn().mockResolvedValue([]), findUnique: vi.fn(), update: vi.fn(), upsert: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
     overtimeRecord: { findMany: vi.fn().mockResolvedValue([]), create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
     eosbRecord: { create: vi.fn().mockResolvedValue({ id: 'eosb1' }) },
     appSetting: { findUnique: vi.fn() },

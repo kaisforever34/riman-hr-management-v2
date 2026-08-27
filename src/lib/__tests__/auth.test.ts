@@ -19,6 +19,7 @@ vi.mock('next-auth', () => ({
 vi.mock('@/lib/db', () => ({ db: mockDb }))
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn(() => ({ ok: true })),
+  recordFailedAttempt: vi.fn(),
   resetRateLimit: vi.fn(),
 }))
 vi.mock('bcryptjs', () => ({ default: { compare: vi.fn() }, compare: vi.fn() }))

@@ -3,7 +3,7 @@
  *
  * Run with: npx vitest run src/lib/__tests__/audit-bugs.test.ts
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { computeEosb } from '@/lib/eosb'
 import { getPeriodStartForDate, getPeriodEndForStart } from '@/lib/queries/leave'
 import { isWithinSchedule } from '@/lib/schedule'

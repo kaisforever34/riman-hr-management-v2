@@ -9,7 +9,7 @@ import { KPICard, Badge } from '@/components/shared'
 import { buttonVariants } from '@/components/ui/button'
 import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 
 /* ------------------------------------------------------------------ */
@@ -20,24 +20,46 @@ function cssVar(name: string, fallback: string) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
 }
 
-function useChartColors() {
-  const { resolvedTheme } = useTheme()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => ({
-    gold:        cssVar('--gold',        '#D4A843'),
-    text:        cssVar('--ledger-text', '#E0E6F4'),
-    textSub:     cssVar('--ledger-text-secondary', '#8B93A8'),
-    textMuted:   cssVar('--ledger-text-muted', '#4A5168'),
-    green:       cssVar('--statement-green', '#22C55E'),
-    red:         cssVar('--audit-red',  '#EF4444'),
-    blue:        cssVar('--inquiry-blue', '#4B8BF0'),
-    purple:      cssVar('--authority-purple', '#8B5CF6'),
-    teal:        cssVar('--statement-teal', '#0FC8BA'),
-    amber:       cssVar('--warning-amber', '#F59E0B'),
-  }), [resolvedTheme])
+const FALLBACK_CHART_COLORS = {
+  gold:      '#D4A843',
+  text:      '#E0E6F4',
+  textSub:   '#8B93A8',
+  textMuted: '#4A5168',
+  green:     '#22C55E',
+  red:       '#EF4444',
+  blue:      '#4B8BF0',
+  purple:    '#8B5CF6',
+  teal:      '#0FC8BA',
+  amber:     '#F59E0B',
+  grid:      'rgba(255,255,255,0.065)',
 }
 
-function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { name: string; dataKey?: string; value: number; color?: string }[]; label?: string; colors: ReturnType<typeof useChartColors> }) {
+function readChartColors() {
+  return {
+    gold:      cssVar('--gold',                    FALLBACK_CHART_COLORS.gold),
+    text:      cssVar('--ledger-text',             FALLBACK_CHART_COLORS.text),
+    textSub:   cssVar('--ledger-text-secondary',   FALLBACK_CHART_COLORS.textSub),
+    textMuted: cssVar('--ledger-text-muted',       FALLBACK_CHART_COLORS.textMuted),
+    green:     cssVar('--statement-green',         FALLBACK_CHART_COLORS.green),
+    red:       cssVar('--audit-red',               FALLBACK_CHART_COLORS.red),
+    blue:      cssVar('--inquiry-blue',            FALLBACK_CHART_COLORS.blue),
+    purple:    cssVar('--authority-purple',        FALLBACK_CHART_COLORS.purple),
+    teal:      cssVar('--statement-teal',          FALLBACK_CHART_COLORS.teal),
+    amber:     cssVar('--warning-amber',           FALLBACK_CHART_COLORS.amber),
+    grid:      cssVar('--border',                  FALLBACK_CHART_COLORS.grid),
+  }
+}
+
+function useChartColors() {
+  const { resolvedTheme } = useTheme()
+  const [colors, setColors] = useState(FALLBACK_CHART_COLORS)
+  useEffect(() => {
+    setColors(readChartColors())
+  }, [resolvedTheme])
+  return colors
+}
+
+function ChartTooltip({ active, payload, label, colors }: { active?: boolean; payload?: { name: string; dataKey?: string; value: number; color?: string }[]; label?: string; colors: ReturnType<typeof useChartColors> }) {
   if (!active || !payload?.length) return null
   return (
     <div className="rounded-lg bg-accent border border-border px-3.5 py-2.5">
@@ -158,7 +180,7 @@ export default function DashboardContent({
                   <stop offset="95%" stopColor={C.gold} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={cssVar('--border', 'rgba(255,255,255,0.065)')} />
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
               <XAxis dataKey="monthKey" tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v / 1000}K`} />
               <Tooltip content={<ChartTooltip colors={C} />} />
@@ -177,7 +199,7 @@ export default function DashboardContent({
           </div>
           <ResponsiveContainer width="100%" height={175}>
             <BarChart data={weeklyAttendance} barGap={2}>
-              <CartesianGrid strokeDasharray="3 3" stroke={cssVar('--border', 'rgba(255,255,255,0.065)')} />
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
               <XAxis dataKey="dayIndex" tickFormatter={(d: number) => dayFormatter.format(new Date(2024, 0, 7 + d))} tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTooltip colors={C} />} />

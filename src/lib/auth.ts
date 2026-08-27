@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 import { authConfig } from './auth.config'
 import { db } from './db'
 import { signInSchema } from './validations/auth'
-import { checkRateLimit, resetRateLimit } from './rate-limit'
+import { checkRateLimit, recordFailedAttempt, resetRateLimit } from './rate-limit'
 import { env } from './env'
 import type { Role } from '@/lib/types'
 
@@ -40,25 +40,28 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
     Credentials({
       async authorize(credentials) {
         const rlEmail = typeof credentials?.email === 'string' ? credentials.email.toLowerCase() : ''
-        if (rlEmail) {
-          const rl = checkRateLimit(`signin:${rlEmail}`)
-          if (!rl.ok) return null
+        const rlKey = rlEmail ? `signin:${rlEmail}` : ''
+        if (rlKey && !checkRateLimit(rlKey).ok) return null
+
+        const fail = () => {
+          if (rlKey) recordFailedAttempt(rlKey)
+          return null
         }
 
         const parsed = signInSchema.safeParse(credentials)
-        if (!parsed.success) return null
+        if (!parsed.success) return fail()
 
         const { email, password } = parsed.data
         const user = await db.user.findUnique({ where: { email } })
 
-        if (!user || !user.isActive) return null
+        if (!user || !user.isActive) return fail()
 
         const passwordsMatch = await bcrypt.compare(password, user.passwordHash)
-        if (!passwordsMatch) return null
+        if (!passwordsMatch) return fail()
 
-        if (user.role === 'EMPLOYEE') return null
+        if (user.role === 'EMPLOYEE') return fail()
 
-        if (rlEmail) resetRateLimit(`signin:${rlEmail}`)
+        if (rlKey) resetRateLimit(rlKey)
 
         const employee = await db.employee.findUnique({ where: { userId: user.id } })
         const name = employee ? `${employee.firstName} ${employee.lastName}` : user.email.split('@')[0]

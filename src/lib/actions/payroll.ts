@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation'
 import { logAudit } from '@/lib/audit'
 import { createPayrollPeriodSchema } from '@/lib/validations/payroll'
 import { getAppSetting, getActiveEmployeesForPayroll } from '@/lib/queries/payroll'
-import { startOfMonth, endOfMonth, getDaysInMonth } from 'date-fns'
+import { getDaysInMonth } from 'date-fns'
 
 const DAILY_RATE_DIVISOR = 30
 const HOURS_PER_WORKDAY = 9
