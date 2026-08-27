@@ -40,7 +40,9 @@
     "closeMenu": "Close navigation menu",
     "expandSidebar": "Expand sidebar",
     "collapseSidebar": "Collapse sidebar",
-    "overtime": "Overtime"
+    "overtime": "Overtime",
+    "terminations": "Terminations",
+    "settings": "Settings"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1103,5 +1105,34 @@
       "approved": "Approved",
       "rejected": "Rejected"
     }
+  },
+  "settings": {
+    "title": "Compliance Settings",
+    "subtitle": "Configure HR labor-law compliance parameters (HR Admin only)",
+    "payrollSection": "Payroll & EOSB",
+    "leaveSection": "Leave Rules",
+    "attendanceSection": "Attendance & Clocking",
+    "gpssaEmployee": "GPSSA Employee Rate (%)",
+    "gpssaEmployer": "GPSSA Employer Rate (%)",
+    "eosbCapMonths": "EOSB Cap (months)",
+    "gracePeriod": "Grace Period (minutes)",
+    "autoClockoutHour": "Auto Clock-out Hour",
+    "autoClockoutMinute": "Auto Clock-out Minute",
+    "maxCarryover": "Max Carryover Days",
+    "maxConsecutive": "Max Consecutive Leave Days",
+    "save": "Save Settings",
+    "saving": "Saving...",
+    "saved": "Settings saved successfully"
+  },
+  "terminations": {
+    "title": "Terminations & EOSB History",
+    "subtitle": "Record of terminated employees and their end-of-service benefits",
+    "employee": "Employee",
+    "department": "Department",
+    "terminationDate": "Termination Date",
+    "yearsOfService": "Years of Service",
+    "lastSalary": "Last Salary",
+    "eosb": "EOSB Amount",
+    "noRecords": "No terminations recorded yet"
   }
 }

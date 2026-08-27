@@ -339,6 +339,7 @@ async function main() {
       { key: 'AUTO_CLOCKOUT_MINUTE', value: '0' },
       { key: 'MAX_CARRYOVER_DAYS', value: '15' },
       { key: 'MAX_CONSECUTIVE_LEAVE_DAYS', value: '30' },
+      { key: 'EOSB_CAP_MONTHS', value: '24' },
     ]
 
     for (const setting of newAppSettings) {

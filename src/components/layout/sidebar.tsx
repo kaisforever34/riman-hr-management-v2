@@ -23,6 +23,8 @@ import {
   Menu,
   X,
   Clock,
+  UserX,
+  Settings,
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { useState, useEffect } from 'react'
@@ -64,6 +66,8 @@ export default function Sidebar({ role }: { role: string }) {
     { href: `/${locale}/manager/expenses`, icon: Receipt, label: 'expenses', show: isAdmin },
     { href: `/${locale}/manager/holidays`, icon: CalendarRange, label: 'holidays', show: isAdmin },
     { href: `/${locale}/manager/audit-log`, icon: ListChecks, label: 'auditLog', show: isHrAdmin },
+    { href: `/${locale}/manager/terminations`, icon: UserX, label: 'terminations', show: isHrAdmin },
+    { href: `/${locale}/manager/settings`, icon: Settings, label: 'settings', show: isHrAdmin },
 
   ].filter((item) => item.show)
 

@@ -12,6 +12,7 @@ import type { Role } from '@/lib/types'
 import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
 import { isUniqueConstraintError } from '@/lib/db-errors'
+import { getAppSetting } from '@/lib/queries/payroll'
 
 export async function createEmployee(formData: FormData) {
   const session = await auth()
@@ -494,6 +495,9 @@ export async function terminateEmployee(employeeId: string, terminationDate: str
   const monthlySalary = employee.basicSalary || employee.salary
   const dailySalary = monthlySalary / 30
 
+  const eosbCapMonths = await getAppSetting('EOSB_CAP_MONTHS')
+  const maxEosbMonths = eosbCapMonths ? parseFloat(eosbCapMonths) : 24
+
   let eosbAmount = 0
   if (yearsOfService > 0) {
     if (yearsOfService <= 5) {
@@ -502,7 +506,7 @@ export async function terminateEmployee(employeeId: string, terminationDate: str
       const firstFiveYears = dailySalary * 21 * 5
       const remainingYears = yearsOfService - 5
       const additionalDays = dailySalary * 30 * remainingYears
-      const maxEosb = monthlySalary * 24
+      const maxEosb = monthlySalary * maxEosbMonths
       eosbAmount = Math.min(firstFiveYears + additionalDays, maxEosb)
     }
   }
@@ -544,6 +548,7 @@ export async function terminateEmployee(employeeId: string, terminationDate: str
   revalidatePath('/employees')
   revalidatePath(`/employees/${employeeId}`)
   revalidatePath('/payroll')
+  revalidatePath('/manager/terminations')
 
   return { success: true, eosbAmount, yearsOfService: Math.round(yearsOfService * 100) / 100 }
 }

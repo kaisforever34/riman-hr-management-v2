@@ -414,7 +414,9 @@ export async function calculateEOSB(employeeId: string) {
 
   let eosbAmount = totalDays * dailyRate
 
-  const twoYearSalaryCap = lastSalary * 24
+  const eosbCapSetting = await getAppSetting('EOSB_CAP_MONTHS')
+  const capMonths = eosbCapSetting ? parseFloat(eosbCapSetting) : 24
+  const twoYearSalaryCap = lastSalary * capMonths
   if (eosbAmount > twoYearSalaryCap) {
     eosbAmount = twoYearSalaryCap
   }

@@ -40,7 +40,9 @@
     "closeMenu": "إغلاق قائمة التنقل",
     "expandSidebar": "توسيع الشريط الجانبي",
     "collapseSidebar": "طي الشريط الجانبي",
-    "overtime": "العمل الإضافي"
+    "overtime": "العمل الإضافي",
+    "terminations": "إنهاء الخدمة",
+    "settings": "الإعدادات"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -1103,5 +1105,34 @@
       "approved": "معتمد",
       "rejected": "مرفوض"
     }
+  },
+  "settings": {
+    "title": "إعدادات الامتثال",
+    "subtitle": "تكوين معايير الامتثال لقانون العمل (الإدارة فقط)",
+    "payrollSection": "الرواتب ومكافأة نهاية الخدمة",
+    "leaveSection": "قواعد الإجازات",
+    "attendanceSection": "الحضور والتسجيل",
+    "gpssaEmployee": "نسبة التأمينات (الموظف ٪)",
+    "gpssaEmployer": "نسبة التأمينات (الشركة ٪)",
+    "eosbCapMonths": "سقف مكافأة نهاية الخدمة (شهور)",
+    "gracePeriod": "فترة السماح (دقائق)",
+    "autoClockoutHour": "ساعة إنهاء تسجيل الحضور",
+    "autoClockoutMinute": "دقيقة إنهاء تسجيل الحضور",
+    "maxCarryover": "الحد الأقصى للإجازات المنقولة",
+    "maxConsecutive": "الحد الأقصى للأيام المتتالية",
+    "save": "حفظ الإعدادات",
+    "saving": "جارٍ الحفظ...",
+    "saved": "تم حفظ الإعدادات بنجاح"
+  },
+  "terminations": {
+    "title": "إنهاء الخدمة وسجل مكافأة نهاية الخدمة",
+    "subtitle": "سجل الموظفين المنتهية خدماتهم ومكافآت نهاية الخدمة",
+    "employee": "الموظف",
+    "department": "القسم",
+    "terminationDate": "تاريخ إنهاء الخدمة",
+    "yearsOfService": "سنوات الخدمة",
+    "lastSalary": "آخر راتب",
+    "eosb": "مبلغ مكافأة نهاية الخدمة",
+    "noRecords": "لا توجد سجلات إنهاء خدمة"
   }
 }
