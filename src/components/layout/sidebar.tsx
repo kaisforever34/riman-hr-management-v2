@@ -51,6 +51,8 @@ export default function Sidebar({ role }: { role: string }) {
     { href: `/${locale}/directory`, icon: BookUser, label: 'directory', show: true },
     { href: `/${locale}/notifications`, icon: Bell, label: 'notifications', show: true },
     { href: `/${locale}/employees`, icon: Users, label: 'employees', show: isAdmin },
+    { href: `/${locale}/attendance`, icon: Clock, label: 'myAttendance', show: isAdmin },
+    { href: `/${locale}/leave`, icon: CalendarRange, label: 'myLeave', show: isAdmin },
     { href: `/${locale}/manager/onboarding`, icon: DoorOpen, label: 'onboarding', show: isAdmin },
 
     { href: `/${locale}/manager/leaves`, icon: CalendarRange, label: 'leaveRequests', show: isAdmin },

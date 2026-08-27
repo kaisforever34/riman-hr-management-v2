@@ -12,11 +12,17 @@ import { logAudit } from '@/lib/audit'
 import { isUniqueConstraintError } from '@/lib/db-errors'
 import { isApprover } from '@/lib/roles'
 
-export async function checkIn() {
+export async function checkIn(employeeId?: string) {
   const session = await auth()
   if (!session?.user?.id) return { error: await serverError('unauthorized') }
 
-  const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
+  let employee
+  if (employeeId) {
+    if (!isApprover(session.user.role)) return { error: await serverError('unauthorized') }
+    employee = await db.employee.findUnique({ where: { id: employeeId } })
+  } else {
+    employee = await db.employee.findUnique({ where: { userId: session.user.id } })
+  }
   if (!employee) return { error: await serverError('employeeRecordNotFound') }
 
   const today = getTodayUaeDate()
@@ -53,7 +59,14 @@ export async function manualCheckIn(formData: FormData) {
   const session = await auth()
   if (!session?.user?.id) return { error: await serverError('unauthorized') }
 
-  const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
+  const onBehalfId = formData.get('employeeId') as string | null
+  let employee
+  if (onBehalfId) {
+    if (!isApprover(session.user.role)) return { error: await serverError('unauthorized') }
+    employee = await db.employee.findUnique({ where: { id: onBehalfId } })
+  } else {
+    employee = await db.employee.findUnique({ where: { userId: session.user.id } })
+  }
   if (!employee) return { error: await serverError('employeeRecordNotFound') }
 
   const parsed = manualCheckInSchema.safeParse(Object.fromEntries(formData))
@@ -93,11 +106,17 @@ export async function manualCheckIn(formData: FormData) {
   revalidatePath('/attendance')
 }
 
-export async function checkOut() {
+export async function checkOut(employeeId?: string) {
   const session = await auth()
   if (!session?.user?.id) return { error: await serverError('unauthorized') }
 
-  const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
+  let employee
+  if (employeeId) {
+    if (!isApprover(session.user.role)) return { error: await serverError('unauthorized') }
+    employee = await db.employee.findUnique({ where: { id: employeeId } })
+  } else {
+    employee = await db.employee.findUnique({ where: { userId: session.user.id } })
+  }
   if (!employee) return { error: await serverError('employeeRecordNotFound') }
 
   const today = getTodayUaeDate()

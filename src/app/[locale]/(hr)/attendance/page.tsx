@@ -1,16 +1,41 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { getTodayUaeDate } from '@/lib/schedule'
-import { getTodayRecord, getEmployeeAttendanceForMonth } from '@/lib/queries/attendance'
+import { getTodayRecord, getEmployeeAttendanceForMonth, getAllActiveEmployees } from '@/lib/queries/attendance'
 import { AttendanceClient } from './attendance-client'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AttendancePage() {
+export default async function AttendancePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ employee?: string }>
+}) {
   const session = await auth()
   if (!session?.user?.id) return null
 
-  const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
+  const isApprover = session.user.role === 'HR_ADMIN' || session.user.role === 'MANAGER'
+  const { employee: employeeParam } = await searchParams
+
+  let employee = null
+  let employees: { id: string; firstName: string; lastName: string }[] = []
+
+  if (isApprover) {
+    employees = (await getAllActiveEmployees()).map(e => ({
+      id: e.id,
+      firstName: e.firstName,
+      lastName: e.lastName,
+    }))
+    if (employeeParam) {
+      employee = await db.employee.findUnique({ where: { id: employeeParam } })
+    }
+    if (!employee && employees.length > 0) {
+      employee = await db.employee.findUnique({ where: { id: employees[0].id } })
+    }
+  } else {
+    employee = await db.employee.findUnique({ where: { userId: session.user.id } })
+  }
+
   if (!employee) return null
 
   const today = getTodayUaeDate()
@@ -22,6 +47,8 @@ export default async function AttendancePage() {
   return (
     <AttendanceClient
       employeeId={employee.id}
+      employees={employees}
+      isApprover={isApprover}
       todayRecord={todayRecord ? {
         ...todayRecord,
         checkIn: todayRecord.checkIn?.toISOString() ?? null,

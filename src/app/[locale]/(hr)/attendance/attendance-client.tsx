@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
+import { useRouter, usePathname } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { checkIn, checkOut, manualCheckIn } from '@/lib/actions/attendance'
@@ -26,30 +27,35 @@ interface RecordData {
 
 interface Props {
   employeeId: string
+  employees: { id: string; firstName: string; lastName: string }[]
+  isApprover: boolean
   todayRecord: RecordData | null
   monthlyRecords: RecordData[]
   serverNow: string
 }
 
-export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Props) {
+export function AttendanceClient({ employeeId, employees, isApprover, todayRecord, monthlyRecords, serverNow }: Props) {
   const t = useTranslations('attendance')
+  const router = useRouter()
+  const pathname = usePathname()
   const [loading, setLoading] = useState('')
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [showManual, setShowManual] = useState(false)
   const [manualTime, setManualTime] = useState('')
   const [manualNote, setManualNote] = useState('')
 
-  const doAction = useCallback(async (action: () => Promise<{ error?: string } | undefined>, name: string) => {
+  const doAction = useCallback(async (action: (id?: string) => Promise<{ error?: string } | undefined>, name: string) => {
     setLoading(name)
     setMessage(null)
-    const result = await action()
+    const result = await action(employeeId)
     if (result?.error) {
       setMessage({ type: 'error', text: result.error })
     } else {
       setMessage({ type: 'success', text: name === 'checkIn' ? t('checkInSuccess') : t('checkOutSuccess') })
+      router.refresh()
     }
     setLoading('')
-  }, [t])
+  }, [t, employeeId, router])
 
   const handleManualCheckIn = async () => {
     if (!manualTime || !manualNote) return
@@ -58,14 +64,20 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
     const form = new FormData()
     form.set('checkIn', manualTime)
     form.set('note', manualNote)
+    form.set('employeeId', employeeId)
     const result = await manualCheckIn(form)
     if (result?.error) {
       setMessage({ type: 'error', text: result.error })
     } else {
       setMessage({ type: 'success', text: t('checkInSuccess') })
       setShowManual(false)
+      router.refresh()
     }
     setLoading('')
+  }
+
+  function selectEmployee(id: string) {
+    router.push(`${pathname}?employee=${id}`)
   }
 
   const now = new Date(serverNow)
@@ -85,8 +97,22 @@ export function AttendanceClient({ todayRecord, monthlyRecords, serverNow }: Pro
 
   return (
     <div className="fi space-y-6">
-      <div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="font-syne text-2xl font-bold text-[#E0E6F4] tracking-tight">{t('title')}</h1>
+        {isApprover && employees.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] text-[#8B93A8]">{t('selectEmployee')}</span>
+            <select
+              className="rounded-lg border border-[rgba(255,255,255,0.065)] bg-[#0D1028] px-3 py-2 text-[13px] text-[#E0E6F4] outline-none focus-visible:border-[rgba(212,168,67,0.4)]"
+              value={employeeId}
+              onChange={e => selectEmployee(e.target.value)}
+            >
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {message && (
