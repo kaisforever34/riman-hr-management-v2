@@ -152,6 +152,26 @@ export async function returnAsset(assignmentId: string, assetId: string) {
   return { success: true }
 }
 
+export async function deleteAsset(assetId: string) {
+  const session = await auth()
+  if (!session?.user || session.user.role !== 'HR_ADMIN') {
+    return { error: await serverError('unauthorized') }
+  }
+
+  const asset = await db.asset.findUnique({
+    where: { id: assetId },
+    include: { assignments: { where: { returnedAt: null } } },
+  })
+  if (!asset) return { error: await serverError('invalidRequest') }
+  if (asset.assignments.length > 0) return { error: await serverError('invalidRequest') }
+
+  await db.assetAssignment.deleteMany({ where: { assetId } })
+  await db.asset.delete({ where: { id: assetId } })
+
+  revalidatePath('/manager/assets')
+  return { success: true }
+}
+
 export async function getMyAssets() {
   const session = await auth()
   if (!session?.user) return []

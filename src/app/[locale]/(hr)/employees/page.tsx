@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { DeactivateButton } from './deactivate-button'
+import { ReactivateButton } from './reactivate-button'
 import { ResetPasswordButton } from './reset-password-button'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
@@ -174,6 +175,9 @@ async function EmployeesData(props: {
                         <ResetPasswordButton userId={emp.user.id} />
                         {emp.user.isActive && emp.user.id !== session?.user.id && (
                           <DeactivateButton userId={emp.user.id} />
+                        )}
+                        {!emp.user.isActive && (
+                          <ReactivateButton userId={emp.user.id} />
                         )}
                       </div>
                     </TableCell>

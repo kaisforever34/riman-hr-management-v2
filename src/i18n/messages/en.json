@@ -128,7 +128,10 @@
     "resetPassword": "Reset Password",
     "resetPasswordConfirm": "Reset this user's password? They will be asked to set a new one at next login.",
     "resetPasswordSuccess": "Password reset successfully",
-    "resetPasswordFailed": "Could not reset password"
+    "resetPasswordFailed": "Could not reset password",
+    "reactivate": "Reactivate",
+    "reactivateConfirm": "Reactivate this employee?",
+    "reactivateFailed": "Failed to reactivate"
   },
   "employeeDetail": {
     "personalInfo": "Personal Information",
@@ -170,7 +173,11 @@
     "probationEndDate": "Probation End Date",
     "visaExpiryDate": "Visa Expiry Date",
     "iqamaNumber": "Iqama Number",
-    "iqamaExpiryDate": "Iqama Expiry Date"
+    "iqamaExpiryDate": "Iqama Expiry Date",
+    "terminate": "Terminate",
+    "confirmTerminate": "Confirm Termination",
+    "terminateConfirm": "Terminate this employee? This will calculate their end-of-service benefit and deactivate their account.",
+    "terminateSuccess": "Employee terminated. EOSB recorded."
   },
   "editEmployee": {
     "title": "Edit Employee",
@@ -432,7 +439,9 @@
     },
     "submitLeaveForEmployee": "Submit Leave for Employee",
     "submitSuccess": "Leave submitted successfully",
-    "submit": "Submit"
+    "submit": "Submit",
+    "updated": "Leave request updated",
+    "requestDetails": "Request Details"
   },
   "leaveTypes": {
     "title": "Leave Types",
@@ -443,7 +452,22 @@
     "currentBalance": "Current Balance",
     "setAllocation": "Set Annual Allocation",
     "save": "Save Allocation",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "addLeaveType": "Add Leave Type",
+    "editLeaveType": "Edit Leave Type",
+    "typeName": "Name (EN)",
+    "typeNameAr": "Name (AR)",
+    "defaultDays": "Default Days",
+    "paid": "Paid",
+    "attachment": "Requires Attachment",
+    "statusCol": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "typeCreated": "Leave type created",
+    "typeUpdated": "Leave type updated",
+    "allocationsTitle": "Employee Allocations"
   },
   "holidays": {
     "title": "Holidays",
@@ -566,7 +590,8 @@
     },
     "errors": {
       "overrideFailed": "Failed to update attendance record"
-    }
+    },
+    "selectDate": "Select date"
   },
   "payroll": {
     "title": "Payroll",
@@ -643,7 +668,9 @@
     "gpssaEmployee": "GPSSA (Employee)",
     "gpssaEmployer": "GPSSA (Employer)",
     "eosbAmount": "EOSB",
-    "deductions": "Deductions"
+    "deductions": "Deductions",
+    "editPayslip": "Edit Bonus / Overtime",
+    "payslipUpdated": "Payslip updated"
   },
   "documents": {
     "title": "Documents",
@@ -744,7 +771,9 @@
     },
     "statusValues": {
       "DRAFT": "Draft",
-      "COMPLETED": "Completed"
+      "COMPLETED": "Completed",
+      "SUBMITTED": "Submitted",
+      "APPROVED": "Approved"
     },
     "success": {
       "created": "Review created successfully",
@@ -765,7 +794,10 @@
     "exceeds": "Exceeds Expectations",
     "farExceeds": "Far Exceeds Expectations",
     "submitReview": "Submit Review",
-    "approveReview": "Approve Review"
+    "approveReview": "Approve Review",
+    "submit": "Submit Review",
+    "approve": "Approve Review",
+    "delete": "Delete"
   },
   "surveys": {
     "title": "Surveys",
@@ -855,7 +887,10 @@
       "UNIFORM": "Uniform",
       "OTHER": "Other"
     },
-    "assignedBadge": "Assigned"
+    "assignedBadge": "Assigned",
+    "deleteConfirm": "Delete this asset? This cannot be undone.",
+    "deleted": "Asset deleted",
+    "deleteBlocked": "Cannot delete: asset is currently assigned to an employee"
   },
   "expenses": {
     "title": "Expenses",
@@ -892,7 +927,16 @@
       "MAINTENANCE": "Maintenance",
       "UTILITIES": "Utilities",
       "OTHER": "Other"
-    }
+    },
+    "createExpense": "Add Expense",
+    "employee": "Employee",
+    "selectEmployee": "Select employee",
+    "categoryLabel": "Category",
+    "titleLabel": "Title",
+    "amountLabel": "Amount (AED)",
+    "descriptionLabel": "Description",
+    "created": "Expense created",
+    "deleted": "Expense deleted"
   },
   "analytics": {
     "title": "Analytics",
@@ -971,7 +1015,8 @@
     "overdue": "Overdue",
     "skipped": "Skipped",
     "taskDeadline": "Task Deadline",
-    "accessRevoked": "Access Revoked"
+    "accessRevoked": "Access Revoked",
+    "skip": "Skip"
   },
   "common": {
     "loading": "Loading...",
@@ -988,7 +1033,10 @@
     "reject": "Reject",
     "approval": "Approval",
     "rejectReason": "Rejection Reason",
-    "pending": "Pending"
+    "pending": "Pending",
+    "edit": "Edit",
+    "yes": "Yes",
+    "no": "No"
   },
   "errors": {
     "network": "Connection lost. Check your internet and try again.",

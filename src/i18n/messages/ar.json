@@ -128,7 +128,10 @@
     "resetPassword": "إعادة تعيين كلمة المرور",
     "resetPasswordConfirm": "إعادة تعيين كلمة مرور هذا المستخدم؟ سيُطلب منه تعيين كلمة مرور جديدة عند تسجيل الدخول التالي.",
     "resetPasswordSuccess": "تم إعادة تعيين كلمة المرور بنجاح",
-    "resetPasswordFailed": "تعذّر إعادة تعيين كلمة المرور"
+    "resetPasswordFailed": "تعذّر إعادة تعيين كلمة المرور",
+    "reactivate": "إعادة تفعيل",
+    "reactivateConfirm": "إعادة تفعيل هذا الموظف؟",
+    "reactivateFailed": "فشل إعادة التفعيل"
   },
   "employeeDetail": {
     "personalInfo": "المعلومات الشخصية",
@@ -170,7 +173,11 @@
     "probationEndDate": "تاريخ انتهاء فترة التجربة",
     "visaExpiryDate": "تاريخ انتهاء التأشيرة",
     "iqamaNumber": "رقم الإقامة",
-    "iqamaExpiryDate": "تاريخ انتهاء الإقامة"
+    "iqamaExpiryDate": "تاريخ انتهاء الإقامة",
+    "terminate": "إنهاء الخدمة",
+    "confirmTerminate": "تأكيد إنهاء الخدمة",
+    "terminateConfirm": "إنهاء خدمة هذا الموظف؟ سيتم احتساب مكافأة نهاية الخدمة وتعطيل الحساب.",
+    "terminateSuccess": "تم إنهاء خدمة الموظف وتسجيل مكافأة نهاية الخدمة."
   },
   "employee": {
     "gender": "الجنس",
@@ -432,7 +439,9 @@
     },
     "submitLeaveForEmployee": "تقديم إجازة للموظف",
     "submitSuccess": "تم تقديم الإجازة بنجاح",
-    "submit": "إرسال"
+    "submit": "إرسال",
+    "updated": "تم تحديث طلب الإجازة",
+    "requestDetails": "تفاصيل الطلب"
   },
   "leaveTypes": {
     "title": "أنواع الإجازات",
@@ -443,7 +452,22 @@
     "currentBalance": "الرصيد الحالي",
     "setAllocation": "تحديد الرصيد السنوي",
     "save": "حفظ",
-    "saving": "جاري الحفظ..."
+    "saving": "جاري الحفظ...",
+    "addLeaveType": "إضافة نوع إجازة",
+    "editLeaveType": "تعديل نوع الإجازة",
+    "typeName": "الاسم (إنجليزي)",
+    "typeNameAr": "الاسم (عربي)",
+    "defaultDays": "الأيام الافتراضية",
+    "paid": "مدفوعة",
+    "attachment": "تتطلب مرفق",
+    "statusCol": "الحالة",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "activate": "تفعيل",
+    "deactivate": "تعطيل",
+    "typeCreated": "تم إنشاء نوع الإجازة",
+    "typeUpdated": "تم تحديث نوع الإجازة",
+    "allocationsTitle": "أرصدة الموظفين"
   },
   "holidays": {
     "title": "العطلات الرسمية",
@@ -566,7 +590,8 @@
     },
     "errors": {
       "overrideFailed": "فشل تحديث سجل الحضور"
-    }
+    },
+    "selectDate": "اختر التاريخ"
   },
   "payroll": {
     "title": "الرواتب",
@@ -643,7 +668,9 @@
     "gpssaEmployee": "التأمينات (الموظف)",
     "gpssaEmployer": "التأمينات (الشركة)",
     "eosbAmount": "مكافأة نهاية الخدمة",
-    "deductions": "الخصومات"
+    "deductions": "الخصومات",
+    "editPayslip": "تعديل المكافأة / الإضافي",
+    "payslipUpdated": "تم تحديث قسيمة الراتب"
   },
   "documents": {
     "title": "المستندات",
@@ -744,7 +771,9 @@
     },
     "statusValues": {
       "DRAFT": "مسودة",
-      "COMPLETED": "مكتمل"
+      "COMPLETED": "مكتمل",
+      "SUBMITTED": "مرسل",
+      "APPROVED": "معتمد"
     },
     "success": {
       "created": "تم إنشاء التقييم بنجاح",
@@ -765,7 +794,10 @@
     "selectEmployee": "يرجى اختيار موظف",
     "criteriaNamePlaceholder": "اسم المعيار",
     "saving": "جارٍ الحفظ...",
-    "cancel": "إلغاء"
+    "cancel": "إلغاء",
+    "submit": "إرسال التقييم",
+    "approve": "اعتماد التقييم",
+    "delete": "حذف"
   },
   "surveys": {
     "title": "الاستبيانات",
@@ -855,7 +887,10 @@
       "UNIFORM": "زي رسمي",
       "OTHER": "أخرى"
     },
-    "assignedBadge": "مُسند"
+    "assignedBadge": "مُسند",
+    "deleteConfirm": "حذف هذا الأصل؟ لا يمكن التراجع.",
+    "deleted": "تم حذف الأصل",
+    "deleteBlocked": "لا يمكن الحذف: الأصل معار لموظف حالياً"
   },
   "expenses": {
     "title": "المصروفات",
@@ -892,7 +927,16 @@
       "MAINTENANCE": "صيانة",
       "UTILITIES": "مرافق",
       "OTHER": "أخرى"
-    }
+    },
+    "createExpense": "إضافة مصروف",
+    "employee": "الموظف",
+    "selectEmployee": "اختر الموظف",
+    "categoryLabel": "الفئة",
+    "titleLabel": "العنوان",
+    "amountLabel": "المبلغ (درهم)",
+    "descriptionLabel": "الوصف",
+    "created": "تم إنشاء المصروف",
+    "deleted": "تم حذف المصروف"
   },
   "analytics": {
     "title": "التحليلات",
@@ -971,7 +1015,8 @@
     "overdue": "متأخر",
     "skipped": "تم التخطي",
     "taskDeadline": "الموعد النهائي للمهمة",
-    "accessRevoked": "تم إلغاء الوصول"
+    "accessRevoked": "تم إلغاء الوصول",
+    "skip": "تخطي"
   },
   "common": {
     "loading": "جاري التحميل...",
@@ -988,7 +1033,10 @@
     "reject": "رفض",
     "approval": "الموافقة",
     "rejectReason": "سبب الرفض",
-    "pending": "قيد الانتظار"
+    "pending": "قيد الانتظار",
+    "edit": "تعديل",
+    "yes": "نعم",
+    "no": "لا"
   },
   "errors": {
     "network": "انقطع الاتصال. تحقق من الإنترنت وحاول مرة أخرى.",

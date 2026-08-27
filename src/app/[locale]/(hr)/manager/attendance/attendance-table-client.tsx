@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useRouter, usePathname } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { managerOverrideAttendance } from '@/lib/actions/attendance'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
-import { Pencil } from 'lucide-react'
+import { Pencil, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface EmployeeData {
   id: string
@@ -39,9 +40,23 @@ interface Props {
 
 export function AttendanceTableClient({ employees, records, todayDate }: Props) {
   const t = useTranslations('managerAttendance')
+  const router = useRouter()
+  const pathname = usePathname()
   const [overrideId, setOverrideId] = useState<string | null>(null)
   const [overrideData, setOverrideData] = useState({ checkIn: '', checkOut: '', status: 'PRESENT', note: '' })
   const [message, setMessage] = useState('')
+
+  const selectedDateStr = format(new Date(todayDate), 'yyyy-MM-dd')
+
+  function navigateToDate(dateStr: string) {
+    router.push(`${pathname}?date=${dateStr}`)
+  }
+
+  function shiftDate(days: number) {
+    const d = new Date(todayDate)
+    d.setDate(d.getDate() + days)
+    navigateToDate(format(d, 'yyyy-MM-dd'))
+  }
 
   const recordMap = new Map(records.map(r => [r.employeeId, r]))
 
@@ -56,7 +71,7 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
     setMessage('')
     const form = new FormData()
     form.set('employeeId', employeeId)
-    form.set('date', todayDate)
+    form.set('date', selectedDateStr)
     if (overrideData.checkIn) form.set('checkIn', overrideData.checkIn)
     if (overrideData.checkOut) form.set('checkOut', overrideData.checkOut)
     if (overrideData.status) form.set('status', overrideData.status)
@@ -68,14 +83,31 @@ export function AttendanceTableClient({ employees, records, todayDate }: Props) 
     } else {
       setMessage(t('success.overridden'))
       setOverrideId(null)
+      router.refresh()
     }
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-[#8B93A8]">{t('todayAttendance')}</p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-sm text-[#8B93A8]">{t('todayAttendance')}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => shiftDate(-1)}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <input
+            type="date"
+            className="rounded border bg-[#0D1028] px-3 py-1.5 text-sm"
+            value={selectedDateStr}
+            onChange={e => e.target.value && navigateToDate(e.target.value)}
+          />
+          <Button variant="outline" size="sm" onClick={() => shiftDate(1)}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {message && (

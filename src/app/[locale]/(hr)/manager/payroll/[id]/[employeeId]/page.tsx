@@ -7,6 +7,7 @@ import { format } from 'date-fns'
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
+import { PayslipEditForm } from './payslip-edit-client'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +30,7 @@ export default async function PayslipDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-center justify-between">
         <Link
           href={`/manager/payroll/${id}`}
           className={buttonVariants({ variant: 'ghost', size: 'sm' })}
@@ -37,6 +38,13 @@ export default async function PayslipDetailPage({ params }: { params: Promise<{ 
           <ArrowLeft className="me-2 h-4 w-4" />
           {t('title')}
         </Link>
+        {session.user.role === 'HR_ADMIN' && (
+          <PayslipEditForm
+            payslipId={payslip.id}
+            bonusPay={Number(payslip.bonusPay ?? 0)}
+            overtimePay={Number(payslip.overtimePay ?? 0)}
+          />
+        )}
       </div>
 
       <Card>

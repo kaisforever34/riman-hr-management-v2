@@ -117,7 +117,10 @@ export async function submitSurveyResponses(assignmentId: string, responses: { q
     include: { employee: true },
   })
   if (!assignment) return { error: await serverError('assignmentNotFound') }
-  if (assignment.employee.userId !== session.user.id) return { error: await serverError('notYourSurvey') }
+
+  const isApproverRole = session.user.role === 'HR_ADMIN' || session.user.role === 'MANAGER'
+  const isOwner = assignment.employee.userId === session.user.id
+  if (!isOwner && !isApproverRole) return { error: await serverError('notYourSurvey') }
   if (assignment.status === 'COMPLETED') return { error: await serverError('alreadyCompleted') }
 
   await db.$transaction(async (tx) => {

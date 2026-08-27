@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { completeOnboardingTask } from '@/lib/actions/onboarding'
+import { completeOnboardingTask, skipTask } from '@/lib/actions/onboarding'
 import { ArrowLeft, CheckCircle, Circle } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -51,6 +51,13 @@ export default function OnboardingDetailClient({ record, locale }: { record: Onb
   async function handleComplete(taskId: string) {
     setCompleting(taskId)
     await completeOnboardingTask(taskId)
+    setCompleting(null)
+    router.refresh()
+  }
+
+  async function handleSkip(taskId: string) {
+    setCompleting(taskId)
+    await skipTask(taskId)
     setCompleting(null)
     router.refresh()
   }
@@ -128,18 +135,23 @@ export default function OnboardingDetailClient({ record, locale }: { record: Onb
                 </span>
               </div>
 
-              {!isDone && isManagerTask && (
-                <button
-                  onClick={() => handleComplete(task.id)}
-                  disabled={completing === task.id}
-                  className="px-3 py-1.5 bg-[#D4A843] text-[#07091A] rounded-lg text-xs font-medium hover:bg-[#C49A3A] transition-colors disabled:opacity-50 flex-shrink-0"
-                >
-                  {completing === task.id ? '...' : t('complete')}
-                </button>
-              )}
-
-              {!isDone && !isManagerTask && (
-                <span className="text-xs text-[#D4A843] flex-shrink-0">{t('pending')}</span>
+              {!isDone && (
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button
+                    onClick={() => handleComplete(task.id)}
+                    disabled={completing === task.id}
+                    className="px-3 py-1.5 bg-[#D4A843] text-[#07091A] rounded-lg text-xs font-medium hover:bg-[#C49A3A] transition-colors disabled:opacity-50"
+                  >
+                    {completing === task.id ? '...' : t('complete')}
+                  </button>
+                  <button
+                    onClick={() => handleSkip(task.id)}
+                    disabled={completing === task.id}
+                    className="px-3 py-1.5 bg-[#0F1120] text-[#8B93A8] border border-[rgba(255,255,255,0.1)] rounded-lg text-xs font-medium hover:text-[#E0E6F4] transition-colors disabled:opacity-50"
+                  >
+                    {t('skip')}
+                  </button>
+                </div>
               )}
             </div>
           )

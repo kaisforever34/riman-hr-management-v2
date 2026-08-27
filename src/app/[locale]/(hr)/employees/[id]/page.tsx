@@ -9,6 +9,7 @@ import { ArrowLeft, Edit } from 'lucide-react'
 import Link from 'next/link'
 import { DeactivateButton } from '../deactivate-button'
 import { ResetPasswordButton } from '../reset-password-button'
+import { TerminateButton } from './terminate-button'
 
 export default async function EmployeeDetailPage({
   params,
@@ -63,6 +64,7 @@ export default async function EmployeeDetailPage({
           {session.user.role === 'HR_ADMIN' && (
             <>
               <ResetPasswordButton userId={employee.userId} />
+              {employee.isActive && <TerminateButton employeeId={employee.id} />}
               <DeactivateButton userId={employee.userId} />
             </>
           )}

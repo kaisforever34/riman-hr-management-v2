@@ -362,6 +362,45 @@ export async function recalculatePayslips(formData: FormData) {
   revalidatePath(`/manager/payroll/${periodId}`)
 }
 
+export async function updatePayslip(formData: FormData) {
+  const session = await auth()
+  if (!session?.user || session.user.role !== 'HR_ADMIN') return { error: await serverError('unauthorized') }
+
+  const payslipId = formData.get('payslipId') as string
+  if (!payslipId) return { error: await serverError('invalidRequest') }
+
+  const payslip = await db.payslip.findUnique({ where: { id: payslipId } })
+  if (!payslip) return { error: await serverError('invalidRequest') }
+
+  const bonusRaw = formData.get('bonusPay') as string
+  const overtimeRaw = formData.get('overtimePay') as string
+  const bonusPay = bonusRaw !== null && bonusRaw !== '' ? round2(parseFloat(bonusRaw)) : Number(payslip.bonusPay)
+  const overtimePay = overtimeRaw !== null && overtimeRaw !== '' ? round2(parseFloat(overtimeRaw)) : Number(payslip.overtimePay)
+
+  if (isNaN(bonusPay) || bonusPay < 0) return { error: await serverError('invalidInput') }
+  if (isNaN(overtimePay) || overtimePay < 0) return { error: await serverError('invalidInput') }
+
+  const netPay = round2(Number(payslip.totalGross) + overtimePay + bonusPay - Number(payslip.totalDeductions))
+
+  await db.payslip.update({
+    where: { id: payslipId },
+    data: { bonusPay, overtimePay, netPay },
+  })
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? undefined,
+    action: 'PAYSLIP_UPDATED',
+    entityType: 'Payslip',
+    entityId: payslipId,
+    detail: { bonusPay, overtimePay, netPay },
+  })
+
+  revalidatePath(`/manager/payroll/${payslip.payrollPeriodId}`)
+  revalidatePath(`/manager/payroll/${payslip.payrollPeriodId}/${payslip.employeeId}`)
+  return { success: true }
+}
+
 export async function finalizePayroll(formData: FormData) {
   const session = await auth()
   if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }

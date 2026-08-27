@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getExpenses } from '@/lib/actions/expense'
+import { getAllActiveEmployees } from '@/lib/queries/attendance'
 import ExpensesListClient from './expenses-list-client'
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +13,12 @@ export default async function ManagerExpensesPage({ params }: { params: Promise<
     redirect(`/${locale}/auth/signin`)
   }
 
-  const expenses = await getExpenses()
-  return <ExpensesListClient expenses={JSON.parse(JSON.stringify(expenses))} locale={locale} />
+  const [expenses, employees] = await Promise.all([getExpenses(), getAllActiveEmployees()])
+  return (
+    <ExpensesListClient
+      expenses={JSON.parse(JSON.stringify(expenses))}
+      employees={employees.map(e => ({ id: e.id, firstName: e.firstName, lastName: e.lastName }))}
+      locale={locale}
+    />
+  )
 }

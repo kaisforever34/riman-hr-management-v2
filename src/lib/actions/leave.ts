@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/lib/db'
-import { submitLeaveSchema, approveLeaveSchema, rejectLeaveSchema, cancelLeaveSchema, setAllocationSchema } from '@/lib/validations/leave'
+import { submitLeaveSchema, approveLeaveSchema, rejectLeaveSchema, cancelLeaveSchema, setAllocationSchema, updateLeaveSchema, leaveTypeFormSchema } from '@/lib/validations/leave'
 import { auth } from '@/lib/auth'
 import type { Session } from 'next-auth'
 import { uploadLeaveAttachment } from '@/lib/upload'
@@ -490,9 +490,6 @@ export async function submitLeaveForEmployee(formData: FormData) {
   const end = new Date(data.endDate)
   const isHalfDay = data.isHalfDay === 'true'
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  if (start < today) return { error: await serverError('startDatePast') }
   if (end < start) return { error: await serverError('endDateBeforeStart') }
 
   const holidays = await db.holiday.findMany({
@@ -568,5 +565,233 @@ export async function submitLeaveForEmployee(formData: FormData) {
   })
 
   revalidatePath('/manager/leaves')
+  return { success: true }
+}
+
+export async function updateLeave(formData: FormData) {
+  const session = await auth()
+  if (!session?.user || !isApprover(session.user.role)) return { error: await serverError('unauthorized') }
+
+  const raw = {
+    id: formData.get('id') as string,
+    leaveTypeId: formData.get('leaveTypeId') as string,
+    startDate: formData.get('startDate') as string,
+    endDate: formData.get('endDate') as string,
+    isHalfDay: (formData.get('isHalfDay') ?? undefined) as string | undefined,
+    halfDayPeriod: (formData.get('halfDayPeriod') ?? undefined) as string | undefined,
+    reason: formData.get('reason') as string,
+    status: (formData.get('status') ?? undefined) as string | undefined,
+  }
+
+  const parsed = updateLeaveSchema.safeParse(raw)
+  if (!parsed.success) return { error: await serverError('validationFailed'), fieldErrors: parsed.error.flatten().fieldErrors }
+
+  const data = parsed.data
+  const request = await db.leaveRequest.findUnique({
+    where: { id: data.id },
+    include: { employee: true, leaveType: true },
+  })
+  if (!request) return { error: await serverError('requestNotFound') }
+
+  const leaveType = await db.leaveType.findUnique({ where: { id: data.leaveTypeId } })
+  if (!leaveType || !leaveType.isActive) return { error: await serverError('invalidLeaveType') }
+
+  const start = new Date(data.startDate)
+  const end = new Date(data.endDate)
+  const isHalfDay = data.isHalfDay === 'true'
+  if (end < start) return { error: await serverError('endDateBeforeStart') }
+
+  const holidays = await db.holiday.findMany({
+    where: { date: { gte: start, lte: end } },
+    select: { date: true },
+  })
+  const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
+  const workWeekArr = JSON.parse(request.employee.workWeek) as number[]
+
+  const durationDays = isHalfDay
+    ? 0.5
+    : countWorkingDays(toUaeDateKey(start), toUaeDateKey(end), workWeekArr, holidayKeys)
+  if (!isHalfDay && durationDays === 0) return { error: await serverError('noWorkingDays') }
+
+  const overlapping = await db.leaveRequest.findFirst({
+    where: {
+      employeeId: request.employeeId,
+      id: { not: request.id },
+      status: { in: ['PENDING', 'APPROVED'] },
+      startDate: { lte: end },
+      endDate: { gte: start },
+    },
+  })
+  if (overlapping) return { error: await serverError('overlappingRequest') }
+
+  const wasApproved = request.status === 'APPROVED'
+  const newStatus = data.status ?? request.status
+  const willBeApproved = newStatus === 'APPROVED'
+  const durationChanged = request.durationDays !== durationDays
+  const typeChanged = request.leaveTypeId !== data.leaveTypeId
+
+  await db.$transaction(async (tx) => {
+    if (wasApproved && (durationChanged || typeChanged || !willBeApproved)) {
+      const oldBalance = await tx.leaveBalance.findFirst({
+        where: {
+          employeeId: request.employeeId,
+          leaveTypeId: request.leaveTypeId,
+          yearStart: { lte: request.startDate },
+          yearEnd: { gte: request.startDate },
+        },
+      })
+      if (oldBalance) {
+        await tx.leaveBalance.update({
+          where: { id: oldBalance.id },
+          data: { used: { decrement: request.durationDays } },
+        })
+      }
+    }
+
+    await tx.leaveRequest.update({
+      where: { id: request.id },
+      data: {
+        leaveTypeId: data.leaveTypeId,
+        startDate: start,
+        endDate: end,
+        durationDays,
+        isHalfDay,
+        halfDayPeriod: isHalfDay ? data.halfDayPeriod : null,
+        reason: data.reason || '',
+        status: newStatus,
+      },
+    })
+
+    if (willBeApproved && (durationChanged || typeChanged || !wasApproved)) {
+      const newBalance = await getOrCreateLeaveBalance(request.employeeId, data.leaveTypeId, request.employee.hireDate, tx)
+      await tx.leaveBalance.update({
+        where: { id: newBalance.id },
+        data: { used: { increment: durationDays } },
+      })
+    }
+  })
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'LEAVE_UPDATED',
+    entityType: 'LeaveRequest',
+    entityId: request.id,
+    detail: { employeeId: request.employeeId, previousStatus: request.status, newStatus },
+  })
+
+  revalidatePath('/manager/leaves')
+  revalidatePath(`/manager/leaves/${request.id}`)
+  return { success: true }
+}
+
+export async function createLeaveType(formData: FormData) {
+  const session = await auth()
+  if (!session?.user || session.user.role !== 'HR_ADMIN') return { error: await serverError('unauthorized') }
+
+  const parsed = leaveTypeFormSchema.safeParse({
+    name: formData.get('name'),
+    nameAr: formData.get('nameAr') || undefined,
+    defaultDays: formData.get('defaultDays') ?? '0',
+    requiresAttachment: formData.get('requiresAttachment') === 'on',
+    isPaid: formData.get('isPaid') === 'on',
+    isActive: true,
+  })
+  if (!parsed.success) return { error: await serverError('validationFailed'), fieldErrors: parsed.error.flatten().fieldErrors }
+
+  const existing = await db.leaveType.findUnique({ where: { name: parsed.data.name } })
+  if (existing) return { error: await serverError('invalidRequest') }
+
+  const created = await db.leaveType.create({
+    data: {
+      name: parsed.data.name,
+      nameAr: parsed.data.nameAr || null,
+      defaultDays: parsed.data.defaultDays,
+      requiresAttachment: parsed.data.requiresAttachment ?? false,
+      isPaid: parsed.data.isPaid ?? true,
+      isActive: true,
+    },
+  })
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'LEAVE_TYPE_CREATED',
+    entityType: 'LeaveType',
+    entityId: created.id,
+    detail: { name: created.name },
+  })
+
+  revalidatePath('/manager/leave-types')
+  return { success: true }
+}
+
+export async function updateLeaveType(formData: FormData) {
+  const session = await auth()
+  if (!session?.user || session.user.role !== 'HR_ADMIN') return { error: await serverError('unauthorized') }
+
+  const id = formData.get('id') as string
+  if (!id) return { error: await serverError('invalidRequest') }
+
+  const parsed = leaveTypeFormSchema.safeParse({
+    name: formData.get('name'),
+    nameAr: formData.get('nameAr') || undefined,
+    defaultDays: formData.get('defaultDays') ?? '0',
+    requiresAttachment: formData.get('requiresAttachment') === 'on',
+    isPaid: formData.get('isPaid') === 'on',
+    isActive: formData.get('isActive') === 'on',
+  })
+  if (!parsed.success) return { error: await serverError('validationFailed'), fieldErrors: parsed.error.flatten().fieldErrors }
+
+  const existing = await db.leaveType.findUnique({ where: { id } })
+  if (!existing) return { error: await serverError('invalidRequest') }
+
+  await db.leaveType.update({
+    where: { id },
+    data: {
+      name: parsed.data.name,
+      nameAr: parsed.data.nameAr || null,
+      defaultDays: parsed.data.defaultDays,
+      requiresAttachment: parsed.data.requiresAttachment ?? false,
+      isPaid: parsed.data.isPaid ?? true,
+      isActive: parsed.data.isActive ?? true,
+    },
+  })
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'LEAVE_TYPE_UPDATED',
+    entityType: 'LeaveType',
+    entityId: id,
+    detail: { name: parsed.data.name },
+  })
+
+  revalidatePath('/manager/leave-types')
+  return { success: true }
+}
+
+export async function toggleLeaveTypeActive(id: string) {
+  const session = await auth()
+  if (!session?.user || session.user.role !== 'HR_ADMIN') return { error: await serverError('unauthorized') }
+
+  const existing = await db.leaveType.findUnique({ where: { id } })
+  if (!existing) return { error: await serverError('invalidRequest') }
+
+  await db.leaveType.update({
+    where: { id },
+    data: { isActive: !existing.isActive },
+  })
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email ?? null,
+    action: 'LEAVE_TYPE_TOGGLED',
+    entityType: 'LeaveType',
+    entityId: id,
+    detail: { name: existing.name, isActive: !existing.isActive },
+  })
+
+  revalidatePath('/manager/leave-types')
   return { success: true }
 }

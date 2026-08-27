@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { getLeaveRequestById } from '@/lib/queries/leave'
+import { getLeaveRequestById, getLeaveTypes } from '@/lib/queries/leave'
 import ManagerLeaveActionClient from './manager-leave-action-client'
 export const dynamic = 'force-dynamic'
 
@@ -17,9 +17,12 @@ export default async function ManagerLeaveDetailPage({
   const request = await getLeaveRequestById(id)
   if (!request) redirect(`/${locale}/manager/leaves`)
 
+  const leaveTypes = await getLeaveTypes()
+
   return (
     <ManagerLeaveActionClient
       request={JSON.parse(JSON.stringify(request))}
+      leaveTypes={JSON.parse(JSON.stringify(leaveTypes))}
       locale={locale}
     />
   )

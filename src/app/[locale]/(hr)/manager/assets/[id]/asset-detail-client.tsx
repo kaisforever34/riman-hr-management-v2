@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { assignAsset, returnAsset, updateAsset } from '@/lib/actions/asset'
-import { ArrowLeft, Package, ArrowRight, Undo2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { assignAsset, returnAsset, updateAsset, deleteAsset } from '@/lib/actions/asset'
+import { ArrowLeft, Package, ArrowRight, Undo2, Trash2 } from 'lucide-react'
 
 type EmployeeInfo = { id: string; firstName: string; lastName: string }
 type AssignmentInfo = {
@@ -69,6 +70,18 @@ export default function AssetDetailClient({ asset, employees, locale }: { asset:
     router.refresh()
   }
 
+  async function handleDelete() {
+    if (!confirm(t('deleteConfirm'))) return
+    const result = await deleteAsset(asset.id)
+    if (result?.error) {
+      toast.error(t('deleteBlocked'))
+      return
+    }
+    toast.success(t('deleted'))
+    router.push(`/${locale}/manager/assets`)
+    router.refresh()
+  }
+
   return (
     <div className="p-6 max-w-3xl">
       <Link href={`/${locale}/manager/assets`} className="inline-flex items-center gap-1 text-[#8B93A8] hover:text-[#E0E6F4] text-sm mb-6">
@@ -90,6 +103,9 @@ export default function AssetDetailClient({ asset, employees, locale }: { asset:
             {t(asset.status.toLowerCase())}
           </span>
           <button onClick={() => { setNewStatus(asset.status); setEditingStatus(true) }} className="text-[10px] text-[#D4A843] hover:text-[#EFC254] underline">{t('changeStatus')}</button>
+          <button onClick={handleDelete} className="p-1.5 text-[#8B93A8] hover:text-[#EF4444] transition-colors">
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
 

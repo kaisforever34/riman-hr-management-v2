@@ -80,11 +80,14 @@ export async function completeOnboardingTask(taskId: string, formData?: Record<s
   if (!task) return { error: await serverError('taskNotFound') }
   if (task.status === 'COMPLETED') return { error: await serverError('taskAlreadyCompleted') }
 
+  const isApproverRole = session.user.role === 'HR_ADMIN' || session.user.role === 'MANAGER'
+
   if (task.assignedTo === 'EMPLOYEE') {
     const employee = await db.employee.findUnique({ where: { userId: session.user.id } })
-    if (!employee || employee.id !== task.onboarding.employeeId) return { error: await serverError('notYourTask') }
+    const isOwner = employee && employee.id === task.onboarding.employeeId
+    if (!isOwner && !isApproverRole) return { error: await serverError('notYourTask') }
   } else {
-    if (session.user.role !== 'HR_ADMIN' && session.user.role !== 'MANAGER') return { error: await serverError('unauthorized') }
+    if (!isApproverRole) return { error: await serverError('unauthorized') }
   }
 
   const isOverdue = task.deadline ? new Date() > task.deadline : false

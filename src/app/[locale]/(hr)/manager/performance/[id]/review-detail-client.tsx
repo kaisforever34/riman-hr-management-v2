@@ -5,8 +5,8 @@ import { useTranslations } from 'next-intl'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { deleteReview } from '@/lib/actions/performance'
-import { ArrowLeft, Trash2 } from 'lucide-react'
+import { deleteReview, submitReview, approveReview } from '@/lib/actions/performance'
+import { ArrowLeft, Trash2, Send, Check } from 'lucide-react'
 import { useState } from 'react'
 
 interface RatingData {
@@ -62,6 +62,30 @@ export function ReviewDetailClient({ review }: Props) {
     }
   }
 
+  const handleSubmit = async () => {
+    const form = new FormData()
+    form.set('id', review.id)
+    const result = await submitReview(form)
+    if (result?.error) {
+      setMessage(result.error)
+    } else {
+      setMessage('')
+      router.refresh()
+    }
+  }
+
+  const handleApprove = async () => {
+    const form = new FormData()
+    form.set('id', review.id)
+    const result = await approveReview(form)
+    if (result?.error) {
+      setMessage(result.error)
+    } else {
+      setMessage('')
+      router.refresh()
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -71,9 +95,23 @@ export function ReviewDetailClient({ review }: Props) {
           </Button>
           <h1 className="text-2xl font-bold">{t('reviewDetail')}</h1>
         </div>
-        <Button variant="destructive" size="sm" onClick={handleDelete}>
-          <Trash2 className="me-2 h-4 w-4" />{t('deleteConfirm')}
-        </Button>
+        <div className="flex items-center gap-2">
+          {review.status === 'DRAFT' && (
+            <>
+              <Button size="sm" onClick={handleSubmit}>
+                <Send className="me-2 h-4 w-4" />{t('submit')}
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleDelete}>
+                <Trash2 className="me-2 h-4 w-4" />{t('delete')}
+              </Button>
+            </>
+          )}
+          {review.status === 'SUBMITTED' && (
+            <Button size="sm" onClick={handleApprove}>
+              <Check className="me-2 h-4 w-4" />{t('approve')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {message && (
