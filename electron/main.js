@@ -27,6 +27,18 @@ function getDataPath() {
   return dataDir
 }
 
+function ensureDatabase() {
+  var dataDir = getDataPath()
+  var dbPath = path.join(dataDir, 'riman.db')
+  if (!fs.existsSync(dbPath)) {
+    var seedDb = path.join(getResourcesPath(), 'standalone', 'prisma', 'dev.db')
+    if (fs.existsSync(seedDb)) {
+      fs.copyFileSync(seedDb, dbPath)
+    }
+  }
+  return dbPath
+}
+
 function getNodeBinary() {
   var resPath = getResourcesPath()
   var bundled = path.join(resPath, 'node', 'node.exe')
@@ -38,7 +50,7 @@ function startServer() {
   return new Promise(function (resolve, reject) {
     var resPath = getResourcesPath()
     var serverPath = path.join(resPath, 'standalone', 'server.js')
-    var dbPath = path.join(getDataPath(), 'riman.db')
+    var dbPath = ensureDatabase()
     var nodeBin = getNodeBinary()
 
     var env = Object.assign({}, process.env, {
