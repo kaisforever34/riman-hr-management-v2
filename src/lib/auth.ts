@@ -36,6 +36,36 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
   secret: env.AUTH_SECRET,
 
+  callbacks: {
+    ...authConfig.callbacks,
+    // Node-runtime session revocation. The edge-safe middleware config
+    // (./auth.config) cannot reach the database, so isActive/tokenVersion are
+    // revalidated here, where Prisma runs in the Node runtime.
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role
+        token.id = user.id
+        token.name = user.name
+        token.tokenVersion = (user as { tokenVersion?: number }).tokenVersion ?? 0
+        return token
+      }
+      if (token.id) {
+        try {
+          const u = await db.user.findUnique({
+            where: { id: token.id as string },
+            select: { isActive: true, tokenVersion: true },
+          })
+          if (!u || !u.isActive || u.tokenVersion !== token.tokenVersion) {
+            return null
+          }
+        } catch {
+          return null
+        }
+      }
+      return token
+    },
+  },
+
   providers: [
     Credentials({
       async authorize(credentials) {

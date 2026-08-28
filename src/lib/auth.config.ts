@@ -1,7 +1,10 @@
 import type { NextAuthConfig } from 'next-auth'
 import type { Role } from '@/lib/types'
-import { db } from './db'
 
+// Edge-safe config shared with the Next.js middleware. It must NOT import
+// Prisma (or anything that instantiates PrismaClient), because Prisma cannot
+// run in the Edge runtime. Session revocation (isActive/tokenVersion) is
+// enforced in the Node runtime via the jwt callback in ./auth.
 export const authConfig = {
   secret: process.env.AUTH_SECRET,
   trustHost: true,
@@ -16,20 +19,6 @@ export const authConfig = {
         token.id = user.id
         token.name = user.name
         token.tokenVersion = (user as { tokenVersion?: number }).tokenVersion ?? 0
-        return token
-      }
-      if (token.id) {
-        try {
-          const u = await db.user.findUnique({
-            where: { id: token.id as string },
-            select: { isActive: true, tokenVersion: true },
-          })
-          if (!u || !u.isActive || u.tokenVersion !== token.tokenVersion) {
-            return null
-          }
-        } catch {
-          return null
-        }
       }
       return token
     },
