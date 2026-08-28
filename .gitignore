@@ -59,6 +59,8 @@ next-env.d.ts
 # sqlite database
 prisma/dev.db
 prisma/dev.db-journal
+prisma/clean-delivery.db
+prisma/clean-delivery.db-journal
 
 # electron release
 /release/
