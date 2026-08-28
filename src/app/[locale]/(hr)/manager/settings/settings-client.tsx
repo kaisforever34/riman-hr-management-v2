@@ -5,73 +5,69 @@ import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { updateSettings } from '@/lib/actions/settings'
+import { SETTING_DEFINITIONS, SETTING_GROUPS, type SettingDefinition, type SettingGroup } from '@/lib/settings-defs'
 import { cn } from '@/lib/utils'
-import { Save, Clock } from 'lucide-react'
+import { Save, Building2, Clock, Wallet, CalendarDays, List, ShieldCheck } from 'lucide-react'
 
-const FIELDS = [
-  { key: 'GPSSA_EMPLOYEE_RATE', step: 0.5, min: 0, max: 100, percent: true },
-  { key: 'GPSSA_EMPLOYER_RATE', step: 0.5, min: 0, max: 100, percent: true },
-  { key: 'EOSB_CAP_MONTHS', step: 1, min: 0, max: 60 },
-  { key: 'GRACE_PERIOD_MINUTES', step: 1, min: 0, max: 60 },
-  { key: 'WORK_START_HOUR', step: 1, min: 0, max: 23 },
-  { key: 'WORK_START_MINUTE', step: 5, min: 0, max: 59 },
-  { key: 'WORK_END_HOUR', step: 1, min: 0, max: 23 },
-  { key: 'WORK_END_MINUTE', step: 5, min: 0, max: 59 },
-  { key: 'BREAK_START_HOUR', step: 1, min: 0, max: 23 },
-  { key: 'BREAK_START_MINUTE', step: 5, min: 0, max: 59 },
-  { key: 'BREAK_END_HOUR', step: 1, min: 0, max: 23 },
-  { key: 'BREAK_END_MINUTE', step: 5, min: 0, max: 59 },
-  { key: 'AUTO_CLOCKOUT_HOUR', step: 1, min: 0, max: 23 },
-  { key: 'AUTO_CLOCKOUT_MINUTE', step: 5, min: 0, max: 59 },
-  { key: 'MAX_CARRYOVER_DAYS', step: 1, min: 0, max: 365 },
-  { key: 'MAX_CONSECUTIVE_LEAVE_DAYS', step: 1, min: 1, max: 365 },
-] as const
+const GROUP_ICONS: Record<SettingGroup, typeof Clock> = {
+  company: Building2,
+  shift: Clock,
+  payroll: Wallet,
+  leave: CalendarDays,
+  lists: List,
+  policies: ShieldCheck,
+}
 
-function TimeField({
-  label,
-  hourKey,
-  minuteKey,
-  values,
+const inputCls =
+  'w-full rounded-lg border border-border bg-secondary px-3 py-2 text-[13.5px] text-ledger-text transition-colors outline-none placeholder:text-ledger-text-muted focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring'
+
+function Field({
+  def,
+  value,
   onChange,
+  t,
 }: {
-  label: string
-  hourKey: string
-  minuteKey: string
-  values: Record<string, string>
+  def: SettingDefinition
+  value: string
   onChange: (key: string, val: string) => void
+  t: ReturnType<typeof useTranslations<'settings'>>
 }) {
+  const label = t(`field_${def.key}`)
+  const hasHint = t.has(`hint_${def.key}`)
+  const hint = hasHint ? t(`hint_${def.key}`) : null
+
   return (
-    <div className="space-y-1.5">
-      <span className="text-xs font-medium text-[#8B93A8]">{label}</span>
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <label className="text-[11px] text-[#8B93A8] mb-1 block">
-            {label.split(' ')[0]}
-          </label>
-          <input
-            type="number"
-            min="0"
-            max="23"
-            className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
-            value={values[hourKey] ?? ''}
-            onChange={e => onChange(hourKey, e.target.value)}
-          />
-        </div>
-        <div className="flex-1">
-          <label className="text-[11px] text-[#8B93A8] mb-1 block">
-            {label.split(' ')[1]}
-          </label>
-          <input
-            type="number"
-            step="5"
-            min="0"
-            max="59"
-            className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
-            value={values[minuteKey] ?? ''}
-            onChange={e => onChange(minuteKey, e.target.value)}
-          />
-        </div>
-      </div>
+    <div className={cn('space-y-1.5', def.text && !def.options && 'sm:col-span-2')}>
+      <label className="text-xs font-medium text-ledger-text-secondary" htmlFor={`setting-${def.key}`}>
+        {label}
+        {def.percent ? ' %' : ''}
+      </label>
+      {def.options ? (
+        <select
+          id={`setting-${def.key}`}
+          className={inputCls}
+          value={value}
+          onChange={e => onChange(def.key, e.target.value)}
+        >
+          {def.options.map(opt => (
+            <option key={opt} value={opt}>
+              {t.has(`opt_${def.key}_${opt}`) ? t(`opt_${def.key}_${opt}`) : opt}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <input
+          id={`setting-${def.key}`}
+          type={def.text ? 'text' : 'number'}
+          step={def.step}
+          min={def.min}
+          max={def.max}
+          className={inputCls}
+          value={value}
+          onChange={e => onChange(def.key, e.target.value)}
+        />
+      )}
+      {hint && <p className="text-[11px] text-ledger-text-muted">{hint}</p>}
     </div>
   )
 }
@@ -91,9 +87,9 @@ export default function SettingsClient({ settings }: { settings: Record<string, 
     setMessage('')
     setLoading(true)
     const fd = new FormData()
-    for (const field of FIELDS) {
-      const v = values[field.key]
-      if (v !== undefined) fd.set(field.key, String(v))
+    for (const def of SETTING_DEFINITIONS) {
+      const v = values[def.key]
+      if (v !== undefined) fd.set(def.key, String(v))
     }
     const result = await updateSettings(fd)
     if (result?.error) {
@@ -108,182 +104,54 @@ export default function SettingsClient({ settings }: { settings: Record<string, 
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-[#8B93A8]">{t('subtitle')}</p>
+        <p className="text-sm text-ledger-text-secondary">{t('subtitle')}</p>
       </div>
 
       {message && (
-        <div className={cn('rounded-md p-3 text-sm', String(message).toLowerCase().includes('fail') || String(message).toLowerCase().includes('error') ? 'bg-[rgba(239,68,68,0.08)] text-[#EF4444]' : 'bg-[rgba(34,197,94,0.1)] text-[#22C55E]')}>
+        <div
+          className={cn(
+            'rounded-md p-3 text-sm',
+            String(message).toLowerCase().includes('fail') || String(message).toLowerCase().includes('error')
+              ? 'bg-destructive/10 text-destructive'
+              : 'bg-statement-green/10 text-statement-green',
+          )}
+        >
           {message}
         </div>
       )}
 
-      {/* Work Shift */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-gold" />
-            {t('workShift')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <TimeField
-              label={t('workStart')}
-              hourKey="WORK_START_HOUR"
-              minuteKey="WORK_START_MINUTE"
-              values={values}
-              onChange={handleChange}
-            />
-            <TimeField
-              label={t('workEnd')}
-              hourKey="WORK_END_HOUR"
-              minuteKey="WORK_END_MINUTE"
-              values={values}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <TimeField
-              label={t('breakStart')}
-              hourKey="BREAK_START_HOUR"
-              minuteKey="BREAK_START_MINUTE"
-              values={values}
-              onChange={handleChange}
-            />
-            <TimeField
-              label={t('breakEnd')}
-              hourKey="BREAK_END_HOUR"
-              minuteKey="BREAK_END_MINUTE"
-              values={values}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <label className="text-xs font-medium text-[#8B93A8]">{t('gracePeriod')}</label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                max="60"
-                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
-                value={values.GRACE_PERIOD_MINUTES ?? ''}
-                onChange={e => handleChange('GRACE_PERIOD_MINUTES', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-[#8B93A8]">{t('autoClockoutHour')}</label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                max="23"
-                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
-                value={values.AUTO_CLOCKOUT_HOUR ?? ''}
-                onChange={e => handleChange('AUTO_CLOCKOUT_HOUR', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-[#8B93A8]">{t('autoClockoutMinute')}</label>
-              <input
-                type="number"
-                step="5"
-                min="0"
-                max="59"
-                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
-                value={values.AUTO_CLOCKOUT_MINUTE ?? ''}
-                onChange={e => handleChange('AUTO_CLOCKOUT_MINUTE', e.target.value)}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Payroll */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('payrollSection')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="text-xs font-medium text-[#8B93A8]">{t('gpssaEmployee')}</label>
-              <input
-                type="number"
-                step="0.5"
-                min="0"
-                max="100"
-                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
-                value={values.GPSSA_EMPLOYEE_RATE ?? ''}
-                onChange={e => handleChange('GPSSA_EMPLOYEE_RATE', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-[#8B93A8]">{t('gpssaEmployer')}</label>
-              <input
-                type="number"
-                step="0.5"
-                min="0"
-                max="100"
-                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
-                value={values.GPSSA_EMPLOYER_RATE ?? ''}
-                onChange={e => handleChange('GPSSA_EMPLOYER_RATE', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-[#8B93A8]">{t('eosbCapMonths')}</label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                max="60"
-                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
-                value={values.EOSB_CAP_MONTHS ?? ''}
-                onChange={e => handleChange('EOSB_CAP_MONTHS', e.target.value)}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Leave */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('leaveSection')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="text-xs font-medium text-[#8B93A8]">{t('maxCarryover')}</label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                max="365"
-                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
-                value={values.MAX_CARRYOVER_DAYS ?? ''}
-                onChange={e => handleChange('MAX_CARRYOVER_DAYS', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-[#8B93A8]">{t('maxConsecutive')}</label>
-              <input
-                type="number"
-                step="1"
-                min="1"
-                max="365"
-                className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
-                value={values.MAX_CONSECUTIVE_LEAVE_DAYS ?? ''}
-                onChange={e => handleChange('MAX_CONSECUTIVE_LEAVE_DAYS', e.target.value)}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {SETTING_GROUPS.map(group => {
+        const defs = SETTING_DEFINITIONS.filter(d => d.group === group)
+        if (defs.length === 0) return null
+        const Icon = GROUP_ICONS[group]
+        return (
+          <Card key={group}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Icon className="w-4 h-4 text-gold" />
+                {t(`group_${group}`)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {defs.map(def => (
+                  <Field
+                    key={def.key}
+                    def={def}
+                    value={values[def.key] ?? ''}
+                    onChange={handleChange}
+                    t={t}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })}
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={loading}>
-          {loading ? t('saving') : <><Save className="me-2 h-4 w-4" />{tc('save') || t('save')}</>}
+          {loading ? t('saving') : <><Save className="me-2 h-4 w-4" />{tc('save')}</>}
         </Button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
+import { getCompanySettings } from '@/lib/queries/company'
 import TerminationsClient from './terminations-client'
 export const dynamic = 'force-dynamic'
 
@@ -11,22 +12,25 @@ export default async function TerminationsPage({ params }: { params: Promise<{ l
     redirect(`/${locale}/auth/signin`)
   if (session.user.role !== 'HR_ADMIN') redirect(`/${locale}/dashboard`)
 
-  const records = await db.eosbRecord.findMany({
-    include: {
-      employee: {
-        select: {
-          firstName: true,
-          lastName: true,
-          employeeCode: true,
-          department: true,
-          jobTitle: true,
-          terminationDate: true,
-          hireDate: true,
+  const [records, company] = await Promise.all([
+    db.eosbRecord.findMany({
+      include: {
+        employee: {
+          select: {
+            firstName: true,
+            lastName: true,
+            employeeCode: true,
+            department: true,
+            jobTitle: true,
+            terminationDate: true,
+            hireDate: true,
+          },
         },
       },
-    },
-    orderBy: { terminationDate: 'desc' },
-  })
+      orderBy: { terminationDate: 'desc' },
+    }),
+    getCompanySettings(),
+  ])
 
   return (
     <TerminationsClient
@@ -41,6 +45,7 @@ export default async function TerminationsPage({ params }: { params: Promise<{ l
         lastSalary: r.lastSalary,
         eosbAmount: r.eosbAmount,
       }))}
+      currency={company.currency}
     />
   )
 }

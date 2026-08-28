@@ -36,11 +36,13 @@ export default function AssetsListClient({
   employees,
   employeeId,
   locale,
+  currency = 'AED',
 }: {
   assets: AssetItem[]
   employees: { id: string; firstName: string; lastName: string }[]
   employeeId: string
   locale: string
+  currency?: string
 }) {
   const t = useTranslations('assets')
 
@@ -83,7 +85,7 @@ export default function AssetsListClient({
               <div className="flex items-center gap-3 text-xs text-[#8B93A8] mb-3">
                 {assignedTo && <span>{t('assignedTo')} {assignedTo.firstName} {assignedTo.lastName}</span>}
                 <span>{a._count.assignments} {t('assignments')}</span>
-                {a.purchasePrice && <span>{a.purchasePrice.toFixed(0)} AED</span>}
+                {a.purchasePrice && <span>{a.purchasePrice.toFixed(0)} {currency}</span>}
               </div>
 
               <Link href={`/${locale}/manager/assets/${a.id}`} className="inline-flex items-center gap-1 text-xs text-[#D4A843] hover:text-[#EFC254]">

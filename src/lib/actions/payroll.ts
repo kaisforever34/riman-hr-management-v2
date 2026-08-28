@@ -9,12 +9,15 @@ import { redirect } from 'next/navigation'
 import { logAudit } from '@/lib/audit'
 import { createPayrollPeriodSchema } from '@/lib/validations/payroll'
 import { getAppSetting, getActiveEmployeesForPayroll } from '@/lib/queries/payroll'
+import { getIntListSetting } from '@/lib/queries/app-settings'
+import { GCC_COUNTRY_CODES } from '@/lib/validations/employee'
 import { getDaysInMonth } from 'date-fns'
 import { countWorkingDays, toUaeDateKey } from '@/lib/working-days'
 
-const DAILY_RATE_DIVISOR = 30
-const HOURS_PER_WORKDAY = 9
-const OT_PREMIUM_RATE = 0.25
+const DEFAULT_DAILY_RATE_DIVISOR = 30
+const DEFAULT_HOURS_PER_WORKDAY = 9
+const DEFAULT_OT_PREMIUM_RATE_PERCENT = 25
+const DEFAULT_WORK_WEEK = [0, 1, 2, 3, 4]
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100
@@ -30,19 +33,44 @@ function buildUtcPeriod(year: number, month: number): { periodStart: Date; perio
 
 async function getNumericAppSetting(key: string, fallback: number): Promise<number> {
   const val = await getAppSetting(key)
-  return val ? parseFloat(val) : fallback
+  const num = val ? parseFloat(val) : NaN
+  return Number.isFinite(num) ? num : fallback
 }
 
-async function getTransportationAmount(): Promise<number> {
-  return getNumericAppSetting('TRANSPORTATION_AMOUNT', 500)
+export interface PayrollRules {
+  dailyRateDivisor: number
+  hoursPerWorkday: number
+  otPremiumRate: number
+  transportationAmount: number
+  gpssaEmployeeRate: number
+  gpssaEmployerRate: number
+  gpssaEligibility: 'ALL' | 'GCC_ONLY'
 }
 
-async function getGpssaRates(): Promise<{ employeeRate: number; employerRate: number }> {
-  const [employeeRate, employerRate] = await Promise.all([
+export async function getPayrollRules(): Promise<PayrollRules> {
+  const [divisor, hours, otRatePercent, transportationAmount, gpssaEmployeeRate, gpssaEmployerRate, eligibility] = await Promise.all([
+    getNumericAppSetting('DAILY_RATE_DIVISOR', DEFAULT_DAILY_RATE_DIVISOR),
+    getNumericAppSetting('HOURS_PER_WORKDAY', DEFAULT_HOURS_PER_WORKDAY),
+    getNumericAppSetting('OT_PREMIUM_RATE', DEFAULT_OT_PREMIUM_RATE_PERCENT),
+    getNumericAppSetting('TRANSPORTATION_AMOUNT', 500),
     getNumericAppSetting('GPSSA_EMPLOYEE_RATE', 5),
     getNumericAppSetting('GPSSA_EMPLOYER_RATE', 12.5),
+    getAppSetting('GPSSA_ELIGIBILITY'),
   ])
-  return { employeeRate, employerRate }
+  return {
+    dailyRateDivisor: divisor > 0 ? divisor : DEFAULT_DAILY_RATE_DIVISOR,
+    hoursPerWorkday: hours > 0 ? hours : DEFAULT_HOURS_PER_WORKDAY,
+    otPremiumRate: otRatePercent / 100,
+    transportationAmount,
+    gpssaEmployeeRate,
+    gpssaEmployerRate,
+    gpssaEligibility: eligibility === 'ALL' ? 'ALL' : 'GCC_ONLY',
+  }
+}
+
+function gpssaApplies(nationality: string | null, rules: PayrollRules): boolean {
+  if (rules.gpssaEligibility === 'ALL') return true
+  return GCC_COUNTRY_CODES.includes((nationality ?? '').trim().toUpperCase())
 }
 
 async function computeAnnualLeaveAndAbsences(
@@ -54,14 +82,17 @@ async function computeAnnualLeaveAndAbsences(
   for (const id of employeeIds) result.set(id, { annualLeaveDays: 0, absentDays: 0 })
 
   // Build a per-employee workWeek map with a safe fallback
-  const employees = await db.employee.findMany({
-    where: { id: { in: employeeIds } },
-    select: { id: true, workWeek: true },
-  })
+  const [employees, companyWorkWeek] = await Promise.all([
+    db.employee.findMany({
+      where: { id: { in: employeeIds } },
+      select: { id: true, workWeek: true },
+    }),
+    getIntListSetting('COMPANY_WORK_WEEK'),
+  ])
   const workWeekMap = new Map<string, number[]>()
-  const DEFAULT_WORK_WEEK = [0, 1, 2, 3, 4]
+  const defaultWorkWeek = companyWorkWeek.length > 0 ? companyWorkWeek : DEFAULT_WORK_WEEK
   for (const emp of employees) {
-    let workWeek = DEFAULT_WORK_WEEK
+    let workWeek = defaultWorkWeek
     try {
       const parsed = JSON.parse(emp.workWeek ?? '') as unknown
       if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((d) => typeof d === 'number')) {
@@ -101,7 +132,7 @@ async function computeAnnualLeaveAndAbsences(
       // the payroll period, using the employee's workWeek and period holidays.
       const overlapStart = req.startDate > periodStart ? req.startDate : periodStart
       const overlapEnd = req.endDate < periodEnd ? req.endDate : periodEnd
-      const workWeek = workWeekMap.get(req.employeeId) ?? DEFAULT_WORK_WEEK
+      const workWeek = workWeekMap.get(req.employeeId) ?? defaultWorkWeek
       const workingDaysInOverlap = countWorkingDays(
         toUaeDateKey(overlapStart),
         toUaeDateKey(overlapEnd),
@@ -138,6 +169,7 @@ async function computeLateDeductions(
   periodStart: Date,
   periodEnd: Date,
   basicSalaryMap: Map<string, number>,
+  rules: PayrollRules,
 ): Promise<Map<string, number>> {
   const result = new Map<string, number>()
   for (const id of employeeIds) result.set(id, 0)
@@ -154,7 +186,7 @@ async function computeLateDeductions(
   for (const record of lateRecords) {
     const basicSalary = basicSalaryMap.get(record.employeeId) ?? 0
     if (basicSalary <= 0) continue
-    const hourlyRate = basicSalary / DAILY_RATE_DIVISOR / HOURS_PER_WORKDAY
+    const hourlyRate = basicSalary / rules.dailyRateDivisor / rules.hoursPerWorkday
     const deduction = (record.lateMinutes / 60) * hourlyRate
     const current = result.get(record.employeeId) ?? 0
     result.set(record.employeeId, current + round2(deduction))
@@ -172,6 +204,7 @@ async function computeOvertimePay(
   periodStart: Date,
   periodEnd: Date,
   basicSalaryMap: Map<string, number>,
+  rules: PayrollRules,
 ): Promise<Map<string, number>> {
   const result = new Map<string, number>()
   for (const id of employeeIds) result.set(id, 0)
@@ -188,9 +221,9 @@ async function computeOvertimePay(
   for (const record of approvedOvertime) {
     const basicSalary = basicSalaryMap.get(record.employeeId) ?? 0
     if (basicSalary <= 0) continue
-    const hourlyRate = basicSalary / DAILY_RATE_DIVISOR / HOURS_PER_WORKDAY
+    const hourlyRate = basicSalary / rules.dailyRateDivisor / rules.hoursPerWorkday
     const hours = record.minutes / 60
-    const pay = hours * hourlyRate * OT_PREMIUM_RATE
+    const pay = hours * hourlyRate * rules.otPremiumRate
     const current = result.get(record.employeeId) ?? 0
     result.set(record.employeeId, current + pay)
   }
@@ -214,14 +247,13 @@ async function computePayslipData(
     basicSalaryMap.set(emp.id, emp.basicSalary)
   }
 
-  const [leaveAbsences, gpssaRates, lateDeductions, overtimePayMap] = await Promise.all([
-    computeAnnualLeaveAndAbsences(employeeIds, periodStart, periodEnd),
-    getGpssaRates(),
-    computeLateDeductions(employeeIds, periodStart, periodEnd, basicSalaryMap),
-    computeOvertimePay(employeeIds, periodStart, periodEnd, basicSalaryMap),
-  ])
+  const rules = await getPayrollRules()
 
-  const transportationAmount = await getTransportationAmount()
+  const [leaveAbsences, lateDeductions, overtimePayMap] = await Promise.all([
+    computeAnnualLeaveAndAbsences(employeeIds, periodStart, periodEnd),
+    computeLateDeductions(employeeIds, periodStart, periodEnd, basicSalaryMap, rules),
+    computeOvertimePay(employeeIds, periodStart, periodEnd, basicSalaryMap, rules),
+  ])
 
   return employees.map((emp) => {
     const { annualLeaveDays, absentDays } = leaveAbsences.get(emp.id) ?? { annualLeaveDays: 0, absentDays: 0 }
@@ -232,14 +264,15 @@ async function computePayslipData(
 
     const totalGross = round2(basicSalary + housingAllowance + transportAllowance + otherAllowances)
 
-    const gpssaEmployee = round2(basicSalary * (gpssaRates.employeeRate / 100))
-    const gpssaEmployer = round2(basicSalary * (gpssaRates.employerRate / 100))
+    const eligible = gpssaApplies(emp.nationality, rules)
+    const gpssaEmployee = eligible ? round2(basicSalary * (rules.gpssaEmployeeRate / 100)) : 0
+    const gpssaEmployer = eligible ? round2(basicSalary * (rules.gpssaEmployerRate / 100)) : 0
 
     const overtimePay = overtimePayMap.get(emp.id) ?? 0
 
-    const absenceDeduction = round2((basicSalary / DAILY_RATE_DIVISOR) * absentDays)
+    const absenceDeduction = round2((basicSalary / rules.dailyRateDivisor) * absentDays)
     const lateDeduction = lateDeductions.get(emp.id) ?? 0
-    const transportationDeduction = round2((transportationAmount / DAILY_RATE_DIVISOR) * annualLeaveDays)
+    const transportationDeduction = round2((rules.transportationAmount / rules.dailyRateDivisor) * annualLeaveDays)
 
     const totalDeductions = round2(gpssaEmployee + absenceDeduction + lateDeduction + transportationDeduction)
 
@@ -331,14 +364,13 @@ export async function recalculatePayslips(formData: FormData) {
     basicSalaryMap.set(emp.id, emp.basicSalary)
   }
 
-  const [leaveAbsences, gpssaRates, lateDeductions, overtimePayMap] = await Promise.all([
-    computeAnnualLeaveAndAbsences(employeeIds, periodStart, periodEnd),
-    getGpssaRates(),
-    computeLateDeductions(employeeIds, periodStart, periodEnd, basicSalaryMap),
-    computeOvertimePay(employeeIds, periodStart, periodEnd, basicSalaryMap),
-  ])
+  const rules = await getPayrollRules()
 
-  const transportationAmount = await getTransportationAmount()
+  const [leaveAbsences, lateDeductions, overtimePayMap] = await Promise.all([
+    computeAnnualLeaveAndAbsences(employeeIds, periodStart, periodEnd),
+    computeLateDeductions(employeeIds, periodStart, periodEnd, basicSalaryMap, rules),
+    computeOvertimePay(employeeIds, periodStart, periodEnd, basicSalaryMap, rules),
+  ])
 
   await db.$transaction(async (tx) => {
     for (const slip of existingPayslips) {
@@ -353,14 +385,15 @@ export async function recalculatePayslips(formData: FormData) {
 
       const totalGross = round2(basicSalary + housingAllowance + transportAllowance + otherAllowances)
 
-      const gpssaEmployee = round2(basicSalary * (gpssaRates.employeeRate / 100))
-      const gpssaEmployer = round2(basicSalary * (gpssaRates.employerRate / 100))
+      const eligible = gpssaApplies(emp.nationality, rules)
+      const gpssaEmployee = eligible ? round2(basicSalary * (rules.gpssaEmployeeRate / 100)) : 0
+      const gpssaEmployer = eligible ? round2(basicSalary * (rules.gpssaEmployerRate / 100)) : 0
 
       const overtimePay = overtimePayMap.get(slip.employeeId) ?? 0
 
-      const absenceDeduction = round2((basicSalary / DAILY_RATE_DIVISOR) * absentDays)
+      const absenceDeduction = round2((basicSalary / rules.dailyRateDivisor) * absentDays)
       const lateDeduction = lateDeductions.get(slip.employeeId) ?? 0
-      const transportationDeduction = round2((transportationAmount / DAILY_RATE_DIVISOR) * annualLeaveDays)
+      const transportationDeduction = round2((rules.transportationAmount / rules.dailyRateDivisor) * annualLeaveDays)
 
       const totalDeductions = round2(gpssaEmployee + absenceDeduction + lateDeduction + transportationDeduction)
       const netPay = round2(totalGross + overtimePay + Number(slip.bonusPay) - totalDeductions)
@@ -498,8 +531,9 @@ export async function getOvertimePayrollData(
   const totalMinutes = approvedOvertime.reduce((sum, r) => sum + r.minutes, 0)
   const totalHours = totalMinutes / 60
 
-  const hourlyRate = employee.basicSalary / DAILY_RATE_DIVISOR / HOURS_PER_WORKDAY
-  const totalPay = round2(totalHours * hourlyRate * OT_PREMIUM_RATE)
+  const rules = await getPayrollRules()
+  const hourlyRate = employee.basicSalary / rules.dailyRateDivisor / rules.hoursPerWorkday
+  const totalPay = round2(totalHours * hourlyRate * rules.otPremiumRate)
 
   return {
     records: approvedOvertime,

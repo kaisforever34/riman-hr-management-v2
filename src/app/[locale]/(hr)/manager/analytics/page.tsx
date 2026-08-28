@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getAnalytics } from '@/lib/actions/analytics'
+import { getCompanySettings } from '@/lib/queries/company'
 import AnalyticsClient from './analytics-client'
 export const dynamic = 'force-dynamic'
 
@@ -15,5 +16,6 @@ export default async function AnalyticsPage({ params }: { params: Promise<{ loca
   const data = await getAnalytics()
   if (!data) redirect(`/${locale}/auth/signin`)
 
-  return <AnalyticsClient data={data} locale={locale} />
+  const company = await getCompanySettings()
+  return <AnalyticsClient data={data} locale={locale} currency={company.currency} />
 }

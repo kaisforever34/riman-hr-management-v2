@@ -2,6 +2,7 @@ import Sidebar from '@/components/layout/sidebar'
 import Header from '@/components/layout/header'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { getCompanySettings } from '@/lib/queries/company'
 
 export default async function HrLayout({
   children,
@@ -14,15 +15,18 @@ export default async function HrLayout({
   const session = await auth()
   if (!session?.user) redirect(`/${locale}/auth/signin`)
 
+  const company = await getCompanySettings()
+  const displayName = locale === 'ar' ? company.nameAr : company.name
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="flex flex-1 min-h-0">
-        <Sidebar role={session.user.role} />
+        <Sidebar role={session.user.role} companyName={displayName} logoLetter={company.logoLetter} />
         <div className="ms-0 md:ms-60 flex flex-col flex-1 min-w-0">
           <Header />
           <main className="flex-1 p-4 md:p-7 pt-14 md:pt-4">{children}</main>
           <footer className="px-4 md:px-7 py-3 border-t border-border text-[11px] text-muted-foreground flex items-center justify-between">
-            <span>Riman HR Management</span>
+            <span>{displayName}</span>
             <span>Powered by <span className="font-semibold text-primary">KAIS</span></span>
           </footer>
         </div>

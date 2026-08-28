@@ -301,9 +301,10 @@ describe('AUDIT: payroll computation', () => {
     return captured
   }
 
-  it('deducts GPSSA 5% from a non-GCC (Egyptian) employee — compliance bug', async () => {
+  it('does NOT deduct GPSSA from a non-GCC (Egyptian) employee — compliance fix', async () => {
     const slips = await runCreatePeriod()
-    expect(slips[0].gpssaEmployee).toBe(500) // AUDIT: 5% of 10000 deducted from an expat
+    expect(slips[0].gpssaEmployee).toBe(0) // FIXED: GPSSA defaults to GCC nationals only
+    expect(slips[0].gpssaEmployer).toBe(0)
   })
 
   it('pays FULL month salary to an employee hired on Aug 20 (no proration)', async () => {

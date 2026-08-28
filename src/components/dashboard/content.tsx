@@ -59,14 +59,14 @@ function useChartColors() {
   return colors
 }
 
-function ChartTooltip({ active, payload, label, colors }: { active?: boolean; payload?: { name: string; dataKey?: string; value: number; color?: string }[]; label?: string; colors: ReturnType<typeof useChartColors> }) {
+function ChartTooltip({ active, payload, label, colors, currency }: { active?: boolean; payload?: { name: string; dataKey?: string; value: number; color?: string }[]; label?: string; colors: ReturnType<typeof useChartColors>; currency: string }) {
   if (!active || !payload?.length) return null
   return (
     <div className="rounded-lg bg-accent border border-border px-3.5 py-2.5">
       <div className="text-[12px] text-muted-foreground mb-1">{label}</div>
       {payload.map((p, i) => (
         <div key={i} className="text-[13px] font-semibold" style={{ color: p.color || colors.gold }}>
-          {p.name}: {p.dataKey === 'total' ? `AED ${Number(p.value).toLocaleString()}` : p.value}
+          {p.name}: {p.dataKey === 'total' ? `${currency} ${Number(p.value).toLocaleString()}` : p.value}
         </div>
       ))}
     </div>
@@ -83,6 +83,8 @@ export default function DashboardContent({
   payrollKpi,
   contractExpiring,
   visaExpiring,
+  currency = 'AED',
+  location = '',
 }: {
   totalEmployees: number
   presentCount: number
@@ -93,6 +95,8 @@ export default function DashboardContent({
   payrollKpi: { total: number; source: 'period' | 'salaries' }
   contractExpiring: { id: string; firstName: string; lastName: string; jobTitle: string; daysUntilExpiry: number }[]
   visaExpiring: { id: string; firstName: string; lastName: string; iqamaNumber: string | null; daysUntilExpiry: number | null }[]
+  currency?: string
+  location?: string
 }) {
   const locale = useLocale()
   const t = useTranslations('dashboard')
@@ -112,7 +116,7 @@ export default function DashboardContent({
       <div className="mb-7">
         <h1 className="font-syne text-2xl font-bold text-ledger-text tracking-tight">{t('hrTitle')}</h1>
         <p className="text-[13px] text-muted-foreground mt-1">
-          {new Date().toLocaleDateString(dateLocale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · {t('location')}
+          {new Date().toLocaleDateString(dateLocale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}{location ? ` · ${location}` : ''}
         </p>
       </div>
 
@@ -120,7 +124,7 @@ export default function DashboardContent({
         <KPICard icon={Users} col={C.gold} label={t('totalEmployees')} value={String(totalEmployees)} sub={t('kpiTotalSub')} />
         <KPICard icon={UserCheck} col={C.green} label={t('todayAttendance')} value={`${presentCount} / ${totalEmployees}`} sub={t('kpiPresentSub')} trend={`${presentRate}%`} up={presentRate > 50} />
         <KPICard icon={Calendar} col={C.blue} label={t('kpiLeavesLabel')} value={String(pendingLeaves)} sub={t('kpiLeavesSub')} />
-        <KPICard icon={CreditCard} col={C.teal} label={t('kpiPayrollLabel')} value={`AED ${payrollKpi.total.toLocaleString()}`} sub={payrollKpi.source === 'salaries' ? `${t('kpiPayrollSub')} · ${t('payrollEstimateNote')}` : t('kpiPayrollSub')} />
+        <KPICard icon={CreditCard} col={C.teal} label={t('kpiPayrollLabel')} value={`${currency} ${payrollKpi.total.toLocaleString()}`} sub={payrollKpi.source === 'salaries' ? `${t('kpiPayrollSub')} · ${t('payrollEstimateNote')}` : t('kpiPayrollSub')} />
       </div>
 
       {(contractExpiring.length > 0 || visaExpiring.length > 0) && (
@@ -167,7 +171,7 @@ export default function DashboardContent({
               <div className="font-syne text-[15px] font-bold text-ledger-text">{t('payrollTrend')}</div>
               <div className="text-[12px] text-muted-foreground mt-0.5">{t('payrollTrendRange')}</div>
             </div>
-            <Badge variant="gold">{t('aedPerMonth')}</Badge>
+            <Badge variant="gold">{t('aedPerMonth', { currency })}</Badge>
           </div>
           {payrollTrend.length === 0 ? (
             <div className="py-12 text-center text-[13px] text-muted-foreground">{t('noData')}</div>
@@ -183,7 +187,7 @@ export default function DashboardContent({
               <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
               <XAxis dataKey="monthKey" tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v / 1000}K`} />
-              <Tooltip content={<ChartTooltip colors={C} />} />
+              <Tooltip content={<ChartTooltip colors={C} currency={currency} />} />
               <Area type="monotone" dataKey="total" name={t('series.total')} stroke={C.gold} strokeWidth={2} fill="url(#pg)" />
             </AreaChart>
           </ResponsiveContainer>
@@ -202,7 +206,7 @@ export default function DashboardContent({
               <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
               <XAxis dataKey="dayIndex" tickFormatter={(d: number) => dayFormatter.format(new Date(2024, 0, 7 + d))} tick={{ fill: C.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<ChartTooltip colors={C} />} />
+              <Tooltip content={<ChartTooltip colors={C} currency={currency} />} />
               <Bar dataKey="present" name={t('present')} fill={C.green} radius={[4, 4, 0, 0]} />
               <Bar dataKey="late" name={t('series.late')} fill={C.amber} radius={[4, 4, 0, 0]} />
               <Bar dataKey="absent" name={t('series.absent')} fill={C.red} radius={[4, 4, 0, 0]} />

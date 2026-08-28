@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getExpenses } from '@/lib/actions/expense'
 import { resolveSelectedEmployee } from '@/lib/queries/employee-picker'
+import { getCompanySettings } from '@/lib/queries/company'
 import ExpensesListClient from './expenses-list-client'
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +21,10 @@ export default async function ManagerExpensesPage({
   }
 
   const { employee: employeeParam } = await searchParams
-  const { employee, employees } = await resolveSelectedEmployee(employeeParam)
+  const [{ employee, employees }, company] = await Promise.all([
+    resolveSelectedEmployee(employeeParam),
+    getCompanySettings(),
+  ])
 
   const expenses = await getExpenses(employee?.id)
   return (
@@ -29,6 +33,7 @@ export default async function ManagerExpensesPage({
       employees={employees}
       employeeId={employee?.id ?? ''}
       locale={locale}
+      currency={company.currency}
     />
   )
 }

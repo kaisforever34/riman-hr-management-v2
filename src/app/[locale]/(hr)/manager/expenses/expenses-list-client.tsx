@@ -33,11 +33,13 @@ export default function ExpensesListClient({
   employees,
   employeeId,
   locale,
+  currency = 'AED',
 }: {
   expenses: ExpenseItem[]
   employees: { id: string; firstName: string; lastName: string }[]
   employeeId: string
   locale: string
+  currency?: string
 }) {
   const t = useTranslations('expenses')
   const tc = useTranslations('common')
@@ -159,7 +161,7 @@ export default function ExpensesListClient({
               />
             </div>
             <div>
-              <label className="text-xs text-[#8B93A8]">{t('amountLabel')}</label>
+              <label className="text-xs text-[#8B93A8]">{t('amountLabel', { currency })}</label>
               <input
                 type="number"
                 min="0"
@@ -216,7 +218,7 @@ export default function ExpensesListClient({
                 </div>
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
-                <span className="text-sm font-bold text-[#E0E6F4]">{e.amount.toFixed(2)} AED</span>
+                <span className="text-sm font-bold text-[#E0E6F4]">{e.amount.toFixed(2)} {currency}</span>
                 {e.status === 'PENDING' && (
                   <div className="flex gap-1">
                     <button onClick={() => handleReview(e.id, 'APPROVED')} disabled={actionLoading === e.id}

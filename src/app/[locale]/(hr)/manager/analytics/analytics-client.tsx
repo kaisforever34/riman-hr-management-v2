@@ -13,7 +13,7 @@ type AnalyticsData = {
   ratingDistribution: Record<string, number>
 }
 
-export default function AnalyticsClient({ data }: { data: AnalyticsData; locale: string }) {
+export default function AnalyticsClient({ data, currency = 'AED' }: { data: AnalyticsData; locale: string; currency?: string }) {
   const t = useTranslations('analytics')
   const totalAttendance = data.attendance.todayPresent + data.attendance.todayLate + data.attendance.todayAbsent
   const totalPayroll = data.payrollByDepartment.reduce((sum, d) => sum + d.total, 0)
@@ -31,7 +31,7 @@ export default function AnalyticsClient({ data }: { data: AnalyticsData; locale:
           { icon: Users, label: t('totalEmployees'), value: data.activeEmployees, sub: `${data.totalEmployees} ${t('total')}` },
           { icon: Clock, label: t('todayAttendance'), value: `${totalAttendance}`, sub: `${data.attendance.todayPresent} ${t('present')}` },
           { icon: CalendarCheck, label: t('pendingLeaves'), value: data.leaves.pendingLeaves, sub: `${data.leaves.approvedLeaves} ${t('approved')}` },
-          { icon: Banknote, label: t('totalPayroll'), value: `${Math.round(totalPayroll).toLocaleString()} AED`, sub: t('allPeriods') },
+          { icon: Banknote, label: t('totalPayroll'), value: `${Math.round(totalPayroll).toLocaleString()} ${currency}`, sub: t('allPeriods') },
         ].map((card, i) => (
           <div key={i} className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
@@ -137,7 +137,7 @@ export default function AnalyticsClient({ data }: { data: AnalyticsData; locale:
             {data.payrollByDepartment.map((d) => (
               <div key={d.name} className="flex items-center justify-between text-xs">
                 <span className="text-[#8B93A8]">{d.name}</span>
-                <span className="text-[#E0E6F4] font-medium">{Math.round(d.total).toLocaleString()} AED</span>
+                <span className="text-[#E0E6F4] font-medium">{Math.round(d.total).toLocaleString()} {currency}</span>
               </div>
             ))}
             {data.payrollByDepartment.length === 0 && <p className="text-xs text-[#5A6278]">{t('noPayrollData')}</p>}

@@ -1,5 +1,6 @@
 import { writeFile, mkdir } from 'fs/promises'
 import { join, resolve, relative } from 'path'
+import { getNumericSetting } from '@/lib/queries/app-settings'
 
 export const PRIVATE_UPLOAD_ROOT = join(process.cwd(), 'private-uploads')
 
@@ -11,7 +12,7 @@ export function resolvePrivateUploadPath(key: string): string | null {
 }
 
 const UPLOAD_DIR = join(PRIVATE_UPLOAD_ROOT, 'leaves')
-const MAX_SIZE = 5 * 1024 * 1024
+const DEFAULT_MAX_MB = 5
 const ALLOWED_TYPES: Record<string, string> = {
   'application/pdf': 'pdf',
   'image/jpeg': 'jpg',
@@ -21,7 +22,9 @@ const ALLOWED_TYPES: Record<string, string> = {
 export async function uploadLeaveAttachment(file: File): Promise<string | null> {
   const ext = ALLOWED_TYPES[file.type]
   if (!ext) return null
-  if (file.size > MAX_SIZE) return null
+  const maxMb = await getNumericSetting('MAX_LEAVE_ATTACHMENT_MB')
+  const maxSize = (maxMb > 0 ? maxMb : DEFAULT_MAX_MB) * 1024 * 1024
+  if (file.size > maxSize) return null
 
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
   const bytes = await file.arrayBuffer()

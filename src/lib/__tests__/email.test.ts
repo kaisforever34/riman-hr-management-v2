@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const { mockResend } = vi.hoisted(() => ({ mockResend: { emails: { send: vi.fn() } } }))
 vi.mock('resend', () => ({ Resend: class { constructor() { return mockResend } } }))
+vi.mock('@/lib/db', () => ({ db: { appSetting: { findUnique: vi.fn().mockResolvedValue(null) } } }))
 
 import { sendEmail, renderEmail } from '@/lib/email'
 
@@ -30,8 +31,8 @@ describe('sendEmail', () => {
 })
 
 describe('renderEmail', () => {
-  it('wraps title and lines in html', () => {
-    const html = renderEmail('Title', ['line one', 'line two'])
+  it('wraps title and lines in html', async () => {
+    const html = await renderEmail('Title', ['line one', 'line two'])
     expect(html).toContain('Title')
     expect(html).toContain('line one')
   })

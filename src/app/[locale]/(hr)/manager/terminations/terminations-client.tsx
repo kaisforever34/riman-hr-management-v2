@@ -16,7 +16,7 @@ interface TerminationRecord {
   eosbAmount: number
 }
 
-export default function TerminationsClient({ records }: { records: TerminationRecord[] }) {
+export default function TerminationsClient({ records, currency = 'AED' }: { records: TerminationRecord[]; currency?: string }) {
   const t = useTranslations('terminations')
 
   return (
@@ -53,8 +53,8 @@ export default function TerminationsClient({ records }: { records: TerminationRe
                       <td className="px-4 py-3 text-[#8B93A8]">{r.department}</td>
                       <td className="px-4 py-3 text-[#8B93A8]">{format(new Date(r.terminationDate), 'dd MMM yyyy')}</td>
                       <td className="px-4 py-3 text-end">{r.yearsOfService.toFixed(2)} yrs</td>
-                      <td className="px-4 py-3 text-end">{r.lastSalary.toLocaleString()} AED</td>
-                      <td className="px-4 py-3 text-end font-medium text-[#EFC254]">{r.eosbAmount.toLocaleString()} AED</td>
+<td className="px-4 py-3 text-end">{r.lastSalary.toLocaleString()} {currency}</td>
+                <td className="px-4 py-3 text-end font-medium text-[#EFC254]">{r.eosbAmount.toLocaleString()} {currency}</td>
                     </tr>
                   ))}
                 </tbody>

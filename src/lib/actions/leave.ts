@@ -32,6 +32,32 @@ async function getAppSetting(key: string, defaultValue: number): Promise<number>
   return Number.isFinite(parsed) ? parsed : defaultValue
 }
 
+async function getCompanyWorkWeek(): Promise<number[]> {
+  try {
+    const setting = await db.appSetting.findUnique({ where: { key: 'COMPANY_WORK_WEEK' } })
+    if (setting) {
+      const nums = setting.value.split(',').map(s => parseInt(s.trim(), 10)).filter(n => Number.isFinite(n) && n >= 0 && n <= 6)
+      if (nums.length > 0) return nums
+    }
+  } catch {
+    // fall back to default
+  }
+  return [0, 1, 2, 3, 4]
+}
+
+async function resolveWorkWeek(workWeekJson: string | null): Promise<number[]> {
+  const fallback = await getCompanyWorkWeek()
+  try {
+    const parsed = JSON.parse(workWeekJson ?? '') as unknown
+    if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((d) => typeof d === 'number')) {
+      return parsed as number[]
+    }
+  } catch {
+    // fall back to company default
+  }
+  return fallback
+}
+
 async function calculateCarryover(
   employeeId: string,
   leaveTypeId: string,
@@ -96,15 +122,7 @@ export async function submitLeave(formData: FormData) {
     select: { date: true },
   })
   const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
-  let workWeekArr: number[]
-  try {
-    workWeekArr = JSON.parse(employee.workWeek ?? '[0,1,2,3,4]') as number[]
-  } catch {
-    workWeekArr = [0, 1, 2, 3, 4]
-  }
-  if (!Array.isArray(workWeekArr) || workWeekArr.length === 0) {
-    workWeekArr = [0, 1, 2, 3, 4]
-  }
+  const workWeekArr = await resolveWorkWeek(employee.workWeek)
   if (isHalfDay && !isWorkingDay(toUaeDateKey(start), workWeekArr, holidayKeys)) {
     return { error: await serverError('noWorkingDays') }
   }
@@ -500,15 +518,7 @@ export async function submitLeaveForEmployee(formData: FormData) {
     select: { date: true },
   })
   const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
-  let workWeekArr: number[]
-  try {
-    workWeekArr = JSON.parse(employee.workWeek ?? '[0,1,2,3,4]') as number[]
-  } catch {
-    workWeekArr = [0, 1, 2, 3, 4]
-  }
-  if (!Array.isArray(workWeekArr) || workWeekArr.length === 0) {
-    workWeekArr = [0, 1, 2, 3, 4]
-  }
+  const workWeekArr = await resolveWorkWeek(employee.workWeek)
   if (isHalfDay && !isWorkingDay(toUaeDateKey(start), workWeekArr, holidayKeys)) {
     return { error: await serverError('noWorkingDays') }
   }
@@ -618,15 +628,7 @@ export async function updateLeave(formData: FormData) {
     select: { date: true },
   })
   const holidayKeys = new Set(holidays.map((h) => toUaeDateKey(h.date)))
-  let workWeekArr: number[]
-  try {
-    workWeekArr = JSON.parse(request.employee.workWeek ?? '[0,1,2,3,4]') as number[]
-  } catch {
-    workWeekArr = [0, 1, 2, 3, 4]
-  }
-  if (!Array.isArray(workWeekArr) || workWeekArr.length === 0) {
-    workWeekArr = [0, 1, 2, 3, 4]
-  }
+  const workWeekArr = await resolveWorkWeek(request.employee.workWeek)
 
   const durationDays = isHalfDay
     ? 0.5

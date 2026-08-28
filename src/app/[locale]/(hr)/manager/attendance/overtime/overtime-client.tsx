@@ -143,7 +143,7 @@ export function OvertimeClient({ employees, employeeId, records }: Props) {
                 <label className="text-xs font-medium text-[#8B93A8]">{t('minutes')} *</label>
                 <input
                   type="number"
-                  min={15}
+                  min={1}
                   className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm"
                   value={form.minutes}
                   onChange={e => setForm(f => ({ ...f, minutes: e.target.value }))}

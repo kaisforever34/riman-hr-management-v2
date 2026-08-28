@@ -11,7 +11,8 @@ const EMAIL_TYPES = new Set(['LEAVE_SUBMITTED', 'LEAVE_APPROVED', 'LEAVE_REJECTE
 async function emailUsers(userIds: string[], type: string, title: string, message?: string) {
   if (!EMAIL_TYPES.has(type)) return
   const users = await db.user.findMany({ where: { id: { in: userIds }, isActive: true }, select: { email: true } })
-  await Promise.all(users.map((u) => sendEmail({ to: u.email, subject: title, html: renderEmail(title, message ? [message] : []) })))
+  const html = await renderEmail(title, message ? [message] : [])
+  await Promise.all(users.map((u) => sendEmail({ to: u.email, subject: title, html })))
 }
 
 export async function createNotification(

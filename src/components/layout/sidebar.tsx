@@ -30,7 +30,7 @@ import { signOut } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 
-export default function Sidebar({ role }: { role: string }) {
+export default function Sidebar({ role, companyName = 'Riman HR', logoLetter = 'R' }: { role: string; companyName?: string; logoLetter?: string }) {
   const pathname = usePathname()
   const params = useParams()
   const locale = params.locale as string
@@ -78,9 +78,9 @@ export default function Sidebar({ role }: { role: string }) {
       <div className={cn("flex items-center h-14 border-b border-sidebar-border", collapsed ? "justify-center px-0" : "px-5")}>
         <Link href={`/${locale}/dashboard`} className={cn("flex items-center gap-2.5", collapsed && "justify-center")}>
           <div className="w-7 h-7 rounded-md bg-gold flex items-center justify-center flex-shrink-0">
-            <span className="text-[11px] font-bold text-primary-foreground font-syne">R</span>
+            <span className="text-[11px] font-bold text-primary-foreground font-syne">{logoLetter}</span>
           </div>
-          {!collapsed && <span className="font-syne text-[15px] font-bold text-ledger-text tracking-tight">Riman HR</span>}
+          {!collapsed && <span className="font-syne text-[15px] font-bold text-ledger-text tracking-tight">{companyName}</span>}
         </Link>
       </div>
 

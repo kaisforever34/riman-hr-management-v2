@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getAssetDetail } from '@/lib/actions/asset'
 import { db } from '@/lib/db'
+import { getCompanySettings } from '@/lib/queries/company'
 import AssetDetailClient from './asset-detail-client'
 export const dynamic = 'force-dynamic'
 
@@ -17,6 +18,9 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ lo
   const asset = await getAssetDetail(id)
   if (!asset) notFound()
 
-  const employees = await db.employee.findMany({ where: { isActive: true }, select: { id: true, firstName: true, lastName: true }, orderBy: { firstName: 'asc' } })
-  return <AssetDetailClient asset={JSON.parse(JSON.stringify(asset))} employees={JSON.parse(JSON.stringify(employees))} locale={locale} />
+  const [employees, company] = await Promise.all([
+    db.employee.findMany({ where: { isActive: true }, select: { id: true, firstName: true, lastName: true }, orderBy: { firstName: 'asc' } }),
+    getCompanySettings(),
+  ])
+  return <AssetDetailClient asset={JSON.parse(JSON.stringify(asset))} employees={JSON.parse(JSON.stringify(employees))} locale={locale} currency={company.currency} />
 }

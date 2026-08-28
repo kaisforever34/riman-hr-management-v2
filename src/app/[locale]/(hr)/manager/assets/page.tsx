@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { getAssets } from '@/lib/actions/asset'
 import { resolveSelectedEmployee } from '@/lib/queries/employee-picker'
+import { getCompanySettings } from '@/lib/queries/company'
 import AssetsListClient from './assets-list-client'
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +21,10 @@ export default async function ManagerAssetsPage({
   }
 
   const { employee: employeeParam } = await searchParams
-  const { employee, employees } = await resolveSelectedEmployee(employeeParam)
+  const [{ employee, employees }, company] = await Promise.all([
+    resolveSelectedEmployee(employeeParam),
+    getCompanySettings(),
+  ])
 
   const assets = await getAssets()
   return (
@@ -29,6 +33,7 @@ export default async function ManagerAssetsPage({
       employees={employees}
       employeeId={employee?.id ?? ''}
       locale={locale}
+      currency={company.currency}
     />
   )
 }

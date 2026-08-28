@@ -1,7 +1,7 @@
-const DAILY_RATE_DIVISOR = 30
-const FIRST_TIER_YEARS = 5
-const FIRST_TIER_DAYS_PER_YEAR = 21
-const LATER_TIER_DAYS_PER_YEAR = 30
+const DEFAULT_DAILY_RATE_DIVISOR = 30
+const DEFAULT_FIRST_TIER_YEARS = 5
+const DEFAULT_FIRST_TIER_DAYS_PER_YEAR = 21
+const DEFAULT_LATER_TIER_DAYS_PER_YEAR = 30
 const DAYS_PER_YEAR = 365.25
 
 export interface ComputeEosbInput {
@@ -9,6 +9,10 @@ export interface ComputeEosbInput {
   terminationDate: Date
   basicSalary: number
   capMonths: number
+  dailyRateDivisor?: number
+  firstTierYears?: number
+  firstTierDaysPerYear?: number
+  laterTierDaysPerYear?: number
 }
 
 export interface ComputeEosbResult {
@@ -16,7 +20,16 @@ export interface ComputeEosbResult {
   eosbAmount: number
 }
 
-export function computeEosb({ hireDate, terminationDate, basicSalary, capMonths }: ComputeEosbInput): ComputeEosbResult {
+export function computeEosb({
+  hireDate,
+  terminationDate,
+  basicSalary,
+  capMonths,
+  dailyRateDivisor = DEFAULT_DAILY_RATE_DIVISOR,
+  firstTierYears = DEFAULT_FIRST_TIER_YEARS,
+  firstTierDaysPerYear = DEFAULT_FIRST_TIER_DAYS_PER_YEAR,
+  laterTierDaysPerYear = DEFAULT_LATER_TIER_DAYS_PER_YEAR,
+}: ComputeEosbInput): ComputeEosbResult {
   const yearsOfService = (terminationDate.getTime() - hireDate.getTime()) / (1000 * 60 * 60 * 24 * DAYS_PER_YEAR)
   const roundedYears = Math.round(yearsOfService * 100) / 100
 
@@ -24,13 +37,14 @@ export function computeEosb({ hireDate, terminationDate, basicSalary, capMonths 
     return { yearsOfService: roundedYears, eosbAmount: 0 }
   }
 
-  const dailyRate = basicSalary / DAILY_RATE_DIVISOR
+  const divisor = dailyRateDivisor > 0 ? dailyRateDivisor : DEFAULT_DAILY_RATE_DIVISOR
+  const dailyRate = basicSalary / divisor
   let eosbAmount: number
-  if (yearsOfService <= FIRST_TIER_YEARS) {
-    eosbAmount = dailyRate * FIRST_TIER_DAYS_PER_YEAR * yearsOfService
+  if (yearsOfService <= firstTierYears) {
+    eosbAmount = dailyRate * firstTierDaysPerYear * yearsOfService
   } else {
-    const firstTier = dailyRate * FIRST_TIER_DAYS_PER_YEAR * FIRST_TIER_YEARS
-    const laterTier = dailyRate * LATER_TIER_DAYS_PER_YEAR * (yearsOfService - FIRST_TIER_YEARS)
+    const firstTier = dailyRate * firstTierDaysPerYear * firstTierYears
+    const laterTier = dailyRate * laterTierDaysPerYear * (yearsOfService - firstTierYears)
     eosbAmount = firstTier + laterTier
   }
 

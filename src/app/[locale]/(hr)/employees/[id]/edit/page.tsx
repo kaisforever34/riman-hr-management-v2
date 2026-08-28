@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
+import { getCompanySettings, getEmployeeFormLists } from '@/lib/queries/company'
 import { EditEmployeeClient } from './edit-employee-client'
 
 export default async function EditEmployeePage({
@@ -20,11 +21,15 @@ export default async function EditEmployeePage({
 
   if (!employee) return notFound()
 
-  const employees = await db.employee.findMany({
-    where: { isActive: true, id: { not: id } },
-    select: { id: true, firstName: true, lastName: true },
-    orderBy: { firstName: 'asc' },
-  })
+  const [employees, company, lists] = await Promise.all([
+    db.employee.findMany({
+      where: { isActive: true, id: { not: id } },
+      select: { id: true, firstName: true, lastName: true },
+      orderBy: { firstName: 'asc' },
+    }),
+    getCompanySettings(),
+    getEmployeeFormLists(),
+  ])
 
   return (
     <EditEmployeeClient
@@ -60,6 +65,9 @@ export default async function EditEmployeePage({
       }}
       managers={employees}
       locale={locale}
+      currency={company.currency}
+      departmentOptions={lists.departments}
+      nationalityOptions={lists.nationalities}
     />
   )
 }

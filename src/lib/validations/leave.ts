@@ -74,7 +74,7 @@ export const leaveTypeFormSchema = z.object({
 export const submitOvertimeSchema = z.object({
   employeeId: z.string().min(1),
   date: z.string().min(1),
-  minutes: z.coerce.number().int().min(15, 'Minimum 15 minutes overtime'),
+  minutes: z.coerce.number().int().min(1, 'Minimum 1 minute overtime'),
   reason: z.string().min(1, 'Reason is required'),
 })
 

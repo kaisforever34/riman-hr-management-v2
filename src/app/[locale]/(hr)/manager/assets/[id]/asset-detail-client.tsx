@@ -38,7 +38,7 @@ const statusColors: Record<string, string> = {
 
 const STATUS_OPTIONS = ['AVAILABLE', 'ASSIGNED', 'DAMAGED', 'RETIRED']
 
-export default function AssetDetailClient({ asset, employees, locale }: { asset: AssetData; employees: EmployeeInfo[]; locale: string }) {
+export default function AssetDetailClient({ asset, employees, locale, currency = 'AED' }: { asset: AssetData; employees: EmployeeInfo[]; locale: string; currency?: string }) {
   const t = useTranslations('assets')
   const router = useRouter()
   const [assignTo, setAssignTo] = useState('')
@@ -129,7 +129,7 @@ export default function AssetDetailClient({ asset, employees, locale }: { asset:
         {asset.purchasePrice !== null && asset.purchasePrice !== undefined && (
           <div className="bg-[#0D1028] border border-[rgba(255,255,255,0.065)] rounded-xl p-3">
             <span className="text-[10px] text-[#8B93A8] uppercase">{t('purchasePrice')}</span>
-            <p className="text-sm text-[#E0E6F4] mt-0.5">{asset.purchasePrice.toFixed(2)} AED</p>
+            <p className="text-sm text-[#E0E6F4] mt-0.5">{asset.purchasePrice.toFixed(2)} {currency}</p>
           </div>
         )}
         {asset.notes && (

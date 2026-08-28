@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { getReviewById } from '@/lib/queries/performance'
 import { notFound } from 'next/navigation'
+import { getCompanySettings } from '@/lib/queries/company'
 import { ReviewDetailClient } from './review-detail-client'
 
 export const dynamic = 'force-dynamic'
@@ -12,6 +13,8 @@ export default async function ReviewDetailPage({ params }: { params: Promise<{ i
 
   const review = await getReviewById(id)
   if (!review) notFound()
+
+  const company = await getCompanySettings()
 
   return (
     <ReviewDetailClient
@@ -40,6 +43,7 @@ export default async function ReviewDetailPage({ params }: { params: Promise<{ i
           isCompleted: g.isCompleted,
         })),
       }}
+      currency={company.currency}
     />
   )
 }

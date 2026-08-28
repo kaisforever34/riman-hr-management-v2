@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { DeactivateButton } from '../deactivate-button'
 import { ResetPasswordButton } from '../reset-password-button'
 import { TerminateButton } from './terminate-button'
+import { getCompanySettings } from '@/lib/queries/company'
 
 export default async function EmployeeDetailPage({
   params,
@@ -28,6 +29,8 @@ export default async function EmployeeDetailPage({
   })
 
   if (!employee) return notFound()
+
+  const { currency } = await getCompanySettings()
 
   const canManage = session.user.role === 'HR_ADMIN' || session.user.role === 'MANAGER'
 
@@ -129,23 +132,23 @@ export default async function EmployeeDetailPage({
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t('salary')}</span>
-              <span>{employee.salary.toLocaleString()} AED</span>
+              <span>{employee.salary.toLocaleString()} {currency}</span>
             </div>
             <div className="flex justify-between border-t pt-3">
               <span className="text-muted-foreground">{t('basicSalary')}</span>
-              <span>{(employee.basicSalary || 0).toLocaleString()} AED</span>
+              <span>{(employee.basicSalary || 0).toLocaleString()} {currency}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t('housingAllowance')}</span>
-              <span>{(employee.housingAllowance || 0).toLocaleString()} AED</span>
+              <span>{(employee.housingAllowance || 0).toLocaleString()} {currency}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t('transportAllowance')}</span>
-              <span>{(employee.transportAllowance || 0).toLocaleString()} AED</span>
+              <span>{(employee.transportAllowance || 0).toLocaleString()} {currency}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t('otherAllowances')}</span>
-              <span>{(employee.otherAllowances || 0).toLocaleString()} AED</span>
+              <span>{(employee.otherAllowances || 0).toLocaleString()} {currency}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t('manager')}</span>

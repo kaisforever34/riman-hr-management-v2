@@ -13,6 +13,7 @@ import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
 import { isUniqueConstraintError } from '@/lib/db-errors'
 import { getAppSetting } from '@/lib/queries/payroll'
+import { getNumericSetting } from '@/lib/queries/app-settings'
 import { computeEosb } from '@/lib/eosb'
 
 export async function createEmployee(formData: FormData) {
@@ -32,6 +33,14 @@ export async function createEmployee(formData: FormData) {
   }
 
   const data = parsed.data
+
+  const minPasswordLength = await getNumericSetting('PASSWORD_MIN_LENGTH')
+  if (data.password.length < minPasswordLength) {
+    return {
+      error: await serverError('validationFailed'),
+      fieldErrors: { password: [`At least ${minPasswordLength} characters`] },
+    }
+  }
 
   const existingEmail = await db.user.findUnique({ where: { email: data.email } })
   if (existingEmail) {
@@ -297,6 +306,13 @@ export async function createUser(formData: FormData) {
 
   if (!email || !role) return { error: await serverError('invalidInput') }
 
+  if (password) {
+    const minPasswordLength = await getNumericSetting('PASSWORD_MIN_LENGTH')
+    if (password.length < minPasswordLength) {
+      return { error: await serverError('validationFailed'), fieldErrors: { password: [`At least ${minPasswordLength} characters`] } }
+    }
+  }
+
   const existing = await db.user.findUnique({ where: { email } })
   if (existing) return { error: await serverError('emailExists') }
 
@@ -364,7 +380,8 @@ export async function changePassword(currentPassword: string, newPassword: strin
     return { error: await serverError('invalidInput') }
   }
 
-  if (newPassword.length < 8) {
+  const minPasswordLength = await getNumericSetting('PASSWORD_MIN_LENGTH')
+  if (newPassword.length < minPasswordLength) {
     return { error: await serverError('invalidInput') }
   }
 
@@ -494,14 +511,24 @@ export async function terminateEmployee(employeeId: string, terminationDate: str
 
   const monthlySalary = employee.basicSalary || employee.salary
 
-  const eosbCapMonths = await getAppSetting('EOSB_CAP_MONTHS')
-  const maxEosbMonths = eosbCapMonths ? parseFloat(eosbCapMonths) : 24
+  const [eosbCapMonthsRaw, firstTierYears, firstTierDays, laterTierDays, dailyDivisor] = await Promise.all([
+    getAppSetting('EOSB_CAP_MONTHS'),
+    getNumericSetting('EOSB_FIRST_TIER_YEARS'),
+    getNumericSetting('EOSB_FIRST_TIER_DAYS'),
+    getNumericSetting('EOSB_LATER_TIER_DAYS'),
+    getNumericSetting('DAILY_RATE_DIVISOR'),
+  ])
+  const maxEosbMonths = eosbCapMonthsRaw ? parseFloat(eosbCapMonthsRaw) : 24
 
   const { yearsOfService, eosbAmount } = computeEosb({
     hireDate,
     terminationDate: termDate,
     basicSalary: monthlySalary,
     capMonths: maxEosbMonths,
+    dailyRateDivisor: dailyDivisor,
+    firstTierYears,
+    firstTierDaysPerYear: firstTierDays,
+    laterTierDaysPerYear: laterTierDays,
   })
 
   await db.$transaction([

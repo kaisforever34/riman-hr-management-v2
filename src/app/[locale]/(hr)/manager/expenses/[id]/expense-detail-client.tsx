@@ -27,7 +27,7 @@ const statusColors: Record<string, string> = {
   REJECTED: 'text-[#EF4444] bg-[rgba(239,68,68,0.12)]',
 }
 
-export default function ExpenseDetailClient({ expense, locale }: { expense: ExpenseData; locale: string }) {
+export default function ExpenseDetailClient({ expense, locale, currency = 'AED' }: { expense: ExpenseData; locale: string; currency?: string }) {
   const t = useTranslations('expenses')
   const router = useRouter()
   const [actionLoading, setActionLoading] = useState(false)
@@ -74,7 +74,7 @@ export default function ExpenseDetailClient({ expense, locale }: { expense: Expe
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="bg-[#0F1120] rounded-lg p-3">
             <span className="text-[10px] text-[#8B93A8] uppercase">{t('amount')}</span>
-            <p className="text-lg font-bold text-[#E0E6F4] mt-0.5">{expense.amount.toFixed(2)} AED</p>
+            <p className="text-lg font-bold text-[#E0E6F4] mt-0.5">{expense.amount.toFixed(2)} {currency}</p>
           </div>
           <div className="bg-[#0F1120] rounded-lg p-3">
             <span className="text-[10px] text-[#8B93A8] uppercase">{t('category')}</span>

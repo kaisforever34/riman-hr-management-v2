@@ -11,6 +11,7 @@ import type { AttendanceStatus, OvertimeStatus } from '@/lib/types'
 import { logAudit } from '@/lib/audit'
 import { isUniqueConstraintError } from '@/lib/db-errors'
 import { isApprover } from '@/lib/roles'
+import { getNumericSetting } from '@/lib/queries/app-settings'
 
 export async function checkIn(employeeId?: string) {
   const session = await auth()
@@ -160,6 +161,11 @@ export async function submitOvertime(formData: FormData) {
   if (!parsed.success) return { error: await serverError('invalidInput'), fieldErrors: parsed.error.flatten().fieldErrors }
 
   const { employeeId, date, minutes, reason } = parsed.data
+
+  const minOvertimeMinutes = await getNumericSetting('OVERTIME_MIN_MINUTES')
+  if (minutes < minOvertimeMinutes) {
+    return { error: await serverError('invalidOvertimeMinutes'), fieldErrors: { minutes: [`Minimum ${minOvertimeMinutes} minutes overtime`] } }
+  }
 
   const employee = await db.employee.findUnique({ where: { id: employeeId } })
   if (!employee) return { error: await serverError('employeeRecordNotFound') }

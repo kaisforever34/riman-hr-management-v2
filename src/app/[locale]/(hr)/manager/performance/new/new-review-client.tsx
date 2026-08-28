@@ -25,6 +25,7 @@ interface Props {
   defaultEmployeeId: string
   criteria: CriteriaData[]
   employees: EmployeeData[]
+  currency?: string
 }
 
 interface RatingEntry {
@@ -42,7 +43,7 @@ interface GoalEntry {
 const currentYear = new Date().getFullYear()
 const currentQuarter = Math.floor(new Date().getMonth() / 3) + 1
 
-export function NewReviewClient({ defaultEmployeeId, criteria, employees }: Props) {
+export function NewReviewClient({ defaultEmployeeId, criteria, employees, currency = 'AED' }: Props) {
   const t = useTranslations('performance')
   const router = useRouter()
   const { locale } = useParams<{ locale: string }>()
@@ -233,7 +234,7 @@ export function NewReviewClient({ defaultEmployeeId, criteria, employees }: Prop
               <textarea className="w-full rounded border bg-[#0D1028] px-3 py-2 text-sm" rows={3} value={comments} onChange={e => setComments(e.target.value)} />
             </div>
             <div>
-              <label className="text-xs font-medium text-[#8B93A8]">{t('bonusRecommendation')}</label>
+              <label className="text-xs font-medium text-[#8B93A8]">{t('bonusRecommendation', { currency })}</label>
               <input type="number" step="0.01" min="0" className="w-full max-w-xs rounded border px-3 py-2 text-sm" value={bonus} onChange={e => setBonus(e.target.value)} />
             </div>
           </CardContent>

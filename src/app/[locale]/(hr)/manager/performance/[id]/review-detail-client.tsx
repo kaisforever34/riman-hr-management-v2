@@ -41,9 +41,10 @@ interface ReviewDetail {
 
 interface Props {
   review: ReviewDetail
+  currency?: string
 }
 
-export function ReviewDetailClient({ review }: Props) {
+export function ReviewDetailClient({ review, currency = 'AED' }: Props) {
   const t = useTranslations('performance')
   const router = useRouter()
   const { locale } = useParams<{ locale: string }>()
@@ -128,7 +129,7 @@ export function ReviewDetailClient({ review }: Props) {
             <div><span className="font-medium">{t('overallRating')}:</span> {review.overallRating ? t(`ratingValues.${review.overallRating}`) : '-'}</div>
             <div><span className="font-medium">{t('status')}:</span> {t(`statusValues.${review.status}`)}</div>
             {review.bonusRecommendation != null && (
-              <div><span className="font-medium">{t('bonusRecommendation')}:</span> {review.bonusRecommendation.toFixed(2)} AED</div>
+              <div><span className="font-medium">{t('bonusRecommendation', { currency })}:</span> {review.bonusRecommendation.toFixed(2)} {currency}</div>
             )}
           </div>
           {review.comments && (

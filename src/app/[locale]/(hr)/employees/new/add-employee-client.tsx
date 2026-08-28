@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,99 +17,42 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { maritalStatuses, genders, contractTypes, countryNames, departments as defaultDepartments, countries as defaultCountries } from '@/lib/validations/employee'
-import { updateEmployee } from '@/lib/actions/employee'
+import { employeeFormSchema, type EmployeeFormData, maritalStatuses, genders, contractTypes, countryNames, departments as defaultDepartments, countries as defaultCountries } from '@/lib/validations/employee'
+import { createEmployee } from '@/lib/actions/employee'
 import { ArrowLeft, ChevronDown, ChevronUp, Save } from 'lucide-react'
 import Link from 'next/link'
 
-const editEmployeeSchema = z.object({
-  firstName: z.string().min(1, 'Required').max(100),
-  lastName: z.string().min(1, 'Required').max(100),
-  phoneNumber: z.string().optional(),
-  jobTitle: z.string().min(1, 'Required').max(100),
-  department: z.string().min(1, 'Required'),
-  nationality: z.string().min(1, 'Required'),
-  dateOfBirth: z.string().min(1, 'Required'),
-  gender: z.string().optional(),
-  maritalStatus: z.string().optional(),
-  emergencyContactName: z.string().optional(),
-  emergencyContactPhone: z.string().optional(),
-  managerId: z.string().optional(),
-  bankName: z.string().optional(),
-  iban: z.string().optional(),
-  swift: z.string().optional(),
-  salary: z.string().min(1, 'Required').regex(/^\d+(\.\d{1,2})?$/, 'Invalid format'),
-  basicSalary: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
-  housingAllowance: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
-  transportAllowance: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
-  otherAllowances: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid format').optional().or(z.literal('')),
-  contractType: z.string().optional(),
-  contractStartDate: z.string().optional(),
-  contractEndDate: z.string().optional(),
-  probationEndDate: z.string().optional(),
-  visaExpiryDate: z.string().optional(),
-  iqamaNumber: z.string().optional(),
-  iqamaExpiryDate: z.string().optional(),
-})
-
-type EditEmployeeFormData = z.infer<typeof editEmployeeSchema>
-
 type SectionKey = 'personal' | 'job' | 'contract' | 'bank' | 'emergency'
 
-interface EditEmployeeClientProps {
-  employee: {
-    id: string
-    firstName: string
-    lastName: string
-    phoneNumber: string
-    jobTitle: string
-    department: string
-    nationality: string
-    dateOfBirth: string
-    gender: string
-    maritalStatus: string
-    emergencyContactName: string
-    emergencyContactPhone: string
-    managerId: string
-    bankName: string
-    iban: string
-    swift: string
-    salary: string
-    basicSalary: string
-    housingAllowance: string
-    transportAllowance: string
-    otherAllowances: string
-    contractType: string
-    contractStartDate: string
-    contractEndDate: string
-    probationEndDate: string
-    visaExpiryDate: string
-    iqamaNumber: string
-    iqamaExpiryDate: string
-  }
-  managers: { id: string; firstName: string; lastName: string }[]
-  locale: string
-  currency?: string
-  departmentOptions?: string[]
-  nationalityOptions?: string[]
+const DAYS = [
+  { value: 0, key: 'sun' },
+  { value: 1, key: 'mon' },
+  { value: 2, key: 'tue' },
+  { value: 3, key: 'wed' },
+  { value: 4, key: 'thu' },
+  { value: 5, key: 'fri' },
+  { value: 6, key: 'sat' },
+] as const
+
+function generateEmployeeCode() {
+  const num = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
+  return `EMP-${num}`
 }
 
-export function EditEmployeeClient({
-  employee,
-  managers,
-  locale,
+export function AddEmployeeClient({
   currency = 'AED',
   departmentOptions = [...defaultDepartments],
   nationalityOptions = defaultCountries.map((c) => c.code),
-}: EditEmployeeClientProps) {
-  const t = useTranslations('editEmployee')
+  defaultWorkWeek = [0, 1, 2, 3, 4],
+}: {
+  currency?: string
+  departmentOptions?: string[]
+  nationalityOptions?: string[]
+  defaultWorkWeek?: number[]
+}) {
+  const t = useTranslations('employeesAdd')
   const tc = useTranslations('common')
-  const deptOptions = employee.department && !departmentOptions.includes(employee.department)
-    ? [employee.department, ...departmentOptions]
-    : departmentOptions
-  const natOptions = employee.nationality && !nationalityOptions.includes(employee.nationality)
-    ? [employee.nationality, ...nationalityOptions]
-    : nationalityOptions
+  const { locale } = useParams<{ locale: string }>()
   const [expandedSections, setExpandedSections] = useState<Set<SectionKey>>(
     new Set(['personal', 'job'])
   )
@@ -122,41 +65,14 @@ export function EditEmployeeClient({
     setValue,
     watch,
     formState: { errors },
-  } = useForm<EditEmployeeFormData>({
-    resolver: zodResolver(editEmployeeSchema),
+  } = useForm<EmployeeFormData>({
+    resolver: zodResolver(employeeFormSchema),
     defaultValues: {
-      firstName: employee.firstName,
-      lastName: employee.lastName,
-      phoneNumber: employee.phoneNumber,
-      jobTitle: employee.jobTitle,
-      department: employee.department,
-      nationality: employee.nationality,
-      dateOfBirth: employee.dateOfBirth,
-      gender: employee.gender,
-      maritalStatus: employee.maritalStatus,
-      emergencyContactName: employee.emergencyContactName,
-      emergencyContactPhone: employee.emergencyContactPhone,
-      managerId: employee.managerId,
-      bankName: employee.bankName,
-      iban: employee.iban,
-      swift: employee.swift,
-      salary: employee.salary,
-      basicSalary: employee.basicSalary,
-      housingAllowance: employee.housingAllowance,
-      transportAllowance: employee.transportAllowance,
-      otherAllowances: employee.otherAllowances,
-      contractType: employee.contractType,
-      contractStartDate: employee.contractStartDate,
-      contractEndDate: employee.contractEndDate,
-      probationEndDate: employee.probationEndDate,
-      visaExpiryDate: employee.visaExpiryDate,
-      iqamaNumber: employee.iqamaNumber,
-      iqamaExpiryDate: employee.iqamaExpiryDate,
+      employeeCode: generateEmployeeCode(),
+      role: 'EMPLOYEE',
+      workWeek: defaultWorkWeek,
     },
   })
-
-  const managerIdValue = watch('managerId')
-  const managerSelectValue = managerIdValue != null ? managerIdValue : 'none'
 
   function toggleSection(section: SectionKey) {
     setExpandedSections((prev) => {
@@ -170,18 +86,20 @@ export function EditEmployeeClient({
     })
   }
 
-  async function onSubmit(data: EditEmployeeFormData) {
+  async function onSubmit(data: EmployeeFormData) {
     setServerError('')
     setLoading(true)
 
     const formData = new FormData()
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
+      if (Array.isArray(value)) {
+        value.forEach((v) => formData.append(key, String(v)))
+      } else if (value !== undefined && value !== null) {
         formData.append(key, value as string)
       }
     })
 
-    const result = await updateEmployee(employee.id, formData)
+    const result = await createEmployee(formData)
 
     if (result?.error) {
       setServerError(result.error)
@@ -193,7 +111,7 @@ export function EditEmployeeClient({
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link
-          href={`/${locale}/employees/${employee.id}`}
+          href={`/${locale}/employees`}
           className={buttonVariants({ variant: 'ghost', size: 'icon' })}
         >
           <ArrowLeft className="h-4 w-4" />
@@ -210,6 +128,7 @@ export function EditEmployeeClient({
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        {/* Section 1: Personal Information */}
         <Card>
           <CardContent className="p-0">
             <button
@@ -231,6 +150,16 @@ export function EditEmployeeClient({
                   <Label htmlFor="lastName">{t('lastName')} *</Label>
                   <Input id="lastName" {...register('lastName')} disabled={loading} />
                   {errors.lastName && <p className="text-sm text-red-500">{errors.lastName.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">{t('email')} *</Label>
+                  <Input id="email" type="email" {...register('email')} disabled={loading} />
+                  {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">{t('password')} *</Label>
+                  <Input id="password" type="password" {...register('password')} disabled={loading} />
+                  {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phoneNumber">{t('phoneNumber')}</Label>
@@ -255,7 +184,7 @@ export function EditEmployeeClient({
                   <Select onValueChange={(v) => setValue('nationality', v ?? '')} value={watch('nationality')} disabled={loading}>
                     <SelectTrigger><SelectValue placeholder={t('nationality')} /></SelectTrigger>
                     <SelectContent>
-                      {natOptions.map((code) => <SelectItem key={code} value={code}>{countryNames[code] ?? code}</SelectItem>)}
+                      {nationalityOptions.map((code) => <SelectItem key={code} value={code}>{countryNames[code] ?? code}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   {errors.nationality && <p className="text-sm text-red-500">{errors.nationality.message}</p>}
@@ -274,6 +203,7 @@ export function EditEmployeeClient({
           </CardContent>
         </Card>
 
+        {/* Section 2: Job Details */}
         <Card>
           <CardContent className="p-0">
             <button
@@ -287,6 +217,11 @@ export function EditEmployeeClient({
             {expandedSections.has('job') && (
               <div className="grid gap-4 border-t p-4 sm:grid-cols-2">
                 <div className="space-y-2">
+                  <Label htmlFor="employeeCode">{t('employeeCode')} *</Label>
+                  <Input id="employeeCode" {...register('employeeCode')} disabled={loading} />
+                  {errors.employeeCode && <p className="text-sm text-red-500">{errors.employeeCode.message}</p>}
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="jobTitle">{t('jobTitle')} *</Label>
                   <Input id="jobTitle" {...register('jobTitle')} disabled={loading} />
                   {errors.jobTitle && <p className="text-sm text-red-500">{errors.jobTitle.message}</p>}
@@ -296,10 +231,15 @@ export function EditEmployeeClient({
                   <Select onValueChange={(v) => setValue('department', v ?? '')} value={watch('department')} disabled={loading}>
                     <SelectTrigger><SelectValue placeholder={t('department')} /></SelectTrigger>
                     <SelectContent>
-                      {deptOptions.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      {departmentOptions.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   {errors.department && <p className="text-sm text-red-500">{errors.department.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hireDate">{t('hireDate')} *</Label>
+                  <Input id="hireDate" type="date" {...register('hireDate')} disabled={loading} />
+                  {errors.hireDate && <p className="text-sm text-red-500">{errors.hireDate.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="salary">{t('salary', { currency })} *</Label>
@@ -327,22 +267,40 @@ export function EditEmployeeClient({
                   {errors.otherAllowances && <p className="text-sm text-red-500">{errors.otherAllowances.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label>{t('manager')}</Label>
-                  <Select onValueChange={(v) => setValue('managerId', v === 'none' ? '' : v ?? '')} value={managerSelectValue} disabled={loading}>
-                    <SelectTrigger><SelectValue placeholder={t('manager')} /></SelectTrigger>
+                  <Label>{t('role')} *</Label>
+                  <Select onValueChange={(v) => setValue('role', (v ?? 'EMPLOYEE') as 'HR_ADMIN' | 'MANAGER' | 'EMPLOYEE')} value={watch('role')} disabled={loading}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">{t('noManager')}</SelectItem>
-                      {managers.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>{m.firstName} {m.lastName}</SelectItem>
-                      ))}
+                      <SelectItem value="EMPLOYEE">{t('roleEmployee')}</SelectItem>
+                      <SelectItem value="MANAGER">{t('roleManager')}</SelectItem>
+                      <SelectItem value="HR_ADMIN">{t('roleHrAdmin')}</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>{t('workWeek')} *</Label>
+                  <div className="flex flex-wrap gap-4">
+                    {DAYS.map((day) => (
+                      <label key={day.value} className="flex items-center gap-2 text-sm font-normal">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4"
+                          value={day.value}
+                          disabled={loading}
+                          {...register('workWeek')}
+                        />
+                        {t(`days.${day.key}`)}
+                      </label>
+                    ))}
+                  </div>
+                  {errors.workWeek && <p className="text-sm text-red-500">{errors.workWeek.message}</p>}
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
 
+        {/* Section 3: Contract & Visa */}
         <Card>
           <CardContent className="p-0">
             <button
@@ -352,7 +310,7 @@ export function EditEmployeeClient({
             >
               <span className="flex items-center gap-2">
                 {t('contractVisa')}
-                <Badge variant="secondary" className="text-xs">{tc('optional') || 'Optional'}</Badge>
+                <Badge variant="secondary" className="text-xs">{t('optional')}</Badge>
               </span>
               {expandedSections.has('contract') ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
@@ -396,6 +354,7 @@ export function EditEmployeeClient({
           </CardContent>
         </Card>
 
+        {/* Section 4: Bank Details (optional) */}
         <Card>
           <CardContent className="p-0">
             <button
@@ -405,7 +364,7 @@ export function EditEmployeeClient({
             >
               <span className="flex items-center gap-2">
                 {t('bankDetails')}
-                <Badge variant="secondary" className="text-xs">{tc('optional') || 'Optional'}</Badge>
+                <Badge variant="secondary" className="text-xs">{t('optional')}</Badge>
               </span>
               {expandedSections.has('bank') ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
@@ -428,6 +387,7 @@ export function EditEmployeeClient({
           </CardContent>
         </Card>
 
+        {/* Section 4: Emergency Contact (optional) */}
         <Card>
           <CardContent className="p-0">
             <button
@@ -437,7 +397,7 @@ export function EditEmployeeClient({
             >
               <span className="flex items-center gap-2">
                 {t('emergencyContact')}
-                <Badge variant="secondary" className="text-xs">{tc('optional') || 'Optional'}</Badge>
+                <Badge variant="secondary" className="text-xs">{t('optional')}</Badge>
               </span>
               {expandedSections.has('emergency') ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
@@ -458,7 +418,7 @@ export function EditEmployeeClient({
 
         <div className="flex justify-end gap-2">
           <Link
-            href={`/${locale}/employees/${employee.id}`}
+            href={`/${locale}/employees`}
             className={buttonVariants({ variant: 'outline' })}
           >
             {tc('cancel')}

@@ -11,6 +11,8 @@ import {
   getTodayPresentCount,
 } from '@/lib/queries/dashboard'
 import { getContractExpiringSoon, getVisaExpiringSoon } from '@/lib/actions/employee'
+import { getCompanySettings } from '@/lib/queries/company'
+import { getNumericSetting } from '@/lib/queries/app-settings'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,6 +40,11 @@ function DashboardSkeleton() {
 async function DashboardData() {
   const today = getTodayUaeDate()
 
+  const [company, expiryWarningDays] = await Promise.all([
+    getCompanySettings(),
+    getNumericSetting('EXPIRY_WARNING_DAYS'),
+  ])
+
   const [
     totalEmployees,
     presentCount,
@@ -48,8 +55,8 @@ async function DashboardData() {
     getActiveEmployeeCount(),
     getTodayPresentCount(today),
     getPendingLeaveCount(),
-    getContractExpiringSoon(30),
-    getVisaExpiringSoon(30),
+    getContractExpiringSoon(expiryWarningDays),
+    getVisaExpiringSoon(expiryWarningDays),
   ])
 
   const [payrollTrend, weeklyAttendance, leaveDistribution, payrollKpi] = await Promise.all([
@@ -73,6 +80,8 @@ async function DashboardData() {
       payrollKpi={payrollKpi}
       contractExpiring={contractExpiringList}
       visaExpiring={visaExpiringList}
+      currency={company.currency}
+      location={company.location}
     />
   )
 }

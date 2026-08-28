@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { getBaseCriteria } from '@/lib/queries/performance'
 import { getAllActiveEmployees } from '@/lib/queries/attendance'
+import { getCompanySettings } from '@/lib/queries/company'
 import { NewReviewClient } from './new-review-client'
 
 export const dynamic = 'force-dynamic'
@@ -15,9 +16,10 @@ export default async function NewReviewPage({
 
   const { employee: employeeParam } = await searchParams
 
-  const [criteria, employees] = await Promise.all([
+  const [criteria, employees, company] = await Promise.all([
     getBaseCriteria(),
     getAllActiveEmployees(),
+    getCompanySettings(),
   ])
 
   return (
@@ -25,6 +27,7 @@ export default async function NewReviewPage({
       defaultEmployeeId={employeeParam ?? ''}
       criteria={criteria.map(c => ({ id: c.id, name: c.name, nameAr: c.nameAr }))}
       employees={employees.map(e => ({ id: e.id, firstName: e.firstName, lastName: e.lastName }))}
+      currency={company.currency}
     />
   )
 }

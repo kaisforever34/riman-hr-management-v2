@@ -43,10 +43,10 @@ describe('employeeFormSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects short password', () => {
+  it('rejects empty password (configurable min length enforced in actions)', () => {
     const result = employeeFormSchema.safeParse({
       firstName: 'A', lastName: 'B', email: 'a@b.com',
-      password: '123', dateOfBirth: '1990-01-01',
+      password: '', dateOfBirth: '1990-01-01',
       nationality: 'AE', employeeCode: 'E1', jobTitle: 'T',
       department: 'Ops', hireDate: '2024-01-01', salary: '5000',
     })

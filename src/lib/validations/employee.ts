@@ -4,7 +4,7 @@ export const employeeFormSchema = z.object({
   firstName: z.string().min(1, 'Required').max(100),
   lastName: z.string().min(1, 'Required').max(100),
   email: z.string().email('Invalid email'),
-  password: z.string().min(8, 'At least 8 characters'),
+  password: z.string().min(1, 'Required'),
   phoneNumber: z.string().optional(),
   dateOfBirth: z.string().min(1, 'Required'),
   gender: z.string().optional(),
@@ -75,3 +75,9 @@ export const countries = [
   { code: 'US', name: 'United States' },
   { code: 'CA', name: 'Canada' },
 ] as const
+
+export const countryNames: Record<string, string> = Object.fromEntries(
+  countries.map((c) => [c.code, c.name]),
+)
+
+export const GCC_COUNTRY_CODES = ['AE', 'SA', 'KW', 'QA', 'OM', 'BH']
